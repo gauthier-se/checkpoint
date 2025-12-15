@@ -1,0 +1,79 @@
+# Build outputs
+target/
+build/
+out/
+bin/
+
+# Maven
+.mvn/wrapper/maven-wrapper.jar
+!.mvn/wrapper/maven-wrapper.properties
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.settings/
+.classpath
+.project
+.factorypath
+
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose.yml
+docker-compose.yaml
+compose.yaml
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+.circleci/
+
+# Documentation
+README.md
+CHANGELOG.md
+LICENSE
+*.md
+HELP.md
+docs/
+
+# Logs
+logs/
+*.log
+
+# Test files
+src/test/
+**/*Test.java
+**/*Tests.java
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Package files
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
