@@ -27,6 +27,7 @@ __mocks__
 .env.*.local
 .env.development
 .env.test
+.env.production
 
 # IDE and editor files
 .vscode
