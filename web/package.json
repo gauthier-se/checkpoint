@@ -9,6 +9,7 @@
     "test": "vitest run",
     "lint": "eslint",
     "format": "prettier",
+    "start": "node .output/server/index.mjs",
     "check": "prettier --write . && eslint --fix"
   },
   "dependencies": {
@@ -28,8 +29,9 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.544.0",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
+    "nitro": "3.0.1-alpha.1",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
     "tailwind-merge": "^3.0.2",
     "tailwindcss": "^4.0.6",
     "tw-animate-css": "^1.3.6",
