@@ -57,9 +57,6 @@ logs/
 *.log
 
 # Test files
-src/test/
-**/*Test.java
-**/*Tests.java
 
 # Environment files
 .env
