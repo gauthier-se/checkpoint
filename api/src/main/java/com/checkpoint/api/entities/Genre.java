@@ -5,6 +5,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
+import org.hibernate.annotations.Formula;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -31,6 +33,10 @@ public class Genre {
 
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    // Computed field: count of video games in this genre
+    @Formula("(SELECT COUNT(*) FROM video_game_genres vgg WHERE vgg.genre_id = id)")
+    private Integer videoGamesCount;
 
     // Relationship: Genre can have multiple video games (ManyToMany)
     @ManyToMany(mappedBy = "genres")
@@ -91,5 +97,9 @@ public class Genre {
 
     public void setVideoGames(Set<VideoGame> videoGames) {
         this.videoGames = videoGames;
+    }
+
+    public Integer getVideoGamesCount() {
+        return videoGamesCount != null ? videoGamesCount : 0;
     }
 }

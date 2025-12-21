@@ -5,6 +5,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
+import org.hibernate.annotations.Formula;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -32,6 +34,10 @@ public class Platform {
 
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    // Computed field: count of video games on this platform
+    @Formula("(SELECT COUNT(*) FROM video_game_platforms vgp WHERE vgp.platform_id = id)")
+    private Integer videoGamesCount;
 
     // Relationship: Platform can have multiple video games (ManyToMany)
     @ManyToMany(mappedBy = "platforms")
@@ -104,5 +110,9 @@ public class Platform {
 
     public void setGamePlays(Set<UserGamePlay> gamePlays) {
         this.gamePlays = gamePlays;
+    }
+
+    public Integer getVideoGamesCount() {
+        return videoGamesCount != null ? videoGamesCount : 0;
     }
 }

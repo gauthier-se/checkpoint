@@ -5,6 +5,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
+import org.hibernate.annotations.Formula;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -37,6 +39,10 @@ public class GameList {
 
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    // Computed field: count of video games in this list
+    @Formula("(SELECT COUNT(*) FROM list_video_games lvg WHERE lvg.list_id = id)")
+    private Integer videoGamesCount;
 
     // Relationship: List is created by one user
     @ManyToOne(fetch = FetchType.LAZY)
@@ -151,5 +157,9 @@ public class GameList {
 
     public void setLikes(Set<Like> likes) {
         this.likes = likes;
+    }
+
+    public Integer getVideoGamesCount() {
+        return videoGamesCount != null ? videoGamesCount : 0;
     }
 }
