@@ -9,12 +9,14 @@ import java.util.UUID;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
@@ -69,6 +71,33 @@ public class VideoGame {
     )
     private Set<Genre> genres = new HashSet<>();
 
+    // Relationship: VideoGame can belong to 0 or 1 series
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "series_id")
+    private Series series;
+
+    // Relationship: VideoGame can be created by multiple companies (ManyToMany)
+    @ManyToMany
+    @JoinTable(
+        name = "video_game_companies",
+        joinColumns = @JoinColumn(name = "video_game_id"),
+        inverseJoinColumns = @JoinColumn(name = "company_id")
+    )
+    private Set<Company> companies = new HashSet<>();
+
+    // Relationship: VideoGame can have multiple pictures
+    @OneToMany(mappedBy = "videoGame", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Picture> pictures = new HashSet<>();
+
+    // Relationship: VideoGame can be a DLC of another game (self-referencing)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_game_id")
+    private VideoGame parentGame;
+
+    // Relationship: VideoGame can have multiple DLCs
+    @OneToMany(mappedBy = "parentGame", cascade = CascadeType.ALL)
+    private Set<VideoGame> dlcs = new HashSet<>();
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
@@ -108,6 +137,28 @@ public class VideoGame {
     public void removeGenre(Genre genre) {
         this.genres.remove(genre);
         genre.getVideoGames().remove(this);
+    }
+
+    // Helper methods for managing companies
+    public void addCompany(Company company) {
+        this.companies.add(company);
+        company.getVideoGames().add(this);
+    }
+
+    public void removeCompany(Company company) {
+        this.companies.remove(company);
+        company.getVideoGames().remove(this);
+    }
+
+    // Helper methods for managing DLCs
+    public void addDlc(VideoGame dlc) {
+        this.dlcs.add(dlc);
+        dlc.setParentGame(this);
+    }
+
+    public void removeDlc(VideoGame dlc) {
+        this.dlcs.remove(dlc);
+        dlc.setParentGame(null);
     }
 
     // Getters and Setters
@@ -189,5 +240,45 @@ public class VideoGame {
 
     public void setGenres(Set<Genre> genres) {
         this.genres = genres;
+    }
+
+    public Series getSeries() {
+        return series;
+    }
+
+    public void setSeries(Series series) {
+        this.series = series;
+    }
+
+    public Set<Company> getCompanies() {
+        return companies;
+    }
+
+    public void setCompanies(Set<Company> companies) {
+        this.companies = companies;
+    }
+
+    public Set<Picture> getPictures() {
+        return pictures;
+    }
+
+    public void setPictures(Set<Picture> pictures) {
+        this.pictures = pictures;
+    }
+
+    public VideoGame getParentGame() {
+        return parentGame;
+    }
+
+    public void setParentGame(VideoGame parentGame) {
+        this.parentGame = parentGame;
+    }
+
+    public Set<VideoGame> getDlcs() {
+        return dlcs;
+    }
+
+    public void setDlcs(Set<VideoGame> dlcs) {
+        this.dlcs = dlcs;
     }
 }
