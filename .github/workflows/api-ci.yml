@@ -27,6 +27,9 @@ jobs:
           cache: "maven"
 
       - name: Run tests
+        env:
+          IGDB_CLIENT_ID: ${{ secrets.IGDB_CLIENT_ID }}
+          IGDB_CLIENT_SECRET: ${{ secrets.IGDB_CLIENT_SECRET }}
         run: ./mvnw test --batch-mode
 
   build:

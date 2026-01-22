@@ -93,6 +93,22 @@
 - **pnpm**
 - **Docker & Docker Compose**
 - **PostgreSQL** (or use Docker)
+- **Doppler CLI** (for secrets management)
+
+### Doppler Setup
+
+This project uses [Doppler](https://www.doppler.com/) to manage environment variables and secrets.
+
+```bash
+# Install Doppler CLI (macOS)
+brew install dopplerhq/cli/doppler
+
+# Login to Doppler
+doppler login
+
+# Setup project (run in root directory)
+doppler setup
+```
 
 ### API (Spring Boot)
 
@@ -102,11 +118,21 @@ cd api
 # Start PostgreSQL with Docker
 docker compose up -d
 
-# Run the application
-./mvnw spring-boot:run
+# Run the application with Doppler
+doppler run -- ./mvnw spring-boot:run
+
+# Run tests with Doppler (for IGDB integration tests)
+doppler run -- ./mvnw test
 ```
 
 The API will be available at `http://localhost:8080`
+
+#### Required Environment Variables (via Doppler)
+
+| Variable | Description |
+|----------|-------------|
+| `IGDB_CLIENT_ID` | Twitch Client ID for IGDB API |
+| `IGDB_CLIENT_SECRET` | Twitch Client Secret for IGDB API |
 
 ### Web Application (TanStack Start)
 
