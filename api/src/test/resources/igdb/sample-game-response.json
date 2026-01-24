@@ -1,0 +1,175 @@
+[
+	{
+		"id": 1942,
+		"name": "The Witcher 3: Wild Hunt",
+		"slug": "the-witcher-3-wild-hunt",
+		"summary": "RPG and target narrative experience come together in The Witcher 3: Wild Hunt, where choices you make have far-reaching consequences and the world genuinely reacts to your actions. The game is set in a dark fantasy world where humans, nonhumans, and monsters coexist in a morally gray universe.",
+		"storyline": "The Witcher 3: Wild Hunt concludes the story of the witcher Geralt of Rivia, the series' protagonist, whose story to date has been covered in the previous games.",
+		"first_release_date": 1431993600,
+		"rating": 92.5,
+		"rating_count": 1250,
+		"aggregated_rating": 93.8,
+		"aggregated_rating_count": 85,
+		"total_rating": 93.15,
+		"total_rating_count": 1335,
+		"cover": {
+			"id": 89386,
+			"image_id": "co1wyy",
+			"url": "//images.igdb.com/igdb/image/upload/t_thumb/co1wyy.jpg",
+			"width": 264,
+			"height": 374,
+			"alpha_channel": false,
+			"animated": false
+		},
+		"genres": [
+			{
+				"id": 12,
+				"name": "Role-playing (RPG)",
+				"slug": "role-playing-rpg",
+				"url": "https://www.igdb.com/genres/role-playing-rpg"
+			},
+			{
+				"id": 31,
+				"name": "Adventure",
+				"slug": "adventure",
+				"url": "https://www.igdb.com/genres/adventure"
+			}
+		],
+		"platforms": [
+			{
+				"id": 6,
+				"name": "PC (Microsoft Windows)",
+				"slug": "win",
+				"abbreviation": "PC",
+				"alternative_name": "mswin",
+				"generation": null,
+				"platform_logo": {
+					"id": 203,
+					"image_id": "plfl",
+					"url": "//images.igdb.com/igdb/image/upload/t_thumb/plfl.png",
+					"width": 500,
+					"height": 500
+				},
+				"summary": null,
+				"url": "https://www.igdb.com/platforms/win"
+			},
+			{
+				"id": 48,
+				"name": "PlayStation 4",
+				"slug": "ps4--1",
+				"abbreviation": "PS4",
+				"alternative_name": null,
+				"generation": 8,
+				"platform_logo": {
+					"id": 231,
+					"image_id": "pl6e",
+					"url": "//images.igdb.com/igdb/image/upload/t_thumb/pl6e.png",
+					"width": 800,
+					"height": 800
+				},
+				"summary": null,
+				"url": "https://www.igdb.com/platforms/ps4--1"
+			},
+			{
+				"id": 49,
+				"name": "Xbox One",
+				"slug": "xboxone",
+				"abbreviation": "XONE",
+				"alternative_name": null,
+				"generation": 8,
+				"platform_logo": {
+					"id": 329,
+					"image_id": "pl95",
+					"url": "//images.igdb.com/igdb/image/upload/t_thumb/pl95.png",
+					"width": 800,
+					"height": 800
+				},
+				"summary": null,
+				"url": "https://www.igdb.com/platforms/xboxone"
+			}
+		],
+		"involved_companies": [
+			{
+				"id": 37623,
+				"company": {
+					"id": 908,
+					"name": "CD Projekt RED",
+					"slug": "cd-projekt-red",
+					"description": "CD Projekt RED is a Polish video game developer founded in 2002.",
+					"start_date": 1012521600,
+					"logo": {
+						"id": 876,
+						"image_id": "cl2h",
+						"url": "//images.igdb.com/igdb/image/upload/t_thumb/cl2h.png",
+						"width": 800,
+						"height": 800
+					},
+					"url": "https://www.igdb.com/companies/cd-projekt-red",
+					"country": 616
+				},
+				"developer": true,
+				"publisher": true,
+				"porting": false,
+				"supporting": false
+			}
+		],
+		"screenshots": [
+			{
+				"id": 4589,
+				"image_id": "dfgkfivjrhcksyymh9vw",
+				"url": "//images.igdb.com/igdb/image/upload/t_thumb/dfgkfivjrhcksyymh9vw.jpg",
+				"width": 1920,
+				"height": 1080
+			},
+			{
+				"id": 4590,
+				"image_id": "em1y2ugcwy2myuhvb9db",
+				"url": "//images.igdb.com/igdb/image/upload/t_thumb/em1y2ugcwy2myuhvb9db.jpg",
+				"width": 1920,
+				"height": 1080
+			}
+		],
+		"similar_games": [1020, 1030, 1074, 1164, 2155],
+		"game_modes": [
+			{
+				"id": 1,
+				"name": "Single player",
+				"slug": "single-player",
+				"url": "https://www.igdb.com/game_modes/single-player"
+			}
+		],
+		"themes": [
+			{
+				"id": 1,
+				"name": "Action",
+				"slug": "action",
+				"url": "https://www.igdb.com/themes/action"
+			},
+			{
+				"id": 17,
+				"name": "Fantasy",
+				"slug": "fantasy",
+				"url": "https://www.igdb.com/themes/fantasy"
+			},
+			{
+				"id": 18,
+				"name": "Open world",
+				"slug": "open-world",
+				"url": "https://www.igdb.com/themes/open-world"
+			}
+		],
+		"player_perspectives": [
+			{
+				"id": 2,
+				"name": "Third person",
+				"slug": "third-person",
+				"url": "https://www.igdb.com/player_perspectives/third-person"
+			}
+		],
+		"parent_game": null,
+		"dlcs": [16873, 26758],
+		"expansions": [16873, 26758],
+		"version_title": null,
+		"url": "https://www.igdb.com/games/the-witcher-3-wild-hunt"
+	}
+]
