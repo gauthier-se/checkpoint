@@ -30,11 +30,23 @@ public class VideoGame {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    /**
+     * External ID from IGDB API for duplicate detection during import.
+     */
+    @Column(name = "igdb_id", unique = true)
+    private Long igdbId;
+
     @Column(nullable = false)
     private String title;
 
     @Column(columnDefinition = "TEXT")
     private String description;
+
+    /**
+     * URL of the cover image from IGDB.
+     */
+    @Column(name = "cover_url")
+    private String coverUrl;
 
     @Column(name = "release_date")
     private LocalDate releaseDate;
@@ -194,6 +206,14 @@ public class VideoGame {
         this.id = id;
     }
 
+    public Long getIgdbId() {
+        return igdbId;
+    }
+
+    public void setIgdbId(Long igdbId) {
+        this.igdbId = igdbId;
+    }
+
     public String getTitle() {
         return title;
     }
@@ -208,6 +228,14 @@ public class VideoGame {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getCoverUrl() {
+        return coverUrl;
+    }
+
+    public void setCoverUrl(String coverUrl) {
+        this.coverUrl = coverUrl;
     }
 
     public LocalDate getReleaseDate() {
