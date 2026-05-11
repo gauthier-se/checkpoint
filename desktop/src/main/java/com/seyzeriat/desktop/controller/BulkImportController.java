@@ -1,6 +1,9 @@
 package com.seyzeriat.desktop.controller;
 
+import java.io.IOException;
+import java.net.http.HttpTimeoutException;
 import java.util.List;
+import java.util.Optional;
 
 import com.seyzeriat.desktop.HelloApplication;
 import com.seyzeriat.desktop.dto.BulkImportResult;
@@ -9,7 +12,9 @@ import com.seyzeriat.desktop.service.ApiService;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.Spinner;
@@ -20,6 +25,8 @@ import javafx.scene.control.SpinnerValueFactory;
  * Lets an admin batch-import top-rated or recent games from IGDB.
  */
 public class BulkImportController {
+
+    private static final int SAFE_LIMIT_THRESHOLD = 200;
 
     @FXML private Spinner<Integer> topRatedLimitSpinner;
     @FXML private Spinner<Integer> minRatingCountSpinner;
@@ -56,6 +63,10 @@ public class BulkImportController {
         int limit = topRatedLimitSpinner.getValue();
         int minRatingCount = minRatingCountSpinner.getValue();
 
+        if (!confirmLargeImport(limit)) {
+            return;
+        }
+
         startImport(
                 topRatedStatusLabel,
                 "Import des jeux les mieux notés en cours...",
@@ -67,11 +78,27 @@ public class BulkImportController {
     private void onStartRecent() {
         int limit = recentLimitSpinner.getValue();
 
+        if (!confirmLargeImport(limit)) {
+            return;
+        }
+
         startImport(
                 recentStatusLabel,
                 "Import des sorties récentes en cours...",
                 () -> apiService.bulkImportRecent(limit)
         );
+    }
+
+    private boolean confirmLargeImport(int limit) {
+        if (limit <= SAFE_LIMIT_THRESHOLD) {
+            return true;
+        }
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Confirmation");
+        alert.setHeaderText("Import volumineux");
+        alert.setContentText("Vous allez importer " + limit + " jeux. L'opération peut prendre plusieurs minutes et risque d'échouer si la réponse est trop volumineuse. Continuer ?");
+        Optional<ButtonType> result = alert.showAndWait();
+        return result.isPresent() && result.get() == ButtonType.OK;
     }
 
     private void startImport(Label cardStatusLabel, String runningMessage, ImportCall call) {
@@ -99,12 +126,24 @@ public class BulkImportController {
                 redirectToLogin();
                 return;
             }
-            String message = ex != null && ex.getMessage() != null ? ex.getMessage() : "erreur inconnue";
-            cardStatusLabel.setText("Erreur : " + message);
+            cardStatusLabel.setText("Erreur : " + describeFailure(ex));
             globalStatusLabel.setText("Échec de l'import.");
         }));
 
         new Thread(task, "bulk-import-thread").start();
+    }
+
+    private String describeFailure(Throwable ex) {
+        if (ex instanceof HttpTimeoutException) {
+            return "La requête a expiré. Essayez avec un nombre de jeux plus petit.";
+        }
+        if (ex instanceof OutOfMemoryError) {
+            return "La réponse est trop volumineuse. Réduisez le nombre de jeux importés.";
+        }
+        if (ex instanceof IOException && ex.getMessage() != null && ex.getMessage().contains("status 413")) {
+            return "Le serveur a refusé la requête (limite de taille dépassée). Réduisez le nombre de jeux.";
+        }
+        return ex != null && ex.getMessage() != null ? ex.getMessage() : "erreur inconnue";
     }
 
     private void setRunning(boolean running, String message) {

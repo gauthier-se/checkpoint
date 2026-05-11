@@ -7,6 +7,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.List;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -41,7 +42,9 @@ public class ApiService {
     private final AuthService authService;
 
     public ApiService() {
-        this.httpClient = HttpClient.newHttpClient();
+        this.httpClient = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(10))
+                .build();
         this.objectMapper = new ObjectMapper();
         this.objectMapper.findAndRegisterModules();
         this.authService = new AuthService();
@@ -124,6 +127,7 @@ public class ApiService {
 
         HttpRequest.Builder builder = HttpRequest.newBuilder()
                 .uri(URI.create(url))
+                .timeout(Duration.ofSeconds(120))
                 .header("Accept", "application/json")
                 .POST(HttpRequest.BodyPublishers.noBody());
 
@@ -153,6 +157,7 @@ public class ApiService {
 
         HttpRequest.Builder builder = HttpRequest.newBuilder()
                 .uri(URI.create(url))
+                .timeout(Duration.ofSeconds(120))
                 .header("Accept", "application/json")
                 .POST(HttpRequest.BodyPublishers.noBody());
 
