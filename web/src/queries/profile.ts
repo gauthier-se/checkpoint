@@ -164,3 +164,12 @@ export async function deletePicture(): Promise<void> {
     throw new Error('Failed to delete picture')
   }
 }
+
+export async function deleteAccount(): Promise<void> {
+  const res = await apiFetch('/api/me', {
+    method: 'DELETE',
+  })
+  if (!res.ok) {
+    throw new Error('Failed to delete account')
+  }
+}

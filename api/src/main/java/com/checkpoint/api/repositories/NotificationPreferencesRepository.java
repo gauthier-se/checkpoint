@@ -4,6 +4,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.checkpoint.api.entities.NotificationPreferences;
@@ -29,4 +32,13 @@ public interface NotificationPreferencesRepository extends JpaRepository<Notific
      * @return the preferences row, or empty if the user has not customized them yet
      */
     Optional<NotificationPreferences> findByUserEmail(String email);
+
+    /**
+     * Deletes the notification preferences row owned by the given user, if any.
+     *
+     * @param userId the owning user's ID
+     */
+    @Modifying
+    @Query("DELETE FROM NotificationPreferences np WHERE np.user.id = :userId")
+    void deleteByUserId(@Param("userId") UUID userId);
 }

@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useSuspenseQuery } from '@tanstack/react-query'
+import { DeleteAccountCard } from '@/components/settings/delete-account-card'
 import { EditProfileForm } from '@/components/settings/edit-profile-form'
 import { useAuth } from '@/hooks/use-auth'
 import { userProfileQueryOptions } from '@/queries/profile'
@@ -35,11 +36,14 @@ function SettingsProfilePage() {
   )
 
   return (
-    <EditProfileForm
-      username={profile.username}
-      bio={profile.bio}
-      picture={profile.picture}
-      isPrivate={profile.isPrivate}
-    />
+    <div className="space-y-6">
+      <EditProfileForm
+        username={profile.username}
+        bio={profile.bio}
+        picture={profile.picture}
+        isPrivate={profile.isPrivate}
+      />
+      <DeleteAccountCard username={profile.username} />
+    </div>
   )
 }

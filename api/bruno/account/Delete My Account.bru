@@ -1,0 +1,50 @@
+meta {
+  name: Delete My Account
+  type: http
+  seq: 1
+}
+
+delete {
+  url: {{baseUrl}}/api/me
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  # Delete My Account
+
+  Permanently deletes the authenticated user's account along with every piece
+  of personal data associated with it (GDPR Article 17 — right to erasure).
+
+  The deletion runs in a single transaction and follows a strict order so
+  foreign-key constraints are respected:
+
+  1. Notifications (received or sent by the user)
+  2. Refresh tokens and password reset tokens
+  3. Notification preferences
+  4. Follow relationships (both directions of the `user_follows` join table)
+  5. The user row itself — JPA cascades to: likes, comments, reports filed,
+     reviews, play logs, library entries, wishes, backlog, favorites, lists
+     and list entries, tags, rates, news, social links.
+
+  The session is invalidated on the response: both `checkpoint_token` and
+  `checkpoint_refresh` cookies are expired. Subsequent requests from the same
+  browser will return 401.
+
+  ## Authentication
+
+  Requires a valid session (Web: `checkpoint_token` cookie; Desktop: bearer
+  token in the `Authorization` header).
+
+  ## Response (204 No Content)
+
+  Empty response body on success.
+
+  ## Error Responses
+
+  - **401 Unauthorized**: Not authenticated
+}

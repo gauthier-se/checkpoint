@@ -7,6 +7,7 @@ import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -170,4 +171,18 @@ public interface UserRepository extends JpaRepository<User, UUID> {
      */
     @Query("SELECT f.id FROM User u JOIN u.following f WHERE u.id = :userId")
     List<UUID> findFollowingIdsByUserId(@Param("userId") UUID userId);
+
+    /**
+     * Deletes every row from the {@code user_follows} join table that involves
+     * the given user, either as follower or as the user being followed.
+     * Used when erasing the user, since the inverse side
+     * ({@link User#getFollowers()}) is not cascade-managed and would otherwise
+     * leave dangling join-table rows that violate the foreign-key constraint.
+     *
+     * @param userId the user being erased
+     */
+    @Modifying
+    @Query(value = "DELETE FROM user_follows WHERE follower_id = :userId OR following_id = :userId",
+           nativeQuery = true)
+    void deleteFollowsInvolvingUser(@Param("userId") UUID userId);
 }

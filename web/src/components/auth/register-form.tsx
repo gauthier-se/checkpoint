@@ -10,6 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Field,
   FieldDescription,
@@ -41,6 +42,9 @@ export function RegisterForm({
         .string()
         .min(8, 'Password must be at least 8 characters long'),
       confirmPassword: z.string().min(1, 'Password confirmation is required'),
+      acceptTerms: z.boolean().refine((v) => v === true, {
+        message: 'You must accept the Terms of Service and Privacy Policy',
+      }),
     })
     .refine((data) => data.password === data.confirmPassword, {
       message: 'Passwords do not match',
@@ -53,15 +57,17 @@ export function RegisterForm({
       email: '',
       password: '',
       confirmPassword: '',
+      acceptTerms: false,
     },
     validators: {
       onChange: registerSchema,
     },
     onSubmit: async ({ value }) => {
+      const { acceptTerms: _acceptTerms, ...payload } = value
       const res = await apiFetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(value),
+        body: JSON.stringify(payload),
       })
 
       if (!res.ok) {
@@ -227,6 +233,45 @@ export function RegisterForm({
                       onBlur={field.handleBlur}
                       onChange={(e) => field.handleChange(e.target.value)}
                     />
+                    {field.state.meta.errors.length > 0 && (
+                      <p className="text-sm text-destructive">
+                        {field.state.meta.errors
+                          .map((e) =>
+                            typeof e === 'string' ? e : (e as any).message,
+                          )
+                          .join(', ')}
+                      </p>
+                    )}
+                  </Field>
+                )}
+              />
+
+              <form.Field
+                name="acceptTerms"
+                children={(field) => (
+                  <Field>
+                    <div className="flex items-start gap-2">
+                      <Checkbox
+                        id="acceptTerms"
+                        checked={field.state.value}
+                        onCheckedChange={(checked) =>
+                          field.handleChange(checked === true)
+                        }
+                      />
+                      <FieldLabel
+                        htmlFor="acceptTerms"
+                        className="text-sm font-normal leading-snug"
+                      >
+                        I agree to the{' '}
+                        <Link to="/legal" className="underline">
+                          Terms of Service
+                        </Link>{' '}
+                        and the{' '}
+                        <Link to="/legal" hash="privacy" className="underline">
+                          Privacy Policy
+                        </Link>
+                      </FieldLabel>
+                    </div>
                     {field.state.meta.errors.length > 0 && (
                       <p className="text-sm text-destructive">
                         {field.state.meta.errors

@@ -97,4 +97,16 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
     @Query("UPDATE Notification n SET n.isRead = true, n.updatedAt = CURRENT_TIMESTAMP "
             + "WHERE n.id IN :ids AND n.recipient.id = :recipientId AND n.isRead = false")
     int markAsReadByIdsAndRecipientId(@Param("ids") Set<UUID> ids, @Param("recipientId") UUID recipientId);
+
+    /**
+     * Deletes every notification where the given user is either the recipient
+     * or the sender. Used when erasing a user account so that no notification
+     * survives with a dangling user reference (the {@code sender} association
+     * is not cascade-managed by the {@code User} entity).
+     *
+     * @param userId the user whose notifications should be deleted
+     */
+    @Modifying
+    @Query("DELETE FROM Notification n WHERE n.recipient.id = :userId OR n.sender.id = :userId")
+    void deleteAllForUser(@Param("userId") UUID userId);
 }
