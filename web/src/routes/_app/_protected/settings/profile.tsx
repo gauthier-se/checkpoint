@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { DeleteAccountCard } from '@/components/settings/delete-account-card'
 import { EditProfileForm } from '@/components/settings/edit-profile-form'
+import { ExportDataCard } from '@/components/settings/export-data-card'
 import { useAuth } from '@/hooks/use-auth'
 import { userProfileQueryOptions } from '@/queries/profile'
 
@@ -43,6 +44,7 @@ function SettingsProfilePage() {
         picture={profile.picture}
         isPrivate={profile.isPrivate}
       />
+      <ExportDataCard />
       <DeleteAccountCard username={profile.username} />
     </div>
   )

@@ -173,3 +173,11 @@ export async function deleteAccount(): Promise<void> {
     throw new Error('Failed to delete account')
   }
 }
+
+export async function exportData(): Promise<Blob> {
+  const res = await apiFetch('/api/me/export')
+  if (!res.ok) {
+    throw new Error('Failed to export data')
+  }
+  return res.blob()
+}

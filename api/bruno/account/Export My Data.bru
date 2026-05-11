@@ -1,0 +1,64 @@
+meta {
+  name: Export My Data
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/me/export
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  # Export My Data
+
+  Returns every personal data category we hold about the authenticated user
+  as a single machine-readable JSON file (GDPR Article 20 — right to data
+  portability).
+
+  The response body is the export payload itself. The
+  `Content-Disposition: attachment` header instructs the browser to save it
+  as `checkpoint-export-YYYY-MM-DD.json` rather than render it inline.
+
+  ## Categories included
+
+  - `profile` — id, username (pseudo), email, bio, picture, isPrivate,
+    level, xpPoint, createdAt
+  - `library` — UserGame entries with game title and status
+  - `playLogs` — UserGamePlay entries with game title, platform name,
+    status, time played, score, ownership, tags, dates
+  - `reviews` — review id, game title, content, spoiler flag, timestamps
+  - `comments` — id, content, reviewId or gameListId (exactly one), timestamps
+  - `wishlist` — Wish entries with game title and priority
+  - `backlogs` — Backlog entries with game title and priority
+  - `favorites` — Favorite entries with game title and display order
+  - `gameLists` — lists owned by the user, each containing its ordered
+    entries (game title + position)
+  - `tags` — user-scoped tags (id, name, createdAt)
+  - `ratings` — Rate entries with game title and score
+  - `socialLinks` — url + createdAt
+  - `exportedAt` — server-side timestamp of the export
+
+  Categories **not** included: follows, badges, likes, reports — intentionally
+  out of scope.
+
+  ## Authentication
+
+  Requires a valid session (Web: `checkpoint_token` cookie; Desktop: bearer
+  token in the `Authorization` header).
+
+  ## Response (200 OK)
+
+  - `Content-Type: application/json`
+  - `Content-Disposition: attachment; filename="checkpoint-export-YYYY-MM-DD.json"`
+  - Body: a `UserDataExportDto` JSON document with the categories listed above
+
+  ## Error Responses
+
+  - **401 Unauthorized**: Not authenticated
+}
