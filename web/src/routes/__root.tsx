@@ -9,7 +9,7 @@ import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 
 import { HotkeysProvider } from '@tanstack/react-hotkeys'
 import { ThemeProvider } from 'next-themes'
-import appCss from '../styles.css?url'
+import appCss from '../styles.css?inline'
 import type { QueryClient } from '@tanstack/react-query'
 import { Toaster } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
@@ -32,10 +32,9 @@ export const Route = createRootRouteWithContext<RouterContext>()({
         title: 'Checkpoint - Your gaming journal',
       },
     ],
-    links: [
+    styles: [
       {
-        rel: 'stylesheet',
-        href: appCss,
+        children: appCss,
       },
     ],
   }),
