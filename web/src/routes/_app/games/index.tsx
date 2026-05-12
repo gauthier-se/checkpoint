@@ -217,7 +217,7 @@ function RouteComponent() {
           <div className="my-8">
             <div className="py-2 text-muted-foreground font-semibold flex items-center justify-between">
               <h2>Popular games this week</h2>
-              <Link to="/games" search={{ page: 1 }}>
+              <Link to="/games" search={{ page: 1, sort: 'rating,desc' }}>
                 More
               </Link>
             </div>
