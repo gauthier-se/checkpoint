@@ -55,6 +55,27 @@ public class VideoGame {
     @Column(name = "cover_url")
     private String coverUrl;
 
+    /**
+     * URL of a landscape HD artwork from IGDB, used as a blurred hero background.
+     */
+    @Column(name = "artwork_url")
+    private String artworkUrl;
+
+    /**
+     * YouTube video ID for the game trailer (e.g., "dQw4w9WgXcQ").
+     */
+    @Column(name = "trailer_youtube_id")
+    private String trailerYoutubeId;
+
+    @Column(name = "time_to_beat_normally")
+    private Long timeToBeatNormally;
+
+    @Column(name = "time_to_beat_hastily")
+    private Long timeToBeatHastily;
+
+    @Column(name = "time_to_beat_completely")
+    private Long timeToBeatCompletely;
+
     @Column(name = "release_date")
     private LocalDate releaseDate;
 
@@ -248,6 +269,46 @@ public class VideoGame {
 
     public void setCoverUrl(String coverUrl) {
         this.coverUrl = coverUrl;
+    }
+
+    public String getArtworkUrl() {
+        return artworkUrl;
+    }
+
+    public void setArtworkUrl(String artworkUrl) {
+        this.artworkUrl = artworkUrl;
+    }
+
+    public String getTrailerYoutubeId() {
+        return trailerYoutubeId;
+    }
+
+    public void setTrailerYoutubeId(String trailerYoutubeId) {
+        this.trailerYoutubeId = trailerYoutubeId;
+    }
+
+    public Long getTimeToBeatNormally() {
+        return timeToBeatNormally;
+    }
+
+    public void setTimeToBeatNormally(Long timeToBeatNormally) {
+        this.timeToBeatNormally = timeToBeatNormally;
+    }
+
+    public Long getTimeToBeatHastily() {
+        return timeToBeatHastily;
+    }
+
+    public void setTimeToBeatHastily(Long timeToBeatHastily) {
+        this.timeToBeatHastily = timeToBeatHastily;
+    }
+
+    public Long getTimeToBeatCompletely() {
+        return timeToBeatCompletely;
+    }
+
+    public void setTimeToBeatCompletely(Long timeToBeatCompletely) {
+        this.timeToBeatCompletely = timeToBeatCompletely;
     }
 
     public LocalDate getReleaseDate() {

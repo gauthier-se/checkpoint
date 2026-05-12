@@ -88,7 +88,7 @@ class IgdbDtoDeserializationTest {
         assertThat(cover.getImageUrl("cover_big"))
                 .isEqualTo("https://images.igdb.com/igdb/image/upload/t_cover_big/co1wyy.jpg");
         assertThat(cover.getCoverBigUrl())
-                .isEqualTo("https://images.igdb.com/igdb/image/upload/t_cover_big/co1wyy.jpg");
+                .isEqualTo("https://images.igdb.com/igdb/image/upload/t_cover_big_2x/co1wyy.jpg");
         assertThat(cover.get720pUrl())
                 .isEqualTo("https://images.igdb.com/igdb/image/upload/t_720p/co1wyy.jpg");
     }

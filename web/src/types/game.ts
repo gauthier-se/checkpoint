@@ -29,6 +29,11 @@ export interface GameDetail {
   title: string
   description: string | null
   coverUrl: string
+  artworkUrl: string | null
+  trailerYoutubeId: string | null
+  timeToBeatNormally: number | null
+  timeToBeatHastily: number | null
+  timeToBeatCompletely: number | null
   releaseDate: string
   averageRating: number | null
   ratingCount: number

@@ -60,6 +60,20 @@ public class GameMapperImpl implements GameMapper {
         if (dto.cover() != null) {
             entity.setCoverUrl(dto.cover().getCoverBigUrl());
         }
+
+        // Pick the first artwork (1080p) for the blurred hero background
+        if (dto.artworks() != null && !dto.artworks().isEmpty()) {
+            entity.setArtworkUrl(dto.artworks().get(0).get1080pUrl());
+        } else {
+            entity.setArtworkUrl(null);
+        }
+
+        // Pick the first video's YouTube ID as the trailer
+        if (dto.videos() != null && !dto.videos().isEmpty()) {
+            entity.setTrailerYoutubeId(dto.videos().get(0).videoId());
+        } else {
+            entity.setTrailerYoutubeId(null);
+        }
     }
 
     /**

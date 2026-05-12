@@ -9,9 +9,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import com.checkpoint.api.dto.igdb.IgdbArtworkDto;
 import com.checkpoint.api.dto.igdb.IgdbCoverDto;
 import com.checkpoint.api.dto.igdb.IgdbGameDto;
 import com.checkpoint.api.dto.igdb.IgdbGenreDto;
+import com.checkpoint.api.dto.igdb.IgdbVideoDto;
 import com.checkpoint.api.entities.VideoGame;
 import com.checkpoint.api.mapper.impl.GameMapperImpl;
 
@@ -46,7 +48,7 @@ class GameMapperImplTest {
                 92.5, 1250, 93.8, 85, 93.15, 1335,
                 cover,
                 List.of(new IgdbGenreDto(12L, "RPG", "rpg", "url")),
-                null, null, null, null, null, null, null,
+                null, null, null, null, null, null, null, null, null,
                 null, null, null, null, "https://igdb.com/game"
         );
 
@@ -59,7 +61,7 @@ class GameMapperImplTest {
         assertThat(entity.getTitle()).isEqualTo("The Witcher 3: Wild Hunt");
         assertThat(entity.getDescription()).isEqualTo("An RPG game");
         assertThat(entity.getReleaseDate()).isEqualTo(LocalDate.of(2015, 5, 19));
-        assertThat(entity.getCoverUrl()).isEqualTo("https://images.igdb.com/igdb/image/upload/t_cover_big/co1wyy.jpg");
+        assertThat(entity.getCoverUrl()).isEqualTo("https://images.igdb.com/igdb/image/upload/t_cover_big_2x/co1wyy.jpg");
     }
 
     @Test
@@ -71,7 +73,7 @@ class GameMapperImplTest {
                 null, // summary is null
                 "This is the storyline",
                 null, null, null, null, null, null, null,
-                null, null, null, null, null, null, null, null, null,
+                null, null, null, null, null, null, null, null, null, null, null,
                 null, null, null, null, null
         );
 
@@ -91,7 +93,7 @@ class GameMapperImplTest {
                 "Summary", null,
                 null, // no release date
                 null, null, null, null, null, null,
-                null, null, null, null, null, null, null, null, null,
+                null, null, null, null, null, null, null, null, null, null, null,
                 null, null, null, null, null
         );
 
@@ -125,7 +127,7 @@ class GameMapperImplTest {
                 "New Description", null,
                 1609459200L, // Jan 1, 2021
                 null, null, null, null, null, null,
-                null, null, null, null, null, null, null, null, null,
+                null, null, null, null, null, null, null, null, null, null, null,
                 null, null, null, null, null
         );
 
@@ -160,11 +162,59 @@ class GameMapperImplTest {
         IgdbGameDto dto = new IgdbGameDto(
                 1L, "Test", "test", null, null, null,
                 null, null, null, null, null, null,
-                null, null, null, null, null, null, null, null, null,
+                null, null, null, null, null, null, null, null, null, null, null,
                 null, null, null, null, null
         );
 
         // When / Then - should not throw
         gameMapper.updateEntity(dto, null);
+    }
+
+    @Test
+    @DisplayName("toEntity should map first artwork (1080p) and first trailer videoId")
+    void toEntity_shouldMapArtworkAndTrailer() {
+        // Given
+        IgdbArtworkDto artwork = new IgdbArtworkDto(
+                10L, "ar1abc", "//images.igdb.com/igdb/image/upload/t_thumb/ar1abc.jpg",
+                1920, 1080
+        );
+        IgdbVideoDto video = new IgdbVideoDto(20L, "Launch Trailer", "dQw4w9WgXcQ");
+
+        IgdbGameDto dto = new IgdbGameDto(
+                1L, "Test Game", "test-game", "Summary", null,
+                null, null, null, null, null, null, null,
+                null, null, null, null,
+                null,                 // screenshots
+                List.of(artwork),     // artworks
+                List.of(video),       // videos
+                null, null, null, null, null, null, null, null, null
+        );
+
+        // When
+        VideoGame entity = gameMapper.toEntity(dto);
+
+        // Then
+        assertThat(entity.getArtworkUrl())
+                .isEqualTo("https://images.igdb.com/igdb/image/upload/t_1080p/ar1abc.jpg");
+        assertThat(entity.getTrailerYoutubeId()).isEqualTo("dQw4w9WgXcQ");
+    }
+
+    @Test
+    @DisplayName("toEntity should leave artworkUrl and trailerYoutubeId null when missing")
+    void toEntity_shouldLeaveEnrichmentNullWhenMissing() {
+        // Given
+        IgdbGameDto dto = new IgdbGameDto(
+                1L, "Test Game", "test-game", "Summary", null,
+                null, null, null, null, null, null, null,
+                null, null, null, null, null, null, null, null, null, null, null,
+                null, null, null, null, null
+        );
+
+        // When
+        VideoGame entity = gameMapper.toEntity(dto);
+
+        // Then
+        assertThat(entity.getArtworkUrl()).isNull();
+        assertThat(entity.getTrailerYoutubeId()).isNull();
     }
 }

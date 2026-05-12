@@ -14,6 +14,7 @@ import org.springframework.web.client.RestClient;
 
 import com.checkpoint.api.client.IgdbApiClient;
 import com.checkpoint.api.dto.igdb.IgdbGameDto;
+import com.checkpoint.api.dto.igdb.IgdbTimeToBeatDto;
 import com.checkpoint.api.exceptions.IgdbApiException;
 
 import io.github.resilience4j.ratelimiter.RateLimiter;
@@ -43,6 +44,8 @@ public class IgdbApiClientImpl implements IgdbApiClient {
             cover.*, genres.*, platforms.*, platforms.platform_logo.*,
             involved_companies.*, involved_companies.company.*,
             involved_companies.company.logo.*, screenshots.*,
+            artworks.image_id, artworks.url,
+            videos.name, videos.video_id,
             game_modes.*, themes.*, player_perspectives.*;
             """;
 
@@ -129,6 +132,34 @@ public class IgdbApiClientImpl implements IgdbApiClient {
                 """, minRatingCount, limit);
 
         return executeQuery("/games", query);
+    }
+
+    @Override
+    public IgdbTimeToBeatDto fetchTimeToBeat(long igdbGameId) {
+        RateLimiter.waitForPermission(rateLimiter);
+
+        String query = String.format("""
+                fields game_id, normally, hastily, completely;
+                where game_id = %d;
+                limit 1;
+                """, igdbGameId);
+
+        try {
+            List<IgdbTimeToBeatDto> result = igdbClient.post()
+                    .uri("/game_time_to_beat")
+                    .contentType(MediaType.TEXT_PLAIN)
+                    .body(query)
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<List<IgdbTimeToBeatDto>>() {});
+
+            if (result == null || result.isEmpty()) {
+                return null;
+            }
+            return result.get(0);
+        } catch (Exception e) {
+            log.warn("Failed to fetch time-to-beat for IGDB game {}: {}", igdbGameId, e.getMessage());
+            return null;
+        }
     }
 
     /**

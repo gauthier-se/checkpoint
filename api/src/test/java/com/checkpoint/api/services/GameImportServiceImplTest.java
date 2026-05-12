@@ -27,6 +27,7 @@ import com.checkpoint.api.dto.igdb.IgdbGameDto;
 import com.checkpoint.api.dto.igdb.IgdbGenreDto;
 import com.checkpoint.api.dto.igdb.IgdbInvolvedCompanyDto;
 import com.checkpoint.api.dto.igdb.IgdbPlatformDto;
+import com.checkpoint.api.dto.igdb.IgdbTimeToBeatDto;
 import com.checkpoint.api.entities.Company;
 import com.checkpoint.api.entities.Genre;
 import com.checkpoint.api.entities.Platform;
@@ -213,6 +214,57 @@ class GameImportServiceImplTest {
     }
 
     @Test
+    @DisplayName("import should set time-to-beat fields when IGDB returns data")
+    void import_shouldSetTimeToBeatFields() {
+        // Given
+        IgdbGameDto dto = createSampleGameDto(1L, "Test Game");
+        VideoGame entity = new VideoGame();
+
+        when(igdbApiClient.fetchRecentlyReleasedGames(1)).thenReturn(List.of(dto));
+        when(videoGameRepository.findByIgdbId(1L)).thenReturn(Optional.empty());
+        when(gameMapper.toEntity(dto)).thenReturn(entity);
+        when(genreRepository.findByNameIgnoreCase(anyString())).thenReturn(Optional.of(new Genre("RPG")));
+        when(platformRepository.findByNameIgnoreCase(anyString())).thenReturn(Optional.of(new Platform("PC")));
+        when(companyRepository.findByNameIgnoreCase(anyString())).thenReturn(Optional.of(new Company("Company")));
+        when(igdbApiClient.fetchTimeToBeat(1L))
+                .thenReturn(new IgdbTimeToBeatDto(1L, 3600L, 1800L, 7200L));
+        when(videoGameRepository.save(any())).thenReturn(entity);
+
+        // When
+        gameImportService.importRecentlyReleasedGames(1);
+
+        // Then
+        assertThat(entity.getTimeToBeatNormally()).isEqualTo(3600L);
+        assertThat(entity.getTimeToBeatHastily()).isEqualTo(1800L);
+        assertThat(entity.getTimeToBeatCompletely()).isEqualTo(7200L);
+    }
+
+    @Test
+    @DisplayName("import should leave time-to-beat fields null when IGDB returns nothing")
+    void import_shouldLeaveTimeToBeatNullWhenAbsent() {
+        // Given
+        IgdbGameDto dto = createSampleGameDto(1L, "Test Game");
+        VideoGame entity = new VideoGame();
+
+        when(igdbApiClient.fetchRecentlyReleasedGames(1)).thenReturn(List.of(dto));
+        when(videoGameRepository.findByIgdbId(1L)).thenReturn(Optional.empty());
+        when(gameMapper.toEntity(dto)).thenReturn(entity);
+        when(genreRepository.findByNameIgnoreCase(anyString())).thenReturn(Optional.of(new Genre("RPG")));
+        when(platformRepository.findByNameIgnoreCase(anyString())).thenReturn(Optional.of(new Platform("PC")));
+        when(companyRepository.findByNameIgnoreCase(anyString())).thenReturn(Optional.of(new Company("Company")));
+        when(igdbApiClient.fetchTimeToBeat(1L)).thenReturn(null);
+        when(videoGameRepository.save(any())).thenReturn(entity);
+
+        // When
+        gameImportService.importRecentlyReleasedGames(1);
+
+        // Then
+        assertThat(entity.getTimeToBeatNormally()).isNull();
+        assertThat(entity.getTimeToBeatHastily()).isNull();
+        assertThat(entity.getTimeToBeatCompletely()).isNull();
+    }
+
+    @Test
     @DisplayName("importTopRatedGames should use top rated API")
     void importTopRatedGames_shouldUseTopRatedApi() {
         // Given
@@ -273,6 +325,8 @@ class GameImportServiceImplTest {
                 List.of(platform),
                 List.of(involvedCompany),
                 null,  // screenshots
+                null,  // artworks
+                null,  // videos
                 null,  // similarGames
                 null,  // gameModes
                 null,  // themes

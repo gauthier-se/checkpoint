@@ -42,12 +42,13 @@ public record IgdbCoverDto(
     }
 
     /**
-     * Gets the cover image URL in "cover_big" size (264x374).
+     * Gets the cover image URL in "cover_big_2x" size (528x748).
+     * Retina-friendly size for cover thumbnails displayed at ~256px wide.
      *
-     * @return the cover big URL
+     * @return the cover big 2x URL
      */
     public String getCoverBigUrl() {
-        return getImageUrl("cover_big");
+        return getImageUrl("cover_big_2x");
     }
 
     /**

@@ -3,6 +3,7 @@ package com.checkpoint.api.client;
 import java.util.List;
 
 import com.checkpoint.api.dto.igdb.IgdbGameDto;
+import com.checkpoint.api.dto.igdb.IgdbTimeToBeatDto;
 
 /**
  * Interface for IGDB API client operations.
@@ -43,4 +44,13 @@ public interface IgdbApiClient {
      * @return list of top rated games
      */
     List<IgdbGameDto> fetchTopRatedGames(int limit, int minRatingCount);
+
+    /**
+     * Fetches the time-to-beat statistics for a single game from IGDB.
+     * Best-effort: returns {@code null} if the endpoint fails or returns no data.
+     *
+     * @param igdbGameId the IGDB game ID
+     * @return the time-to-beat DTO, or {@code null} when unavailable
+     */
+    IgdbTimeToBeatDto fetchTimeToBeat(long igdbGameId);
 }

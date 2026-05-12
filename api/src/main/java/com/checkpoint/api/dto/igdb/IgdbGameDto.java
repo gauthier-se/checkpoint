@@ -50,6 +50,10 @@ public record IgdbGameDto(
 
         List<IgdbScreenshotDto> screenshots,
 
+        List<IgdbArtworkDto> artworks,
+
+        List<IgdbVideoDto> videos,
+
         @JsonProperty("similar_games")
         List<Long> similarGames,
 

@@ -142,6 +142,11 @@ public class AdminGameController {
                 game.getTitle(),
                 game.getDescription(),
                 game.getCoverUrl(),
+                game.getArtworkUrl(),
+                game.getTrailerYoutubeId(),
+                game.getTimeToBeatNormally(),
+                game.getTimeToBeatHastily(),
+                game.getTimeToBeatCompletely(),
                 game.getReleaseDate(),
                 null, // averageRating - not available from import
                 null, // ratingCount - not available from import

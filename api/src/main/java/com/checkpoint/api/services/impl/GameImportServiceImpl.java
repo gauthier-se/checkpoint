@@ -17,6 +17,7 @@ import com.checkpoint.api.dto.igdb.IgdbGameDto;
 import com.checkpoint.api.dto.igdb.IgdbGenreDto;
 import com.checkpoint.api.dto.igdb.IgdbInvolvedCompanyDto;
 import com.checkpoint.api.dto.igdb.IgdbPlatformDto;
+import com.checkpoint.api.dto.igdb.IgdbTimeToBeatDto;
 import com.checkpoint.api.entities.Company;
 import com.checkpoint.api.entities.Genre;
 import com.checkpoint.api.entities.Platform;
@@ -184,8 +185,26 @@ public class GameImportServiceImpl implements GameImportService {
         resolveAndSetGenres(dto, videoGame);
         resolveAndSetPlatforms(dto, videoGame);
         resolveAndSetCompanies(dto, videoGame);
+        fetchAndSetTimeToBeat(dto, videoGame);
 
         return videoGameRepository.save(videoGame);
+    }
+
+    /**
+     * Best-effort fetch of time-to-beat statistics from IGDB and assignment onto the entity.
+     * Failures are absorbed by the client (returns null), so the import itself is never blocked.
+     */
+    private void fetchAndSetTimeToBeat(IgdbGameDto dto, VideoGame videoGame) {
+        if (dto.id() == null) {
+            return;
+        }
+        IgdbTimeToBeatDto ttb = igdbApiClient.fetchTimeToBeat(dto.id());
+        if (ttb == null) {
+            return;
+        }
+        videoGame.setTimeToBeatNormally(ttb.normally());
+        videoGame.setTimeToBeatHastily(ttb.hastily());
+        videoGame.setTimeToBeatCompletely(ttb.completely());
     }
 
     /**
