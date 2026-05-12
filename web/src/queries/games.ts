@@ -154,7 +154,7 @@ export async function updateLibraryStatus(
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ status: request.status }),
+      body: JSON.stringify(request),
     })
 
     // If it doesn't exist, POST to create it

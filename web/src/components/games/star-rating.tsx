@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useRouter } from '@tanstack/react-router'
 import { Star } from 'lucide-react'
 import { toast } from 'sonner'
 import type { GameDetail } from '@/types/game'
@@ -24,63 +25,85 @@ interface StarRatingProps {
 export function StarRating({ game, currentRating }: StarRatingProps) {
   const { user } = useAuth()
   const queryClient = useQueryClient()
+  const router = useRouter()
   const [hoveredScore, setHoveredScore] = useState<number | null>(null)
 
-  const ratingMutation = useMutation({
-    mutationFn: async (score: number) => {
-      if (score === currentRating) {
-        // Toggle off if clicking the same score
-        await removeRating(game.id)
-        return null
-      }
-      const res = await rateGame(game.id, score)
-      return res.score
-    },
-    onMutate: async (newScore) => {
-      await queryClient.cancelQueries(
-        gameInteractionStatusQueryOptions(game.id),
-      )
-      const previous = queryClient.getQueryData<GameInteractionStatusDto>(
+  const snapshotInteractionStatus = async () => {
+    await queryClient.cancelQueries(
+      gameInteractionStatusQueryOptions(game.id),
+    )
+    return queryClient.getQueryData<GameInteractionStatusDto>(
+      gameInteractionStatusQueryOptions(game.id).queryKey,
+    )
+  }
+
+  const rollbackInteractionStatus = (
+    previous: GameInteractionStatusDto | undefined,
+  ) => {
+    toast.error('Failed to update rating')
+    if (previous) {
+      queryClient.setQueryData(
         gameInteractionStatusQueryOptions(game.id).queryKey,
+        previous,
       )
+    }
+  }
+
+  const invalidateAfterRatingChange = () => {
+    void queryClient.invalidateQueries(
+      gameInteractionStatusQueryOptions(game.id),
+    )
+    void queryClient.invalidateQueries({ queryKey: ['games', game.id] })
+    // The game detail page reads from the route loader, not a useQuery — so
+    // invalidate the router to refetch averageRating and ratingCount.
+    void router.invalidate()
+  }
+
+  const rateMutation = useMutation({
+    mutationFn: (score: number) => rateGame(game.id, score),
+    onMutate: async (newScore) => {
+      const previous = await snapshotInteractionStatus()
       queryClient.setQueryData<GameInteractionStatusDto>(
         gameInteractionStatusQueryOptions(game.id).queryKey,
-        (old) => {
-          if (!old) return old
-          return {
-            ...old,
-            userRating: newScore === currentRating ? null : newScore,
-          }
-        },
+        (old) => (old ? { ...old, userRating: newScore } : old),
       )
       return { previous }
     },
     onError: (_err, _variables, context) => {
-      toast.error('Failed to update rating')
-      if (context?.previous) {
-        queryClient.setQueryData(
-          gameInteractionStatusQueryOptions(game.id).queryKey,
-          context.previous,
-        )
-      }
+      rollbackInteractionStatus(context?.previous)
     },
-    onSettled: () => {
-      void queryClient.invalidateQueries(
-        gameInteractionStatusQueryOptions(game.id),
-      )
-      // Also invalidate the game detail query so the average rating updates
-      void queryClient.invalidateQueries({ queryKey: ['games', game.id] })
-    },
-    onSuccess: (newScore) => {
-      if (newScore === null) {
-        toast.success('Rating removed')
-      } else {
-        toast.success(`Rated ${newScore}/5`)
-      }
-    },
+    onSuccess: (res) => toast.success(`Rated ${res.score}/5`),
+    onSettled: invalidateAfterRatingChange,
   })
 
-  const disabled = !user || ratingMutation.isPending
+  const removeRatingMutation = useMutation({
+    mutationFn: () => removeRating(game.id),
+    onMutate: async () => {
+      const previous = await snapshotInteractionStatus()
+      queryClient.setQueryData<GameInteractionStatusDto>(
+        gameInteractionStatusQueryOptions(game.id).queryKey,
+        (old) => (old ? { ...old, userRating: null } : old),
+      )
+      return { previous }
+    },
+    onError: (_err, _variables, context) => {
+      rollbackInteractionStatus(context?.previous)
+    },
+    onSuccess: () => toast.success('Rating removed'),
+    onSettled: invalidateAfterRatingChange,
+  })
+
+  const handleStarClick = (score: number) => {
+    const ratingAtClickTime = currentRating
+    if (score === ratingAtClickTime) {
+      removeRatingMutation.mutate()
+    } else {
+      rateMutation.mutate(score)
+    }
+  }
+
+  const disabled =
+    !user || rateMutation.isPending || removeRatingMutation.isPending
   const displayScore = hoveredScore ?? currentRating ?? 0
 
   const stars = (
@@ -95,7 +118,7 @@ export function StarRating({ game, currentRating }: StarRatingProps) {
           disabled={disabled}
           className="p-1 -ml-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm transition-transform active:scale-90"
           onMouseEnter={() => setHoveredScore(star)}
-          onClick={() => ratingMutation.mutate(star)}
+          onClick={() => handleStarClick(star)}
         >
           <Star
             className={`h-6 w-6 transition-colors ${
