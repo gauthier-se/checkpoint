@@ -5,15 +5,19 @@ import {
   useNavigate,
 } from '@tanstack/react-router'
 import { useEffect } from 'react'
+import type { User } from '@/types/user'
 import { authQueryOptions, useAuth } from '@/hooks/use-auth'
 
 export const Route = createFileRoute('/_app/_protected')({
   beforeLoad: async ({ context, location }) => {
-    // During SSR, browser cookies aren't available for API calls.
-    // The component handles the fallback redirect after hydration.
-    if (typeof window === 'undefined') return
-
-    const user = await context.queryClient.ensureQueryData(authQueryOptions)
+    let user: User | null = null
+    try {
+      user = await context.queryClient.ensureQueryData(authQueryOptions)
+    } catch {
+      // SSR auth check failed (cookie unreachable from web origin); let the
+      // component fall back to a client-side redirect after hydration.
+      return
+    }
 
     if (!user) {
       throw redirect({
@@ -29,7 +33,6 @@ function ProtectedLayout() {
   const { user, isLoading } = useAuth()
   const navigate = useNavigate()
 
-  // Fallback redirect for SSR-hydrated pages where beforeLoad didn't run
   useEffect(() => {
     if (!isLoading && !user) {
       void navigate({ to: '/login', search: { redirect: location.pathname } })

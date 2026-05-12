@@ -25,6 +25,7 @@ import { apiFetch } from '@/services/api'
 const API_URL = import.meta.env.VITE_API_URL ?? ''
 
 function startOAuthLogin(provider: 'google' | 'twitch') {
+  // OAuth must go directly to the API origin (see login-form.tsx for context).
   window.location.href = `${API_URL}/api/oauth2/authorization/${provider}`
 }
 

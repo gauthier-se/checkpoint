@@ -80,7 +80,9 @@ export const Header = () => {
           )}
         </button>
         <SearchCommand open={searchOpen} onOpenChange={setSearchOpen} />
-        {user && (
+        {isLoading ? (
+          <div className="h-9 w-32 animate-pulse rounded-md bg-muted" />
+        ) : user ? (
           <>
             <Button size="sm" onClick={() => setQuickLogOpen(true)}>
               <Plus />
@@ -88,19 +90,16 @@ export const Header = () => {
             </Button>
             <QuickLogModal open={quickLogOpen} onOpenChange={setQuickLogOpen} />
             <NotificationBell />
-          </>
-        )}
-        {!isLoading &&
-          (user ? (
             <AvatarDropdown user={user} />
-          ) : (
-            <Button asChild size="sm">
-              <Link to="/login">
-                <User />
-                Sign in
-              </Link>
-            </Button>
-          ))}
+          </>
+        ) : (
+          <Button asChild size="sm">
+            <Link to="/login">
+              <User />
+              Sign in
+            </Link>
+          </Button>
+        )}
       </nav>
     </header>
   )

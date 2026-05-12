@@ -52,8 +52,12 @@ export const Route = createFileRoute('/_app/')({
 })
 
 function App() {
-  const { user } = useAuth()
+  const { user, isLoading } = useAuth()
   const data = Route.useLoaderData()
+
+  if (isLoading) {
+    return <div className="min-h-[60vh]" />
+  }
 
   if (user) {
     return <AuthenticatedHome user={user} data={data} />

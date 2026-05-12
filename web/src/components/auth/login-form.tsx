@@ -30,6 +30,12 @@ interface LoginFormProps extends React.ComponentProps<'div'> {
 const API_URL = import.meta.env.VITE_API_URL ?? ''
 
 function startOAuthLogin(provider: 'google' | 'twitch') {
+  // OAuth must go directly to the API origin: the OAuth state cookie set by
+  // Spring Security on the authorization request must be readable on the
+  // callback (registered with the provider as ${API_URL}/login/oauth2/code/*).
+  // Trade-off: OAuth-issued auth cookies end up on the API origin, so the
+  // SSR auth prefetch can't see them in cross-origin dev (flicker remains
+  // for OAuth users only).
   window.location.href = `${API_URL}/api/oauth2/authorization/${provider}`
 }
 
