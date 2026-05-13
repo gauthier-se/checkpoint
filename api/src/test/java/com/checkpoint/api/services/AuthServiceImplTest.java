@@ -83,9 +83,6 @@ class AuthServiceImplTest {
     @Mock
     private TwoFactorService twoFactorService;
 
-    @Mock
-    private com.checkpoint.api.services.SteamService steamService;
-
     private AuthServiceImpl authService;
 
     @BeforeEach
@@ -101,7 +98,6 @@ class AuthServiceImplTest {
                 emailService,
                 refreshTokenService,
                 twoFactorService,
-                steamService,
                 false,       // cookieSecure = false in tests
                 86400000L,   // jwtExpirationMs = 24h
                 604800000L   // refreshExpirationMs = 7d
@@ -348,7 +344,7 @@ class AuthServiceImplTest {
     class GetCurrentUserTests {
 
         @Test
-        @DisplayName("Should return UserMeDto with role for existing user")
+        @DisplayName("Should return UserMeDto with role and cached Steam fields read straight from the entity")
         void shouldReturnUserMeDto() {
             // Given
             UUID userId = UUID.randomUUID();
@@ -358,6 +354,9 @@ class AuthServiceImplTest {
             user.setPseudo("alice");
             user.setEmail("alice@test.com");
             user.setRole(role);
+            user.setSteamId("76561198000000000");
+            user.setSteamDisplayName("AliceOnSteam");
+            user.setSteamAvatarUrl("https://avatar.url/m.jpg");
 
             when(userRepository.findByEmail("alice@test.com")).thenReturn(Optional.of(user));
 
@@ -369,6 +368,9 @@ class AuthServiceImplTest {
             assertThat(result.username()).isEqualTo("alice");
             assertThat(result.email()).isEqualTo("alice@test.com");
             assertThat(result.role()).isEqualTo("ADMIN");
+            assertThat(result.steamId()).isEqualTo("76561198000000000");
+            assertThat(result.steamDisplayName()).isEqualTo("AliceOnSteam");
+            assertThat(result.steamAvatarUrl()).isEqualTo("https://avatar.url/m.jpg");
         }
 
         @Test

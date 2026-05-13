@@ -1,5 +1,6 @@
 package com.checkpoint.api.services.impl;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -66,6 +67,10 @@ public class SteamServiceImpl implements SteamService {
             return persistLink(user, summary);
         }
         user.setSteamId(steamId);
+        user.setSteamDisplayName(null);
+        user.setSteamAvatarUrl(null);
+        user.setSteamProfileUrl(null);
+        user.setSteamSyncedAt(LocalDateTime.now());
         userRepository.save(user);
         return new SteamAccountDto(steamId, null, null, null);
     }
@@ -76,6 +81,10 @@ public class SteamServiceImpl implements SteamService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException(email));
         user.setSteamId(null);
+        user.setSteamDisplayName(null);
+        user.setSteamAvatarUrl(null);
+        user.setSteamProfileUrl(null);
+        user.setSteamSyncedAt(null);
         userRepository.save(user);
         log.info("Unlinked Steam account for user {}", email);
     }
@@ -105,6 +114,10 @@ public class SteamServiceImpl implements SteamService {
 
     private SteamAccountDto persistLink(User user, SteamPlayerSummaryDto summary) {
         user.setSteamId(summary.steamId());
+        user.setSteamDisplayName(summary.personaName());
+        user.setSteamAvatarUrl(summary.avatarMedium());
+        user.setSteamProfileUrl(summary.profileUrl());
+        user.setSteamSyncedAt(LocalDateTime.now());
         userRepository.save(user);
         log.info("Linked Steam account {} to user {}", summary.steamId(), user.getEmail());
         return new SteamAccountDto(

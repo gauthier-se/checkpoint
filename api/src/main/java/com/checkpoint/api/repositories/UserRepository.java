@@ -1,5 +1,6 @@
 package com.checkpoint.api.repositories;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -60,6 +61,20 @@ public interface UserRepository extends JpaRepository<User, UUID> {
      * @return an optional containing the user if found
      */
     Optional<User> findBySteamId(String steamId);
+
+    /**
+     * Finds Steam-linked users whose cached Steam profile is older than the given cutoff
+     * (or has never been synced). Used by the scheduled refresh task.
+     *
+     * @param cutoff   profiles synced before this instant are considered stale
+     * @param pageable pagination parameters (used to cap the batch size)
+     * @return a list of users whose Steam profile cache needs refreshing
+     */
+    @Query("SELECT u FROM User u WHERE u.steamId IS NOT NULL "
+            + "AND (u.steamSyncedAt IS NULL OR u.steamSyncedAt < :cutoff) "
+            + "ORDER BY u.steamSyncedAt ASC NULLS FIRST")
+    List<User> findSteamLinkedUsersStaleBefore(@Param("cutoff") LocalDateTime cutoff,
+                                               Pageable pageable);
 
     /**
      * Finds all users who follow the given user (paginated).

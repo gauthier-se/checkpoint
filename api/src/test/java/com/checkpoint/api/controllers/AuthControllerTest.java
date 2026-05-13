@@ -497,7 +497,7 @@ class AuthControllerTest {
         void shouldReturnCurrentUserProfile() throws Exception {
             // Given
             UUID userId = UUID.randomUUID();
-            UserMeDto userMeDto = new UserMeDto(userId, "alice", "alice@test.com", "ADMIN", "My bio", null, false, false, null, null);
+            UserMeDto userMeDto = new UserMeDto(userId, "alice", "alice@test.com", "ADMIN", "My bio", null, false, false, null, null, null);
 
             when(authService.getCurrentUser("alice@test.com")).thenReturn(userMeDto);
 
@@ -518,7 +518,7 @@ class AuthControllerTest {
         void shouldReturnUserWithDefaultRole() throws Exception {
             // Given
             UUID userId = UUID.randomUUID();
-            UserMeDto userMeDto = new UserMeDto(userId, "bob", "bob@test.com", "USER", null, null, false, false, null, null);
+            UserMeDto userMeDto = new UserMeDto(userId, "bob", "bob@test.com", "USER", null, null, false, false, null, null, null);
 
             when(authService.getCurrentUser("bob@test.com")).thenReturn(userMeDto);
 

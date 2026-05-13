@@ -65,7 +65,7 @@ class SteamServiceImplTest {
     }
 
     @Test
-    @DisplayName("linkSteamAccount persists steamId and returns DTO when Steam recognizes the ID")
+    @DisplayName("linkSteamAccount persists steamId, cached profile fields, and returns DTO when Steam recognizes the ID")
     void linkSteamAccount_success() {
         when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
         when(steamApiClient.fetchPlayerSummary(STEAM_ID)).thenReturn(Optional.of(summary()));
@@ -75,6 +75,10 @@ class SteamServiceImplTest {
         assertThat(dto.steamId()).isEqualTo(STEAM_ID);
         assertThat(dto.steamDisplayName()).isEqualTo("AliceOnSteam");
         assertThat(user.getSteamId()).isEqualTo(STEAM_ID);
+        assertThat(user.getSteamDisplayName()).isEqualTo("AliceOnSteam");
+        assertThat(user.getSteamAvatarUrl()).isEqualTo("https://avatar.url/m.jpg");
+        assertThat(user.getSteamProfileUrl()).isEqualTo("https://steamcommunity.com/id/alice");
+        assertThat(user.getSteamSyncedAt()).isNotNull();
         verify(userRepository).save(user);
     }
 
@@ -103,7 +107,7 @@ class SteamServiceImplTest {
     }
 
     @Test
-    @DisplayName("linkVerifiedSteamAccount stores steamId even if Steam profile fetch fails")
+    @DisplayName("linkVerifiedSteamAccount stores steamId and stamps syncedAt even if Steam profile fetch fails")
     void linkVerifiedSteamAccount_steamFetchFails() {
         when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
         when(steamApiClient.fetchPlayerSummary(STEAM_ID))
@@ -114,11 +118,15 @@ class SteamServiceImplTest {
         assertThat(dto.steamId()).isEqualTo(STEAM_ID);
         assertThat(dto.steamDisplayName()).isNull();
         assertThat(user.getSteamId()).isEqualTo(STEAM_ID);
+        assertThat(user.getSteamDisplayName()).isNull();
+        assertThat(user.getSteamAvatarUrl()).isNull();
+        assertThat(user.getSteamProfileUrl()).isNull();
+        assertThat(user.getSteamSyncedAt()).isNotNull();
         verify(userRepository).save(user);
     }
 
     @Test
-    @DisplayName("linkVerifiedSteamAccount enriches DTO when Steam profile fetch succeeds")
+    @DisplayName("linkVerifiedSteamAccount enriches DTO and persists cached fields when Steam profile fetch succeeds")
     void linkVerifiedSteamAccount_success() {
         when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
         when(steamApiClient.fetchPlayerSummary(STEAM_ID)).thenReturn(Optional.of(summary()));
@@ -127,17 +135,29 @@ class SteamServiceImplTest {
 
         assertThat(dto.steamDisplayName()).isEqualTo("AliceOnSteam");
         assertThat(user.getSteamId()).isEqualTo(STEAM_ID);
+        assertThat(user.getSteamDisplayName()).isEqualTo("AliceOnSteam");
+        assertThat(user.getSteamAvatarUrl()).isEqualTo("https://avatar.url/m.jpg");
+        assertThat(user.getSteamProfileUrl()).isEqualTo("https://steamcommunity.com/id/alice");
+        assertThat(user.getSteamSyncedAt()).isNotNull();
     }
 
     @Test
-    @DisplayName("unlinkSteamAccount clears the steamId field")
+    @DisplayName("unlinkSteamAccount clears the steamId and all cached profile fields")
     void unlinkSteamAccount_success() {
         user.setSteamId(STEAM_ID);
+        user.setSteamDisplayName("AliceOnSteam");
+        user.setSteamAvatarUrl("https://avatar.url/m.jpg");
+        user.setSteamProfileUrl("https://steamcommunity.com/id/alice");
+        user.setSteamSyncedAt(java.time.LocalDateTime.now());
         when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
 
         steamService.unlinkSteamAccount(EMAIL);
 
         assertThat(user.getSteamId()).isNull();
+        assertThat(user.getSteamDisplayName()).isNull();
+        assertThat(user.getSteamAvatarUrl()).isNull();
+        assertThat(user.getSteamProfileUrl()).isNull();
+        assertThat(user.getSteamSyncedAt()).isNull();
         verify(userRepository).save(user);
     }
 

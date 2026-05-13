@@ -76,6 +76,18 @@ public class User {
     @Column(name = "steam_id", unique = true)
     private String steamId;
 
+    @Column(name = "steam_display_name", length = 255)
+    private String steamDisplayName;
+
+    @Column(name = "steam_avatar_url", length = 512)
+    private String steamAvatarUrl;
+
+    @Column(name = "steam_profile_url", length = 512)
+    private String steamProfileUrl;
+
+    @Column(name = "steam_synced_at")
+    private LocalDateTime steamSyncedAt;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -503,5 +515,37 @@ public class User {
 
     public void setSteamId(String steamId) {
         this.steamId = steamId;
+    }
+
+    public String getSteamDisplayName() {
+        return steamDisplayName;
+    }
+
+    public void setSteamDisplayName(String steamDisplayName) {
+        this.steamDisplayName = steamDisplayName;
+    }
+
+    public String getSteamAvatarUrl() {
+        return steamAvatarUrl;
+    }
+
+    public void setSteamAvatarUrl(String steamAvatarUrl) {
+        this.steamAvatarUrl = steamAvatarUrl;
+    }
+
+    public String getSteamProfileUrl() {
+        return steamProfileUrl;
+    }
+
+    public void setSteamProfileUrl(String steamProfileUrl) {
+        this.steamProfileUrl = steamProfileUrl;
+    }
+
+    public LocalDateTime getSteamSyncedAt() {
+        return steamSyncedAt;
+    }
+
+    public void setSteamSyncedAt(LocalDateTime steamSyncedAt) {
+        this.steamSyncedAt = steamSyncedAt;
     }
 }
