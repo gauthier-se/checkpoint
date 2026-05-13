@@ -41,7 +41,10 @@ import com.checkpoint.api.exceptions.PseudoAlreadyExistsException;
 import com.checkpoint.api.exceptions.RateNotFoundException;
 import com.checkpoint.api.exceptions.ReviewAlreadyExistsException;
 import com.checkpoint.api.exceptions.ReviewNotFoundException;
+import com.checkpoint.api.exceptions.InvalidSteamIdException;
 import com.checkpoint.api.exceptions.SelfFollowException;
+import com.checkpoint.api.exceptions.SteamApiException;
+import com.checkpoint.api.exceptions.SteamOpenIdException;
 import com.checkpoint.api.exceptions.TagNotFoundException;
 import com.checkpoint.api.exceptions.DuplicateTagException;
 import com.checkpoint.api.exceptions.NewsNotFoundException;
@@ -300,6 +303,66 @@ public class GlobalExceptionHandler {
         );
 
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(error);
+    }
+
+    /**
+     * Handles InvalidSteamIdException when a SteamID is malformed or unknown to Steam.
+     *
+     * @param ex the exception
+     * @return error response with 400 status
+     */
+    @ExceptionHandler(InvalidSteamIdException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidSteamId(InvalidSteamIdException ex) {
+        log.warn("Invalid Steam ID: {}", ex.getMessage());
+
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                "Bad Request",
+                ex.getMessage(),
+                LocalDateTime.now()
+        );
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
+    /**
+     * Handles SteamApiException when the Steam Web API call fails.
+     *
+     * @param ex the exception
+     * @return error response with 503 status
+     */
+    @ExceptionHandler(SteamApiException.class)
+    public ResponseEntity<ErrorResponse> handleSteamApiException(SteamApiException ex) {
+        log.error("Steam API error: {}", ex.getMessage());
+
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.SERVICE_UNAVAILABLE.value(),
+                "Service Unavailable",
+                ex.getMessage(),
+                LocalDateTime.now()
+        );
+
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(error);
+    }
+
+    /**
+     * Handles SteamOpenIdException when the Steam OpenID verification fails.
+     *
+     * @param ex the exception
+     * @return error response with 400 status
+     */
+    @ExceptionHandler(SteamOpenIdException.class)
+    public ResponseEntity<ErrorResponse> handleSteamOpenIdException(SteamOpenIdException ex) {
+        log.warn("Steam OpenID error: {}", ex.getMessage());
+
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                "Bad Request",
+                ex.getMessage(),
+                LocalDateTime.now()
+        );
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
     /**

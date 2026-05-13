@@ -73,6 +73,9 @@ public class User {
     @Column(name = "totp_secret")
     private String totpSecret;
 
+    @Column(name = "steam_id", unique = true)
+    private String steamId;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -492,5 +495,13 @@ public class User {
 
     public void setTotpSecret(String totpSecret) {
         this.totpSecret = totpSecret;
+    }
+
+    public String getSteamId() {
+        return steamId;
+    }
+
+    public void setSteamId(String steamId) {
+        this.steamId = steamId;
     }
 }

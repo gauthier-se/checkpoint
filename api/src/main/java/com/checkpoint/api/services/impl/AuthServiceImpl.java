@@ -39,9 +39,11 @@ import com.checkpoint.api.repositories.PasswordResetTokenRepository;
 import com.checkpoint.api.repositories.RoleRepository;
 import com.checkpoint.api.repositories.UserRepository;
 import com.checkpoint.api.security.JwtService;
+import com.checkpoint.api.dto.steam.SteamAccountDto;
 import com.checkpoint.api.services.AuthService;
 import com.checkpoint.api.services.EmailService;
 import com.checkpoint.api.services.RefreshTokenService;
+import com.checkpoint.api.services.SteamService;
 
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -69,6 +71,7 @@ public class AuthServiceImpl implements AuthService {
     private final EmailService emailService;
     private final RefreshTokenService refreshTokenService;
     private final TwoFactorService twoFactorService;
+    private final SteamService steamService;
     private final boolean cookieSecure;
     private final long jwtExpirationMs;
     private final long refreshExpirationMs;
@@ -83,6 +86,7 @@ public class AuthServiceImpl implements AuthService {
                            EmailService emailService,
                            RefreshTokenService refreshTokenService,
                            TwoFactorService twoFactorService,
+                           SteamService steamService,
                            @Value("${app.cookie.secure:true}") boolean cookieSecure,
                            @Value("${jwt.expiration-ms:86400000}") long jwtExpirationMs,
                            @Value("${jwt.refresh-expiration-ms:604800000}") long refreshExpirationMs) {
@@ -96,6 +100,7 @@ public class AuthServiceImpl implements AuthService {
         this.emailService = emailService;
         this.refreshTokenService = refreshTokenService;
         this.twoFactorService = twoFactorService;
+        this.steamService = steamService;
         this.cookieSecure = cookieSecure;
         this.jwtExpirationMs = jwtExpirationMs;
         this.refreshExpirationMs = refreshExpirationMs;
@@ -147,6 +152,23 @@ public class AuthServiceImpl implements AuthService {
 
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
 
+        ResponseCookie refreshCookie = buildCookie(REFRESH_COOKIE_NAME, refreshToken.getToken(), refreshExpirationMs / 1000, "/api/auth/refresh");
+        servletResponse.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
+    }
+
+    @Override
+    @Transactional
+    public void establishWebSession(String email, HttpServletResponse servletResponse) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + email));
+
+        UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+        String accessToken = jwtService.generateToken(userDetails);
+
+        ResponseCookie accessCookie = buildCookie(COOKIE_NAME, accessToken, jwtExpirationMs / 1000, "/api");
+        servletResponse.addHeader(HttpHeaders.SET_COOKIE, accessCookie.toString());
+
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
         ResponseCookie refreshCookie = buildCookie(REFRESH_COOKIE_NAME, refreshToken.getToken(), refreshExpirationMs / 1000, "/api/auth/refresh");
         servletResponse.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
     }
@@ -209,6 +231,14 @@ public class AuthServiceImpl implements AuthService {
 
         String roleName = user.getRole() != null ? user.getRole().getName() : "USER";
 
+        String steamId = user.getSteamId();
+        String steamDisplayName = null;
+        if (steamId != null) {
+            steamDisplayName = steamService.getLinkedAccount(steamId)
+                    .map(SteamAccountDto::steamDisplayName)
+                    .orElse(null);
+        }
+
         return new UserMeDto(
                 user.getId(),
                 user.getPseudo(),
@@ -217,7 +247,9 @@ public class AuthServiceImpl implements AuthService {
                 user.getBio(),
                 user.getPicture(),
                 user.getIsPrivate(),
-                Boolean.TRUE.equals(user.getTwoFactorEnabled())
+                Boolean.TRUE.equals(user.getTwoFactorEnabled()),
+                steamId,
+                steamDisplayName
         );
     }
 

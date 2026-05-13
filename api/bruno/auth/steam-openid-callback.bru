@@ -1,0 +1,58 @@
+meta {
+  name: Steam OpenID - Callback
+  type: http
+  seq: 16
+}
+
+get {
+  url: {{baseUrl}}/api/auth/steam/openid/callback?action=login&openid.mode=id_res&openid.claimed_id=https://steamcommunity.com/openid/id/76561198000000000
+  body: none
+  auth: none
+}
+
+params:query {
+  action: login
+  openid.mode: id_res
+  openid.claimed_id: https://steamcommunity.com/openid/id/76561198000000000
+}
+
+docs {
+  # Steam OpenID — Callback
+
+  Callback endpoint Steam redirects the user to after they authenticate. It is
+  not meant to be called manually — Steam supplies a full set of signed
+  `openid.*` parameters (including `openid.response_nonce`, `openid.sig`,
+  `openid.signed`, etc.) which the API forwards back to Steam with
+  `openid.mode=check_authentication` to verify authenticity, then extracts the
+  SteamID64 from `openid.claimed_id`.
+
+  > Bruno cannot meaningfully replay this endpoint because Steam's signature
+  > and nonce are one-shot. This entry exists to document the contract; trigger
+  > it through the `Steam OpenID - Start Flow` request in a browser.
+
+  ## Query Parameters
+
+  - **action** (optional, default `login`): mirrors the value passed to `/start`.
+    - `login` — finds the CheckPoint user with the verified SteamID and
+      establishes a web session (sets `checkpoint_token` and
+      `checkpoint_refresh` cookies).
+    - `link` — attaches the verified SteamID to the currently authenticated
+      user (requires the auth cookie to reach this endpoint).
+  - **openid.* (many)**: signed parameters supplied by Steam.
+
+  ## Behaviour
+
+  Always returns 200 OK with a tiny HTML page that performs a client-side
+  navigation to the frontend. HTTP 302 is intentionally avoided (see Nitro
+  proxy note on `/start`).
+
+  Possible navigation targets:
+
+  | Outcome | Target |
+  |---------|--------|
+  | `login`, user found | `${frontendUrl}/` |
+  | `login`, no user linked to SteamID | `${frontendUrl}/login?error=steam_not_linked` |
+  | `link`, success | `${frontendUrl}/settings/integrations?linked=steam` |
+  | `link`, no authenticated user | `${frontendUrl}/login?error=not_authenticated` |
+  | OpenID verification failure | `${frontendUrl}/login?error=steam_openid_failed` |
+}

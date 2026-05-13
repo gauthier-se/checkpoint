@@ -7,4 +7,6 @@ export interface User {
   picture: string | null
   isPrivate: boolean
   twoFactorEnabled: boolean
+  steamId: string | null
+  steamDisplayName: string | null
 }

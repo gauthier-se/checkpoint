@@ -1,5 +1,14 @@
 package com.checkpoint.api.controllers;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import org.springframework.http.MediaType;
+import org.springframework.web.util.HtmlUtils;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -10,7 +19,15 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.checkpoint.api.client.SteamOpenIdClient;
+import com.checkpoint.api.entities.User;
+import com.checkpoint.api.exceptions.SteamOpenIdException;
+import com.checkpoint.api.services.SteamService;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 import com.checkpoint.api.dto.auth.AuthMessageDto;
 import com.checkpoint.api.dto.auth.ForgotPasswordRequestDto;
@@ -47,12 +64,33 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/auth")
 public class AuthController {
 
+    private static final Logger log = LoggerFactory.getLogger(AuthController.class);
+
+    private static final String STEAM_ACTION_LOGIN = "login";
+    private static final String STEAM_ACTION_LINK = "link";
+
     private final AuthService authService;
     private final TwoFactorService twoFactorService;
+    private final SteamOpenIdClient steamOpenIdClient;
+    private final SteamService steamService;
 
-    public AuthController(AuthService authService, TwoFactorService twoFactorService) {
+    @Value("${steam.openid.return-url:http://localhost:8080/api/auth/steam/openid/callback}")
+    private String steamReturnUrl;
+
+    @Value("${steam.openid.realm:http://localhost:8080}")
+    private String steamRealm;
+
+    @Value("${app.frontend-url:http://localhost:3000}")
+    private String frontendUrl;
+
+    public AuthController(AuthService authService,
+                          TwoFactorService twoFactorService,
+                          SteamOpenIdClient steamOpenIdClient,
+                          SteamService steamService) {
         this.authService = authService;
         this.twoFactorService = twoFactorService;
+        this.steamOpenIdClient = steamOpenIdClient;
+        this.steamService = steamService;
     }
 
     /**
@@ -299,5 +337,134 @@ public class AuthController {
 
         authService.resetPassword(request);
         return ResponseEntity.ok(new AuthMessageDto("Password has been reset successfully."));
+    }
+
+    /**
+     * Initiates the Steam OpenID 2.0 flow. The user is redirected to Steam to authenticate;
+     * Steam then redirects back to {@code /api/auth/steam/openid/callback} with the {@code action}
+     * preserved in the query string.
+     *
+     * @param action either {@code login} (issue a session for an existing linked account) or
+     *               {@code link} (attach the SteamID to the currently authenticated user)
+     * @return 302 redirect to Steam
+     */
+    @GetMapping("/steam/openid/start")
+    public ResponseEntity<?> steamOpenIdStart(@RequestParam(defaultValue = STEAM_ACTION_LOGIN) String action) {
+        String normalizedAction = STEAM_ACTION_LINK.equals(action) ? STEAM_ACTION_LINK : STEAM_ACTION_LOGIN;
+        String returnUrl = steamReturnUrl + "?action=" + normalizedAction;
+        String authUrl = steamOpenIdClient.buildAuthenticationUrl(returnUrl, steamRealm);
+
+        log.info("Redirecting to Steam OpenID for action={}", normalizedAction);
+        return clientSideRedirect(authUrl);
+    }
+
+    /**
+     * Steam OpenID 2.0 callback. Verifies the response with Steam, extracts the SteamID64, then:
+     * <ul>
+     *   <li>{@code action=login}: looks up the user with this SteamID. If found, establishes a web
+     *       session (sets auth cookies) and redirects to the frontend root. Otherwise redirects to
+     *       {@code /login?error=steam_not_linked}.</li>
+     *   <li>{@code action=link}: attaches the SteamID to the currently authenticated user and
+     *       redirects to {@code /settings/integrations}.</li>
+     * </ul>
+     *
+     * @param action          the action encoded in the return URL
+     * @param request         the HTTP servlet request (used to enumerate all {@code openid.*} params)
+     * @param userDetails     the authenticated user (for the link action)
+     * @param servletResponse the HTTP servlet response (used to write auth cookies on login)
+     * @return 302 redirect to the frontend
+     */
+    @GetMapping("/steam/openid/callback")
+    public ResponseEntity<?> steamOpenIdCallback(
+            @RequestParam(defaultValue = STEAM_ACTION_LOGIN) String action,
+            HttpServletRequest request,
+            @AuthenticationPrincipal UserDetails userDetails,
+            jakarta.servlet.http.HttpServletResponse servletResponse) {
+
+        Map<String, String> openIdParams = collectOpenIdParams(request);
+
+        String steamId;
+        try {
+            steamId = steamOpenIdClient.verifyAndExtractSteamId(openIdParams);
+        } catch (SteamOpenIdException e) {
+            log.warn("Steam OpenID callback verification failed: {}", e.getMessage());
+            return clientSideRedirect(frontendUrl + "/login?error=steam_openid_failed");
+        }
+
+        if (STEAM_ACTION_LINK.equals(action)) {
+            if (userDetails == null) {
+                log.warn("Steam OpenID link callback with no authenticated user");
+                return clientSideRedirect(frontendUrl + "/login?error=not_authenticated");
+            }
+            steamService.linkVerifiedSteamAccount(userDetails.getUsername(), steamId);
+            log.info("Linked Steam {} to user {} via OpenID", steamId, userDetails.getUsername());
+            return clientSideRedirect(frontendUrl + "/settings/integrations?linked=steam");
+        }
+
+        // Default action: login
+        User user = steamService.findUserBySteamId(steamId).orElse(null);
+        if (user == null) {
+            log.info("Steam OpenID login: no user linked to SteamID {}", steamId);
+            return clientSideRedirect(frontendUrl + "/login?error=steam_not_linked");
+        }
+        authService.establishWebSession(user.getEmail(), servletResponse);
+        log.info("Steam OpenID login successful for {}", user.getEmail());
+        return clientSideRedirect(frontendUrl + "/");
+    }
+
+    private static Map<String, String> collectOpenIdParams(HttpServletRequest request) {
+        Map<String, String> params = new HashMap<>();
+        request.getParameterMap().forEach((key, values) -> {
+            if (key.startsWith("openid.") && values != null && values.length > 0) {
+                params.put(key, values[0]);
+            }
+        });
+        return params;
+    }
+
+    /**
+     * Returns a 200 OK HTML page that triggers a client-side navigation to {@code target}.
+     *
+     * <p>HTTP 302 redirects break when the request is proxied by the dev-mode Nitro server
+     * (Nitro follows redirects internally, which swallows {@code Set-Cookie} headers and lands
+     * the browser on the callback URL with an unrelated body). Emitting HTML keeps the proxy
+     * neutral: it's just a 200 response that's forwarded verbatim, cookies included.</p>
+     *
+     * @param target the absolute URL to navigate to
+     * @return the HTML response
+     */
+    private static ResponseEntity<String> clientSideRedirect(String target) {
+        String escapedHref = HtmlUtils.htmlEscape(target);
+        // Use replace() so the redirect URL isn't kept in history.
+        String html = "<!doctype html><html><head><meta charset=\"utf-8\">" +
+                "<meta http-equiv=\"refresh\" content=\"0;url=" + escapedHref + "\">" +
+                "<title>Redirecting…</title></head><body>" +
+                "<script>window.location.replace(" +
+                jsString(target) + ");</script>" +
+                "<noscript>If you are not redirected automatically, <a href=\"" +
+                escapedHref + "\">click here</a>.</noscript>" +
+                "</body></html>";
+        return ResponseEntity.ok()
+                .contentType(MediaType.TEXT_HTML)
+                .body(html);
+    }
+
+    private static String jsString(String value) {
+        StringBuilder sb = new StringBuilder("\"");
+        for (int i = 0; i < value.length(); i++) {
+            char c = value.charAt(i);
+            switch (c) {
+                case '\\' -> sb.append("\\\\");
+                case '"' -> sb.append("\\\"");
+                case '\n' -> sb.append("\\n");
+                case '\r' -> sb.append("\\r");
+                case '<' -> sb.append("\\u003c");
+                case '>' -> sb.append("\\u003e");
+                case '&' -> sb.append("\\u0026");
+                default -> sb.append(c);
+            }
+        }
+        sb.append("\"");
+        return sb.toString();
     }
 }

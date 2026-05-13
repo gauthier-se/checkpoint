@@ -1,0 +1,54 @@
+meta {
+  name: Steam OpenID - Start Flow
+  type: http
+  seq: 15
+}
+
+get {
+  url: {{baseUrl}}/api/auth/steam/openid/start?action=login
+  body: none
+  auth: none
+}
+
+params:query {
+  action: login
+}
+
+docs {
+  # Steam OpenID — Start Flow
+
+  Entry point for both "Sign in with Steam" and "Link with Steam". Returns an
+  HTML page that immediately redirects the browser to Steam's OpenID 2.0
+  authentication endpoint. Steam will, after the user signs in, redirect them
+  back to `${steam.openid.return-url}?action=<action>` carrying the signed
+  `openid.*` parameters.
+
+  > Steam uses **OpenID 2.0**, not OAuth2. The flow is verified server-side by
+  > POSTing the callback parameters back to Steam with
+  > `openid.mode=check_authentication`, and a SteamID64 is extracted from
+  > `openid.claimed_id`. There is no client secret.
+
+  > Bruno cannot replay the full flow because it requires interactive
+  > authentication on Steam's domain. This entry exists to document the
+  > endpoint; copy the URL into a browser to actually exercise it.
+
+  ## Query Parameters
+
+  - **action** (optional, default `login`): `login` to authenticate an existing
+    CheckPoint user that has a SteamID linked; `link` to attach a SteamID to
+    the currently authenticated user.
+
+  ## Behaviour
+
+  Returns a 200 OK HTML response with a client-side redirect (`<meta refresh>`
+  + `window.location.replace`) to Steam. HTTP 302 is intentionally avoided
+  because Nitro's dev proxy follows redirects server-side, which would swallow
+  the navigation.
+
+  ## Configuration
+
+  Requires `steam.openid.provider-url`, `steam.openid.return-url`, and
+  `steam.openid.realm`. The return URL must be on the **web origin** (proxied
+  to the API by Nitro) so the user's auth cookie reaches the callback for the
+  `link` action.
+}

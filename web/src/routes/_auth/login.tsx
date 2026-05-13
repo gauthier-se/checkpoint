@@ -11,6 +11,10 @@ type LoginSearchParams = {
 const OAUTH_ERROR_MESSAGES: Record<string, string> = {
   oauth_failed: 'OAuth login failed. Please try again.',
   oauth_banned: 'This account has been banned.',
+  steam_not_linked:
+    'No CheckPoint account is linked to this Steam account. Create an account first, then link Steam in Settings.',
+  steam_openid_failed: 'Steam sign-in failed. Please try again.',
+  not_authenticated: 'You must be signed in to link a Steam account.',
 }
 
 export const Route = createFileRoute('/_auth/login')({

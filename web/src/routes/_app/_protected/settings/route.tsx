@@ -1,5 +1,5 @@
 import { Link, Outlet, createFileRoute } from '@tanstack/react-router'
-import { Bell, Palette, Shield, User } from 'lucide-react'
+import { Bell, Link2, Palette, Shield, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export const Route = createFileRoute('/_app/_protected/settings')({
@@ -10,6 +10,7 @@ const navItems = [
   { to: '/settings/profile', label: 'Profile', icon: User },
   { to: '/settings/notifications', label: 'Notifications', icon: Bell },
   { to: '/settings/security', label: 'Security', icon: Shield },
+  { to: '/settings/integrations', label: 'Integrations', icon: Link2 },
   { to: '/settings/appearance', label: 'Appearance', icon: Palette },
 ] as const
 

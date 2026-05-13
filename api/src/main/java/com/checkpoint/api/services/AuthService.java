@@ -53,6 +53,16 @@ public interface AuthService {
     TokenPairDto refreshTokenForDesktop(String refreshToken);
 
     /**
+     * Issues a JWT access cookie and refresh cookie for the user identified by {@code email},
+     * skipping password authentication. Used by trusted authentication flows (Steam OpenID, etc.)
+     * after the caller has already verified the user's identity.
+     *
+     * @param email           the user's email
+     * @param servletResponse the HTTP servlet response to write the cookies on
+     */
+    void establishWebSession(String email, HttpServletResponse servletResponse);
+
+    /**
      * Clears auth cookies and revokes the refresh token (for Web logout).
      * The refresh token parameter is optional; if {@code null} only the cookies are expired.
      *

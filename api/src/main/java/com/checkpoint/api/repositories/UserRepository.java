@@ -54,6 +54,14 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     Optional<User> findByProviderAndProviderId(AuthProvider provider, String providerId);
 
     /**
+     * Finds a user by their linked Steam account ID (SteamID64).
+     *
+     * @param steamId the SteamID64
+     * @return an optional containing the user if found
+     */
+    Optional<User> findBySteamId(String steamId);
+
+    /**
      * Finds all users who follow the given user (paginated).
      *
      * @param userId   the ID of the user whose followers to retrieve

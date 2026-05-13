@@ -1,0 +1,62 @@
+meta {
+  name: Link Steam Account
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/me/steam/link
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "steamId": "76561198000000000"
+  }
+}
+
+docs {
+  # Link Steam Account
+
+  Links a Steam account to the authenticated user by storing a 17-digit SteamID64
+  on the user record. Before persisting, the API calls Steam's
+  `ISteamUser/GetPlayerSummaries` to verify the SteamID is recognized.
+
+  This is the **manual** link path. Users can also link via Steam's OpenID 2.0
+  flow at `GET /api/auth/steam/openid/start?action=link`, which authenticates
+  ownership of the Steam account through Steam itself instead of trusting the
+  raw SteamID typed in.
+
+  ## Request Body
+
+  - **steamId** (required): the SteamID64 as a 17-digit numeric string
+    (e.g., `76561198000000000`). Find yours at https://steamid.io/.
+
+  ## Response (200 OK)
+
+  ```json
+  {
+    "steamId": "76561198000000000",
+    "steamDisplayName": "AliceOnSteam",
+    "profileUrl": "https://steamcommunity.com/id/alice",
+    "avatarUrl": "https://avatars.steamstatic.com/.../alice_medium.jpg"
+  }
+  ```
+
+  ## Error Responses
+
+  - **400 Bad Request**: `steamId` is missing, malformed (not 17 digits),
+    or not recognized by the Steam Web API
+  - **401 Unauthorized**: not authenticated
+  - **503 Service Unavailable**: the Steam Web API call failed (e.g., Steam
+    is down or `STEAM_API_KEY` is not configured)
+
+  ## Configuration
+
+  Requires `STEAM_API_KEY` to be set in the environment.
+}

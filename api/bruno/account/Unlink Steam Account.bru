@@ -1,0 +1,34 @@
+meta {
+  name: Unlink Steam Account
+  type: http
+  seq: 4
+}
+
+delete {
+  url: {{baseUrl}}/api/me/steam/unlink
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  # Unlink Steam Account
+
+  Clears the SteamID stored on the authenticated user's record. The Steam
+  account itself is untouched; this only removes the association on
+  CheckPoint's side.
+
+  After unlinking, the user can no longer use "Sign in with Steam" until
+  they link a Steam account again.
+
+  ## Response (204 No Content)
+
+  Empty body.
+
+  ## Error Responses
+
+  - **401 Unauthorized**: not authenticated
+}

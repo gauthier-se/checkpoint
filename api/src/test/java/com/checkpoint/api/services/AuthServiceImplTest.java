@@ -83,6 +83,9 @@ class AuthServiceImplTest {
     @Mock
     private TwoFactorService twoFactorService;
 
+    @Mock
+    private com.checkpoint.api.services.SteamService steamService;
+
     private AuthServiceImpl authService;
 
     @BeforeEach
@@ -98,6 +101,7 @@ class AuthServiceImplTest {
                 emailService,
                 refreshTokenService,
                 twoFactorService,
+                steamService,
                 false,       // cookieSecure = false in tests
                 86400000L,   // jwtExpirationMs = 24h
                 604800000L   // refreshExpirationMs = 7d
