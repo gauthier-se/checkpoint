@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import { Instagram, Linkedin } from 'lucide-react'
+import { Instagram, Keyboard, Linkedin } from 'lucide-react'
 
 const XIcon = ({ className }: { className?: string }) => (
   <svg
@@ -23,7 +23,11 @@ const DiscordIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-export const Footer = () => {
+interface FooterProps {
+  onOpenKeymaps?: () => void
+}
+
+export const Footer = ({ onOpenKeymaps }: FooterProps) => {
   return (
     <footer className="w-full bg-muted">
       <div className="max-w-7xl mx-auto py-10">
@@ -36,6 +40,16 @@ export const Footer = () => {
               Contact
             </Link>
             <Link to="/roadmap">Roadmap</Link>
+            {onOpenKeymaps && (
+              <button
+                type="button"
+                onClick={onOpenKeymaps}
+                className="inline-flex items-center gap-1.5 hover:underline"
+              >
+                <Keyboard className="size-4" />
+                Keymaps
+              </button>
+            )}
           </div>
           <div className="flex items-center gap-4">
             <a

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 
+import { useHotkey, useHotkeySequence } from '@tanstack/react-hotkeys'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   Bookmark,
@@ -33,7 +34,9 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import { KbdHint } from '@/components/ui/kbd'
 import { useAuth } from '@/hooks/use-auth'
+import { useIsDesktop } from '@/hooks/use-is-desktop'
 import {
   gameInteractionStatusQueryOptions,
   toggleBacklog,
@@ -50,6 +53,7 @@ interface GameQuickActionsProps {
 export function GameQuickActions({ game }: GameQuickActionsProps) {
   const { user } = useAuth()
   const queryClient = useQueryClient()
+  const isDesktop = useIsDesktop()
   const [playLogOpen, setPlayLogOpen] = useState(false)
   const [notesOpen, setNotesOpen] = useState(false)
 
@@ -57,6 +61,8 @@ export function GameQuickActions({ game }: GameQuickActionsProps) {
     ...gameInteractionStatusQueryOptions(game.id),
     enabled: !!user,
   })
+
+  const hotkeysEnabled = isDesktop && !!user
 
   // Mutations with optimistic updates
   const wishlistMutation = useMutation({
@@ -263,6 +269,30 @@ export function GameQuickActions({ game }: GameQuickActionsProps) {
     },
   })
 
+  useHotkey(
+    'W',
+    () => {
+      wishlistMutation.mutate(status?.wishlistPriority ?? null)
+    },
+    { enabled: hotkeysEnabled },
+  )
+
+  useHotkey(
+    'B',
+    () => {
+      backlogMutation.mutate(status?.backlogPriority ?? null)
+    },
+    { enabled: hotkeysEnabled },
+  )
+
+  useHotkeySequence(
+    ['L', 'G'],
+    () => {
+      setPlayLogOpen(true)
+    },
+    { enabled: hotkeysEnabled },
+  )
+
   const handleLibraryChange = (newStatus: GameStatus) => {
     libraryMutation.mutate(newStatus)
   }
@@ -290,23 +320,32 @@ export function GameQuickActions({ game }: GameQuickActionsProps) {
         {/* Wishlist Button */}
         {isWishlisted ? (
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="default"
-                size="sm"
-                className="gap-2 focus:ring-0"
-                disabled={
-                  disabled ||
-                  wishlistMutation.isPending ||
-                  wishlistPriorityMutation.isPending
-                }
-              >
-                <Heart className="w-4 h-4 fill-current" />
-                Wishlist
-                {wishlistPriority && ` · ${PRIORITY_LABEL[wishlistPriority]}`}
-                <ChevronDown className="w-3 h-3 opacity-50" />
-              </Button>
-            </DropdownMenuTrigger>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="gap-2 focus:ring-0"
+                    disabled={
+                      disabled ||
+                      wishlistMutation.isPending ||
+                      wishlistPriorityMutation.isPending
+                    }
+                  >
+                    <Heart className="w-4 h-4 fill-current" />
+                    Wishlist
+                    {wishlistPriority &&
+                      ` · ${PRIORITY_LABEL[wishlistPriority]}`}
+                    <ChevronDown className="w-3 h-3 opacity-50" />
+                  </Button>
+                </DropdownMenuTrigger>
+              </TooltipTrigger>
+              <TooltipContent className="flex items-center gap-2">
+                <span>Toggle wishlist</span>
+                <KbdHint keys={['W']} />
+              </TooltipContent>
+            </Tooltip>
             <DropdownMenuContent align="start">
               <DropdownMenuItem
                 onClick={() => wishlistPriorityMutation.mutate(null)}
@@ -360,18 +399,26 @@ export function GameQuickActions({ game }: GameQuickActionsProps) {
           </DropdownMenu>
         ) : (
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-2 focus:ring-0"
-                disabled={disabled || wishlistMutation.isPending}
-              >
-                <Heart className="w-4 h-4" />
-                Wishlist
-                <ChevronDown className="w-3 h-3 opacity-50" />
-              </Button>
-            </DropdownMenuTrigger>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2 focus:ring-0"
+                    disabled={disabled || wishlistMutation.isPending}
+                  >
+                    <Heart className="w-4 h-4" />
+                    Wishlist
+                    <ChevronDown className="w-3 h-3 opacity-50" />
+                  </Button>
+                </DropdownMenuTrigger>
+              </TooltipTrigger>
+              <TooltipContent className="flex items-center gap-2">
+                <span>Toggle wishlist</span>
+                <KbdHint keys={['W']} />
+              </TooltipContent>
+            </Tooltip>
             <DropdownMenuContent align="start">
               <DropdownMenuItem onClick={() => wishlistMutation.mutate(null)}>
                 Add to wishlist
@@ -395,23 +442,31 @@ export function GameQuickActions({ game }: GameQuickActionsProps) {
         {/* Backlog Button */}
         {isBacklog ? (
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="default"
-                size="sm"
-                className="gap-2 focus:ring-0"
-                disabled={
-                  disabled ||
-                  backlogMutation.isPending ||
-                  backlogPriorityMutation.isPending
-                }
-              >
-                <Bookmark className="w-4 h-4 fill-current" />
-                Backlog
-                {backlogPriority && ` · ${PRIORITY_LABEL[backlogPriority]}`}
-                <ChevronDown className="w-3 h-3 opacity-50" />
-              </Button>
-            </DropdownMenuTrigger>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="gap-2 focus:ring-0"
+                    disabled={
+                      disabled ||
+                      backlogMutation.isPending ||
+                      backlogPriorityMutation.isPending
+                    }
+                  >
+                    <Bookmark className="w-4 h-4 fill-current" />
+                    Backlog
+                    {backlogPriority && ` · ${PRIORITY_LABEL[backlogPriority]}`}
+                    <ChevronDown className="w-3 h-3 opacity-50" />
+                  </Button>
+                </DropdownMenuTrigger>
+              </TooltipTrigger>
+              <TooltipContent className="flex items-center gap-2">
+                <span>Toggle backlog</span>
+                <KbdHint keys={['B']} />
+              </TooltipContent>
+            </Tooltip>
             <DropdownMenuContent align="start">
               <DropdownMenuItem
                 onClick={() => backlogPriorityMutation.mutate(null)}
@@ -463,18 +518,26 @@ export function GameQuickActions({ game }: GameQuickActionsProps) {
           </DropdownMenu>
         ) : (
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-2 focus:ring-0"
-                disabled={disabled || backlogMutation.isPending}
-              >
-                <Bookmark className="w-4 h-4" />
-                Backlog
-                <ChevronDown className="w-3 h-3 opacity-50" />
-              </Button>
-            </DropdownMenuTrigger>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2 focus:ring-0"
+                    disabled={disabled || backlogMutation.isPending}
+                  >
+                    <Bookmark className="w-4 h-4" />
+                    Backlog
+                    <ChevronDown className="w-3 h-3 opacity-50" />
+                  </Button>
+                </DropdownMenuTrigger>
+              </TooltipTrigger>
+              <TooltipContent className="flex items-center gap-2">
+                <span>Toggle backlog</span>
+                <KbdHint keys={['B']} />
+              </TooltipContent>
+            </Tooltip>
             <DropdownMenuContent align="start">
               <DropdownMenuItem onClick={() => backlogMutation.mutate(null)}>
                 Add to backlog
@@ -567,16 +630,24 @@ export function GameQuickActions({ game }: GameQuickActionsProps) {
         )}
 
         {/* Play Log Button */}
-        <Button
-          variant="outline"
-          size="sm"
-          className="gap-2"
-          disabled={disabled}
-          onClick={() => setPlayLogOpen(true)}
-        >
-          <Gamepad2 className="w-4 h-4" />
-          Log Play
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              disabled={disabled}
+              onClick={() => setPlayLogOpen(true)}
+            >
+              <Gamepad2 className="w-4 h-4" />
+              Log Play
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent className="flex items-center gap-2">
+            <span>Log a play</span>
+            <KbdHint keys={['L', 'G']} />
+          </TooltipContent>
+        </Tooltip>
 
         {/* Rating Widget */}
         <div className="flex items-center ml-4 pl-4 border-l">

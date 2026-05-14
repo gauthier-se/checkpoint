@@ -16,6 +16,12 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from '@/components/ui/drawer'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
+import { KbdHint } from '@/components/ui/kbd'
 import { Separator } from '@/components/ui/separator'
 import {
   NotificationItem,
@@ -202,7 +208,15 @@ export function NotificationBell() {
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>{bellButton}</PopoverTrigger>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <PopoverTrigger asChild>{bellButton}</PopoverTrigger>
+        </TooltipTrigger>
+        <TooltipContent className="flex items-center gap-2">
+          <span>Notifications</span>
+          <KbdHint keys={['G', 'N']} />
+        </TooltipContent>
+      </Tooltip>
       <PopoverContent className="w-96 p-0" align="end" sideOffset={8}>
         <NotificationPanel onClose={handleClose} />
       </PopoverContent>

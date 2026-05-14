@@ -5,9 +5,12 @@ import { Command, Plus, Search, User } from 'lucide-react'
 import { Button } from '../ui/button'
 import { SearchCommand } from '../search/search-command'
 import { QuickLogModal } from '../log/quick-log-modal'
+import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip'
+import { KbdHint } from '../ui/kbd'
 import { AvatarDropdown } from './avatar-dropdown'
 import { NotificationBell } from './notification-bell'
 import { useAuth } from '@/hooks/use-auth'
+import { useNavigationHotkeys } from '@/hooks/use-navigation-hotkeys'
 
 function useIsMac() {
   const [isMac, setIsMac] = useState<boolean | null>(null)
@@ -31,6 +34,8 @@ export const Header = () => {
     if (user) setQuickLogOpen(true)
   })
 
+  useNavigationHotkeys()
+
   return (
     <header className="relative z-20 max-w-7xl mx-auto py-4 flex items-center justify-between">
       <Link className="flex items-center gap-2" to="/">
@@ -38,34 +43,66 @@ export const Header = () => {
         <h1 className="text-2xl font-bold">Checkpoint</h1>
       </Link>
       <nav className="flex items-center gap-4 pt-2">
-        <Link
-          to="/games"
-          search={{ page: 1 }}
-          className="text-muted-foreground font-semibold"
-        >
-          Games
-        </Link>
-        <Link
-          to="/lists"
-          search={{ page: 1 }}
-          className="text-muted-foreground font-semibold"
-        >
-          Lists
-        </Link>
-        <Link
-          to="/members"
-          search={{ page: 1 }}
-          className="text-muted-foreground font-semibold"
-        >
-          Members
-        </Link>
-        <Link
-          to="/news"
-          search={{ page: 1 }}
-          className="text-muted-foreground font-semibold"
-        >
-          News
-        </Link>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Link
+              to="/games"
+              search={{ page: 1 }}
+              className="text-muted-foreground font-semibold"
+            >
+              Games
+            </Link>
+          </TooltipTrigger>
+          <TooltipContent className="flex items-center gap-2">
+            <span>Games</span>
+            <KbdHint keys={['G', 'G']} />
+          </TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Link
+              to="/lists"
+              search={{ page: 1 }}
+              className="text-muted-foreground font-semibold"
+            >
+              Lists
+            </Link>
+          </TooltipTrigger>
+          <TooltipContent className="flex items-center gap-2">
+            <span>Lists</span>
+            <KbdHint keys={['G', 'L']} />
+          </TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Link
+              to="/members"
+              search={{ page: 1 }}
+              className="text-muted-foreground font-semibold"
+            >
+              Members
+            </Link>
+          </TooltipTrigger>
+          <TooltipContent className="flex items-center gap-2">
+            <span>Members</span>
+            <KbdHint keys={['G', 'M']} />
+          </TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Link
+              to="/news"
+              search={{ page: 1 }}
+              className="text-muted-foreground font-semibold"
+            >
+              News
+            </Link>
+          </TooltipTrigger>
+          <TooltipContent className="flex items-center gap-2">
+            <span>News</span>
+            <KbdHint keys={['G', 'W']} />
+          </TooltipContent>
+        </Tooltip>
         <button
           onClick={() => setSearchOpen(true)}
           className="flex h-9 items-center gap-2 rounded-lg border bg-muted/50 px-3 text-sm text-muted-foreground transition-colors hover:bg-muted"
@@ -84,10 +121,18 @@ export const Header = () => {
           <div className="h-9 w-32 animate-pulse rounded-md bg-muted" />
         ) : user ? (
           <>
-            <Button size="sm" onClick={() => setQuickLogOpen(true)}>
-              <Plus />
-              Log
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button size="sm" onClick={() => setQuickLogOpen(true)}>
+                  <Plus />
+                  Log
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent className="flex items-center gap-2">
+                <span>Quick log</span>
+                <KbdHint keys={['Mod', 'J']} isMac={isMac} />
+              </TooltipContent>
+            </Tooltip>
             <QuickLogModal open={quickLogOpen} onOpenChange={setQuickLogOpen} />
             <NotificationBell />
             <AvatarDropdown user={user} />
