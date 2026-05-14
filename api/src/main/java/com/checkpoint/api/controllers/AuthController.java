@@ -22,9 +22,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.Optional;
+
 import com.checkpoint.api.client.SteamOpenIdClient;
 import com.checkpoint.api.entities.User;
 import com.checkpoint.api.exceptions.SteamOpenIdException;
+import com.checkpoint.api.services.SteamOpenIdStateService;
 import com.checkpoint.api.services.SteamService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -73,6 +78,7 @@ public class AuthController {
     private final TwoFactorService twoFactorService;
     private final SteamOpenIdClient steamOpenIdClient;
     private final SteamService steamService;
+    private final SteamOpenIdStateService steamOpenIdStateService;
 
     @Value("${steam.openid.return-url:http://localhost:8080/api/auth/steam/openid/callback}")
     private String steamReturnUrl;
@@ -86,11 +92,13 @@ public class AuthController {
     public AuthController(AuthService authService,
                           TwoFactorService twoFactorService,
                           SteamOpenIdClient steamOpenIdClient,
-                          SteamService steamService) {
+                          SteamService steamService,
+                          SteamOpenIdStateService steamOpenIdStateService) {
         this.authService = authService;
         this.twoFactorService = twoFactorService;
         this.steamOpenIdClient = steamOpenIdClient;
         this.steamService = steamService;
+        this.steamOpenIdStateService = steamOpenIdStateService;
     }
 
     /**
@@ -349,9 +357,19 @@ public class AuthController {
      * @return 302 redirect to Steam
      */
     @GetMapping("/steam/openid/start")
-    public ResponseEntity<?> steamOpenIdStart(@RequestParam(defaultValue = STEAM_ACTION_LOGIN) String action) {
+    public ResponseEntity<?> steamOpenIdStart(
+            @RequestParam(defaultValue = STEAM_ACTION_LOGIN) String action,
+            @AuthenticationPrincipal UserDetails userDetails) {
         String normalizedAction = STEAM_ACTION_LINK.equals(action) ? STEAM_ACTION_LINK : STEAM_ACTION_LOGIN;
-        String returnUrl = steamReturnUrl + "?action=" + normalizedAction;
+
+        String stateEmail = STEAM_ACTION_LINK.equals(normalizedAction) && userDetails != null
+                ? userDetails.getUsername()
+                : null;
+        String state = steamOpenIdStateService.issue(normalizedAction, stateEmail);
+
+        String returnUrl = steamReturnUrl
+                + "?action=" + normalizedAction
+                + "&state=" + URLEncoder.encode(state, StandardCharsets.UTF_8);
         String authUrl = steamOpenIdClient.buildAuthenticationUrl(returnUrl, steamRealm);
 
         log.info("Redirecting to Steam OpenID for action={}", normalizedAction);
@@ -377,9 +395,28 @@ public class AuthController {
     @GetMapping("/steam/openid/callback")
     public ResponseEntity<?> steamOpenIdCallback(
             @RequestParam(defaultValue = STEAM_ACTION_LOGIN) String action,
+            @RequestParam(required = false) String state,
             HttpServletRequest request,
             @AuthenticationPrincipal UserDetails userDetails,
             jakarta.servlet.http.HttpServletResponse servletResponse) {
+
+        Optional<SteamOpenIdStateService.Claims> stateClaims = steamOpenIdStateService.verify(state);
+        if (stateClaims.isEmpty()) {
+            log.warn("Steam OpenID callback rejected: missing or invalid state token (action={})", action);
+            return clientSideRedirect(frontendUrl + "/login?error=steam_openid_failed");
+        }
+        if (!stateClaims.get().action().equals(action)) {
+            log.warn("Steam OpenID callback rejected: state action {} != URL action {}",
+                    stateClaims.get().action(), action);
+            return clientSideRedirect(frontendUrl + "/login?error=steam_openid_failed");
+        }
+        if (STEAM_ACTION_LINK.equals(action)) {
+            String stateEmail = stateClaims.get().email();
+            if (userDetails == null || stateEmail == null || !stateEmail.equals(userDetails.getUsername())) {
+                log.warn("Steam OpenID link callback rejected: state user does not match authenticated user");
+                return clientSideRedirect(frontendUrl + "/login?error=steam_openid_failed");
+            }
+        }
 
         Map<String, String> openIdParams = collectOpenIdParams(request);
 
@@ -392,10 +429,6 @@ public class AuthController {
         }
 
         if (STEAM_ACTION_LINK.equals(action)) {
-            if (userDetails == null) {
-                log.warn("Steam OpenID link callback with no authenticated user");
-                return clientSideRedirect(frontendUrl + "/login?error=not_authenticated");
-            }
             steamService.linkVerifiedSteamAccount(userDetails.getUsername(), steamId);
             log.info("Linked Steam {} to user {} via OpenID", steamId, userDetails.getUsername());
             return clientSideRedirect(frontendUrl + "/settings/integrations?linked=steam");

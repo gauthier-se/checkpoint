@@ -40,6 +40,7 @@ import com.checkpoint.api.client.SteamOpenIdClient;
 import com.checkpoint.api.security.ApiAuthenticationEntryPoint;
 import com.checkpoint.api.security.JwtAuthenticationFilter;
 import com.checkpoint.api.services.AuthService;
+import com.checkpoint.api.services.SteamOpenIdStateService;
 import com.checkpoint.api.services.SteamService;
 import com.checkpoint.api.services.TwoFactorService;
 
@@ -69,6 +70,9 @@ class AuthControllerTest {
 
     @MockitoBean
     private SteamService steamService;
+
+    @MockitoBean
+    private SteamOpenIdStateService steamOpenIdStateService;
 
     @MockitoBean
     private JwtAuthenticationFilter jwtAuthenticationFilter;
@@ -631,10 +635,26 @@ class AuthControllerTest {
     class SteamOpenId {
 
         private static final String STEAM_ID = "76561198000000000";
+        private static final String STATE_TOKEN = "sentinel.state.jwt";
+
+        private void stubValidLoginState() {
+            when(steamOpenIdStateService.verify(org.mockito.ArgumentMatchers.anyString()))
+                    .thenReturn(java.util.Optional.of(
+                            new SteamOpenIdStateService.Claims("login", null)));
+        }
+
+        private void stubValidLinkState(String email) {
+            when(steamOpenIdStateService.verify(org.mockito.ArgumentMatchers.anyString()))
+                    .thenReturn(java.util.Optional.of(
+                            new SteamOpenIdStateService.Claims("link", email)));
+        }
 
         @Test
         @DisplayName("GET /steam/openid/start returns HTML that redirects the browser to Steam")
         void start_redirectsToSteam() throws Exception {
+            when(steamOpenIdStateService.issue(org.mockito.ArgumentMatchers.anyString(),
+                    org.mockito.ArgumentMatchers.nullable(String.class)))
+                    .thenReturn(STATE_TOKEN);
             when(steamOpenIdClient.buildAuthenticationUrl(
                     org.mockito.ArgumentMatchers.contains("action=link"),
                     org.mockito.ArgumentMatchers.anyString()))
@@ -648,8 +668,32 @@ class AuthControllerTest {
         }
 
         @Test
+        @DisplayName("GET /steam/openid/start embeds the state JWT in the return URL")
+        @WithMockUser(username = "alice@test.com")
+        void start_includesStateInReturnUrl() throws Exception {
+            when(steamOpenIdStateService.issue(org.mockito.ArgumentMatchers.eq("link"),
+                    org.mockito.ArgumentMatchers.eq("alice@test.com")))
+                    .thenReturn(STATE_TOKEN);
+            org.mockito.ArgumentCaptor<String> returnUrlCaptor =
+                    org.mockito.ArgumentCaptor.forClass(String.class);
+            when(steamOpenIdClient.buildAuthenticationUrl(returnUrlCaptor.capture(),
+                    org.mockito.ArgumentMatchers.anyString()))
+                    .thenReturn("https://steamcommunity.com/openid/login");
+
+            mockMvc.perform(get("/api/auth/steam/openid/start").param("action", "link"))
+                    .andExpect(status().isOk());
+
+            String returnUrl = returnUrlCaptor.getValue();
+            org.junit.jupiter.api.Assertions.assertTrue(returnUrl.contains("state="),
+                    "return URL should carry the state token: " + returnUrl);
+            org.junit.jupiter.api.Assertions.assertTrue(returnUrl.contains(STATE_TOKEN),
+                    "return URL should contain the issued state JWT: " + returnUrl);
+        }
+
+        @Test
         @DisplayName("GET /steam/openid/callback action=login navigates to / on success when SteamID is linked")
         void callback_loginSuccess() throws Exception {
+            stubValidLoginState();
             com.checkpoint.api.entities.User user = new com.checkpoint.api.entities.User();
             user.setEmail("alice@test.com");
 
@@ -662,6 +706,7 @@ class AuthControllerTest {
 
             mockMvc.perform(get("/api/auth/steam/openid/callback")
                             .param("action", "login")
+                            .param("state", STATE_TOKEN)
                             .param("openid.mode", "id_res")
                             .param("openid.claimed_id",
                                     "https://steamcommunity.com/openid/id/" + STEAM_ID))
@@ -677,12 +722,14 @@ class AuthControllerTest {
         @Test
         @DisplayName("GET /steam/openid/callback action=login navigates to /login?error=steam_not_linked when no user")
         void callback_loginNoLinkedUser() throws Exception {
+            stubValidLoginState();
             when(steamOpenIdClient.verifyAndExtractSteamId(any())).thenReturn(STEAM_ID);
             when(steamService.findUserBySteamId(STEAM_ID))
                     .thenReturn(java.util.Optional.empty());
 
             mockMvc.perform(get("/api/auth/steam/openid/callback")
                             .param("action", "login")
+                            .param("state", STATE_TOKEN)
                             .param("openid.mode", "id_res"))
                     .andExpect(status().isOk())
                     .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
@@ -697,10 +744,12 @@ class AuthControllerTest {
         @DisplayName("GET /steam/openid/callback action=link links to authenticated user and navigates to settings")
         @WithMockUser(username = "alice@test.com")
         void callback_linkSuccess() throws Exception {
+            stubValidLinkState("alice@test.com");
             when(steamOpenIdClient.verifyAndExtractSteamId(any())).thenReturn(STEAM_ID);
 
             mockMvc.perform(get("/api/auth/steam/openid/callback")
                             .param("action", "link")
+                            .param("state", STATE_TOKEN)
                             .param("openid.mode", "id_res")
                             .param("openid.claimed_id",
                                     "https://steamcommunity.com/openid/id/" + STEAM_ID))
@@ -717,8 +766,25 @@ class AuthControllerTest {
         @Test
         @DisplayName("GET /steam/openid/callback navigates to /login?error=steam_openid_failed on verification failure")
         void callback_verificationFails() throws Exception {
+            stubValidLoginState();
             when(steamOpenIdClient.verifyAndExtractSteamId(any()))
                     .thenThrow(new com.checkpoint.api.exceptions.SteamOpenIdException("bad"));
+
+            mockMvc.perform(get("/api/auth/steam/openid/callback")
+                            .param("action", "login")
+                            .param("state", STATE_TOKEN)
+                            .param("openid.mode", "id_res"))
+                    .andExpect(status().isOk())
+                    .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
+                            .content().string(org.hamcrest.Matchers.containsString(
+                                    "error=steam_openid_failed")));
+        }
+
+        @Test
+        @DisplayName("GET /steam/openid/callback rejects requests without a state parameter")
+        void callback_rejectsMissingState() throws Exception {
+            when(steamOpenIdStateService.verify(org.mockito.ArgumentMatchers.nullable(String.class)))
+                    .thenReturn(java.util.Optional.empty());
 
             mockMvc.perform(get("/api/auth/steam/openid/callback")
                             .param("action", "login")
@@ -727,6 +793,68 @@ class AuthControllerTest {
                     .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
                             .content().string(org.hamcrest.Matchers.containsString(
                                     "error=steam_openid_failed")));
+
+            verify(steamOpenIdClient, never()).verifyAndExtractSteamId(any());
+        }
+
+        @Test
+        @DisplayName("GET /steam/openid/callback rejects an invalid/expired/tampered state token")
+        void callback_rejectsInvalidState() throws Exception {
+            when(steamOpenIdStateService.verify(org.mockito.ArgumentMatchers.anyString()))
+                    .thenReturn(java.util.Optional.empty());
+
+            mockMvc.perform(get("/api/auth/steam/openid/callback")
+                            .param("action", "login")
+                            .param("state", "tampered.jwt.value")
+                            .param("openid.mode", "id_res"))
+                    .andExpect(status().isOk())
+                    .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
+                            .content().string(org.hamcrest.Matchers.containsString(
+                                    "error=steam_openid_failed")));
+
+            verify(steamOpenIdClient, never()).verifyAndExtractSteamId(any());
+        }
+
+        @Test
+        @DisplayName("GET /steam/openid/callback rejects when state action does not match URL action")
+        void callback_rejectsActionMismatch() throws Exception {
+            // State minted for link, but the callback claims action=login.
+            stubValidLinkState("alice@test.com");
+
+            mockMvc.perform(get("/api/auth/steam/openid/callback")
+                            .param("action", "login")
+                            .param("state", STATE_TOKEN)
+                            .param("openid.mode", "id_res"))
+                    .andExpect(status().isOk())
+                    .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
+                            .content().string(org.hamcrest.Matchers.containsString(
+                                    "error=steam_openid_failed")));
+
+            verify(steamOpenIdClient, never()).verifyAndExtractSteamId(any());
+        }
+
+        @Test
+        @DisplayName("GET /steam/openid/callback action=link rejects when state email does not match authenticated user")
+        @WithMockUser(username = "alice@test.com")
+        void callback_rejectsUserIdMismatchForLink() throws Exception {
+            // State was minted for bob, but alice is the one driving the callback.
+            stubValidLinkState("bob@test.com");
+
+            mockMvc.perform(get("/api/auth/steam/openid/callback")
+                            .param("action", "link")
+                            .param("state", STATE_TOKEN)
+                            .param("openid.mode", "id_res")
+                            .param("openid.claimed_id",
+                                    "https://steamcommunity.com/openid/id/" + STEAM_ID))
+                    .andExpect(status().isOk())
+                    .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
+                            .content().string(org.hamcrest.Matchers.containsString(
+                                    "error=steam_openid_failed")));
+
+            verify(steamOpenIdClient, never()).verifyAndExtractSteamId(any());
+            verify(steamService, never()).linkVerifiedSteamAccount(
+                    org.mockito.ArgumentMatchers.anyString(),
+                    org.mockito.ArgumentMatchers.anyString());
         }
     }
 }
