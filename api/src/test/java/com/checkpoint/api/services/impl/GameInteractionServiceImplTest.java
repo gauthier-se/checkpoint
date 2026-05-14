@@ -81,6 +81,7 @@ class GameInteractionServiceImplTest {
     void shouldReturnStatusWhenAllExist() {
         // Given
         UserGame userGame = new UserGame(testUser, testGame, GameStatus.PLAYING);
+        userGame.setNotes("Currently in act 2");
         Rate rate = new Rate(testUser, testGame, 5);
 
         Wish wish = new Wish(testUser, testGame);
@@ -112,6 +113,7 @@ class GameInteractionServiceImplTest {
         assertThat(result.backlogPriority()).isEqualTo(Priority.MEDIUM);
         assertThat(result.inLibrary()).isTrue();
         assertThat(result.libraryStatus()).isEqualTo(GameStatus.PLAYING);
+        assertThat(result.libraryNotes()).isEqualTo("Currently in act 2");
         assertThat(result.playCount()).isEqualTo(3);
         assertThat(result.userRating()).isEqualTo(5);
         assertThat(result.hasReview()).isTrue();
@@ -142,6 +144,7 @@ class GameInteractionServiceImplTest {
         assertThat(result.backlogPriority()).isNull();
         assertThat(result.inLibrary()).isFalse();
         assertThat(result.libraryStatus()).isNull();
+        assertThat(result.libraryNotes()).isNull();
         assertThat(result.playCount()).isEqualTo(0);
         assertThat(result.userRating()).isNull();
         assertThat(result.hasReview()).isFalse();

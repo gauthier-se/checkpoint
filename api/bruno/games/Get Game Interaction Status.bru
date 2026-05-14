@@ -37,15 +37,20 @@ docs {
   ```json
   {
     "inWishlist": true,
+    "wishlistPriority": "HIGH",
     "inBacklog": false,
+    "backlogPriority": null,
     "inLibrary": true,
     "libraryStatus": "COMPLETED",
+    "libraryNotes": "Finished after 80 hours — loved the ending",
     "playCount": 1,
     "userRating": 4,
     "hasReview": true,
     "lastPlayRating": 4
   }
   ```
+
+  `libraryNotes` is the private freeform notes attached to the library entry (max 2000 characters). It is `null` when no note is set, or when the game is not in the library.
 
   ## Error Responses
 

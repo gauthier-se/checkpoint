@@ -8,6 +8,8 @@ import {
   Gamepad2,
   Heart,
   Library,
+  Pencil,
+  StickyNote,
   Trash2,
 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -15,6 +17,7 @@ import type { Priority } from '@/types/collection'
 import type { GameDetail } from '@/types/game'
 import type { GameInteractionStatusDto } from '@/types/interaction'
 import type { GameStatus } from '@/types/library'
+import { NotesDialog } from '@/components/collection/notes-dialog'
 import { PlayLogDialog } from '@/components/games/play-log-dialog'
 import { StarRating } from '@/components/games/star-rating'
 import { Button } from '@/components/ui/button'
@@ -48,6 +51,7 @@ export function GameQuickActions({ game }: GameQuickActionsProps) {
   const { user } = useAuth()
   const queryClient = useQueryClient()
   const [playLogOpen, setPlayLogOpen] = useState(false)
+  const [notesOpen, setNotesOpen] = useState(false)
 
   const { data: status } = useQuery({
     ...gameInteractionStatusQueryOptions(game.id),
@@ -208,7 +212,13 @@ export function GameQuickActions({ game }: GameQuickActionsProps) {
     mutationFn: (newStatus: GameStatus | null) =>
       updateLibraryStatus(
         game.id,
-        newStatus ? { videoGameId: game.id, status: newStatus } : null,
+        newStatus
+          ? {
+              videoGameId: game.id,
+              status: newStatus,
+              notes: status?.libraryNotes ?? null,
+            }
+          : null,
       ),
     onMutate: async (newStatus) => {
       await queryClient.cancelQueries(
@@ -539,6 +549,23 @@ export function GameQuickActions({ game }: GameQuickActionsProps) {
           </DropdownMenuContent>
         </DropdownMenu>
 
+        {/* Notes Button — only shown when the game is in the library */}
+        {libraryStatus && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2"
+            disabled={disabled}
+            onClick={() => setNotesOpen(true)}
+          >
+            <StickyNote className="w-4 h-4" />
+            Notes
+            {status?.libraryNotes && status.libraryNotes.trim() !== '' && (
+              <Pencil className="w-3 h-3" aria-label="Has notes" />
+            )}
+          </Button>
+        )}
+
         {/* Play Log Button */}
         <Button
           variant="outline"
@@ -591,6 +618,17 @@ export function GameQuickActions({ game }: GameQuickActionsProps) {
           })
         }}
       />
+
+      {status?.libraryStatus && (
+        <NotesDialog
+          open={notesOpen}
+          onOpenChange={setNotesOpen}
+          videoGameId={game.id}
+          gameTitle={game.title}
+          status={status.libraryStatus}
+          initialNotes={status.libraryNotes}
+        />
+      )}
     </>
   )
 }

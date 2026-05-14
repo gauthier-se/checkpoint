@@ -17,6 +17,7 @@ import com.checkpoint.api.enums.GameStatus;
  * @param status      the current status in the user's library
  * @param addedAt     when the game was added to the library
  * @param updatedAt   when the status was last updated
+ * @param notes       private notes attached to the entry (null when unset)
  */
 public record UserGameResponseDto(
         UUID id,
@@ -26,5 +27,6 @@ public record UserGameResponseDto(
         LocalDate releaseDate,
         GameStatus status,
         LocalDateTime addedAt,
-        LocalDateTime updatedAt
+        LocalDateTime updatedAt,
+        String notes
 ) {}

@@ -9,6 +9,7 @@ export interface GameInteractionStatusDto {
   backlogPriority: Priority | null
   inLibrary: boolean
   libraryStatus: GameStatus | null
+  libraryNotes: string | null
   playCount: number
   userRating: number | null
   hasReview: boolean

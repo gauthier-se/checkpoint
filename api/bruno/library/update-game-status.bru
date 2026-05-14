@@ -17,7 +17,8 @@ auth:bearer {
 body:json {
   {
     "videoGameId": "{{gameId}}",
-    "status": "COMPLETED"
+    "status": "COMPLETED",
+    "notes": "Finished after 80 hours — loved the ending"
   }
 }
 
@@ -40,6 +41,7 @@ docs {
   |-------|------|----------|-------------|
   | videoGameId | UUID | Yes | The ID of the video game |
   | status | String | Yes | The new status: `BACKLOG`, `PLAYING`, `COMPLETED`, `DROPPED` |
+  | notes | String | No | Private notes (max 2000 characters); pass `null` to clear |
 
   ## Response (200 OK)
 
@@ -52,13 +54,14 @@ docs {
     "releaseDate": "2025-01-15",
     "status": "COMPLETED",
     "addedAt": "2025-06-01T10:00:00",
-    "updatedAt": "2025-06-20T09:00:00"
+    "updatedAt": "2025-06-20T09:00:00",
+    "notes": "Finished after 80 hours — loved the ending"
   }
   ```
 
   ## Error Responses
 
-  - **400 Bad Request**: Missing or invalid fields
+  - **400 Bad Request**: Missing or invalid fields, or `notes` exceeds 2000 characters
   - **401 Unauthorized**: Not authenticated
   - **404 Not Found**: Game not in library
 }

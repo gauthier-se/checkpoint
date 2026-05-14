@@ -44,6 +44,7 @@ class UserGameMapperImplTest {
         userGame.setId(UUID.randomUUID());
         userGame.setCreatedAt(LocalDateTime.of(2025, 6, 1, 10, 0));
         userGame.setUpdatedAt(LocalDateTime.of(2025, 6, 15, 14, 30));
+        userGame.setNotes("Defeated Margit on third try");
 
         // When
         UserGameResponseDto result = mapper.toResponseDto(userGame);
@@ -57,6 +58,7 @@ class UserGameMapperImplTest {
         assertThat(result.status()).isEqualTo(GameStatus.PLAYING);
         assertThat(result.addedAt()).isEqualTo(LocalDateTime.of(2025, 6, 1, 10, 0));
         assertThat(result.updatedAt()).isEqualTo(LocalDateTime.of(2025, 6, 15, 14, 30));
+        assertThat(result.notes()).isEqualTo("Defeated Margit on third try");
     }
 
     @Test
@@ -82,5 +84,6 @@ class UserGameMapperImplTest {
         assertThat(result.coverUrl()).isNull();
         assertThat(result.releaseDate()).isNull();
         assertThat(result.status()).isEqualTo(GameStatus.BACKLOG);
+        assertThat(result.notes()).isNull();
     }
 }

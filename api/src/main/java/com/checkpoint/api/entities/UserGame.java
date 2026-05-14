@@ -45,6 +45,9 @@ public class UserGame {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    @Column(columnDefinition = "TEXT")
+    private String notes;
+
     // Relationship: UserGame entry belongs to one user
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -104,6 +107,14 @@ public class UserGame {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
     }
 
     public User getUser() {

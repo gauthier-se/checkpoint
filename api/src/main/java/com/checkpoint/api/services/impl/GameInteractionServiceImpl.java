@@ -75,6 +75,7 @@ public class GameInteractionServiceImpl implements GameInteractionService {
         Optional<UserGame> userGameOpt = userGameRepository.findByUserIdAndVideoGameId(user.getId(), videoGameId);
         boolean inLibrary = userGameOpt.isPresent();
         GameStatus libraryStatus = userGameOpt.map(UserGame::getStatus).orElse(null);
+        String libraryNotes = userGameOpt.map(UserGame::getNotes).orElse(null);
 
         int playCount = (int) userGamePlayRepository.countByUserIdAndVideoGameId(user.getId(), videoGameId);
 
@@ -94,6 +95,7 @@ public class GameInteractionServiceImpl implements GameInteractionService {
                 backlogPriority,
                 inLibrary,
                 libraryStatus,
+                libraryNotes,
                 playCount,
                 userRating,
                 hasReview,

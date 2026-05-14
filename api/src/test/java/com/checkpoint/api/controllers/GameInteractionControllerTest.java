@@ -52,7 +52,7 @@ class GameInteractionControllerTest {
         UUID videoGameId = UUID.randomUUID();
 
         GameInteractionStatusDto response = new GameInteractionStatusDto(
-                true, null, false, null, true, GameStatus.COMPLETED, 1, 4, true, 4
+                true, null, false, null, true, GameStatus.COMPLETED, "My private notes", 1, 4, true, 4
         );
 
         when(gameInteractionService.getGameInteractionStatus(eq("user@example.com"), eq(videoGameId)))
@@ -66,6 +66,7 @@ class GameInteractionControllerTest {
                 .andExpect(jsonPath("$.inBacklog").value(false))
                 .andExpect(jsonPath("$.inLibrary").value(true))
                 .andExpect(jsonPath("$.libraryStatus").value("COMPLETED"))
+                .andExpect(jsonPath("$.libraryNotes").value("My private notes"))
                 .andExpect(jsonPath("$.playCount").value(1))
                 .andExpect(jsonPath("$.userRating").value(4))
                 .andExpect(jsonPath("$.hasReview").value(true))

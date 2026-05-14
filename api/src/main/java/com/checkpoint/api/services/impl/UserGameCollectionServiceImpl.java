@@ -60,6 +60,7 @@ public class UserGameCollectionServiceImpl implements UserGameCollectionService 
         }
 
         UserGame userGame = new UserGame(user, videoGame, request.status());
+        userGame.setNotes(request.notes());
         UserGame saved = userGameRepository.save(userGame);
 
         log.info("Game {} added to library for user {} with status {}", videoGame.getTitle(), userEmail, request.status());
@@ -76,6 +77,7 @@ public class UserGameCollectionServiceImpl implements UserGameCollectionService 
                 .orElseThrow(() -> new GameNotInLibraryException(videoGameId));
 
         userGame.setStatus(request.status());
+        userGame.setNotes(request.notes());
         UserGame updated = userGameRepository.save(userGame);
 
         log.info("Game {} status updated to {} for user {}", videoGameId, request.status(), userEmail);

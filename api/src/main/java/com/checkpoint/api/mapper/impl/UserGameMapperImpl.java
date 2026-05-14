@@ -25,7 +25,8 @@ public class UserGameMapperImpl implements UserGameMapper {
                 videoGame.getReleaseDate(),
                 userGame.getStatus(),
                 userGame.getCreatedAt(),
-                userGame.getUpdatedAt()
+                userGame.getUpdatedAt(),
+                userGame.getNotes()
         );
     }
 }

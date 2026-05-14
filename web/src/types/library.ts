@@ -11,11 +11,13 @@ export interface UserGameResponse {
   status: GameStatus
   addedAt: string
   updatedAt: string
+  notes: string | null
 }
 
 export interface UserGameRequest {
   videoGameId: string
   status: GameStatus
+  notes?: string | null
 }
 
 export interface LibraryResponse {

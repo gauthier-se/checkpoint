@@ -4,12 +4,17 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query'
-import { Library } from 'lucide-react'
+import { Library, Pencil } from 'lucide-react'
 import { useState } from 'react'
-import type { GameStatus, LibraryResponse } from '@/types/library'
+import type {
+  GameStatus,
+  LibraryResponse,
+  UserGameResponse,
+} from '@/types/library'
 import { CollectionGameCard } from '@/components/collection/collection-game-card'
 import { CollectionPagination } from '@/components/collection/collection-pagination'
 import { EmptyState } from '@/components/collection/empty-state'
+import { NotesDialog } from '@/components/collection/notes-dialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ButtonGroup } from '@/components/ui/button-group'
@@ -67,6 +72,7 @@ export function LibraryTab({ page }: LibraryTabProps) {
   const { data, isLoading, isError } = useQuery(libraryQuery(page))
   const queryClient = useQueryClient()
   const [filter, setFilter] = useState<GameStatus | 'ALL'>('ALL')
+  const [notesGame, setNotesGame] = useState<UserGameResponse | null>(null)
 
   const filteredGames = (data?.content ?? []).filter(
     (game) => filter === 'ALL' || game.status === filter,
@@ -76,13 +82,15 @@ export function LibraryTab({ page }: LibraryTabProps) {
     mutationFn: async ({
       gameId,
       status,
+      notes,
     }: {
       gameId: string
       status: GameStatus
+      notes: string | null
     }) => {
       const res = await apiFetch(`/api/me/library/${gameId}`, {
         method: 'PUT',
-        body: JSON.stringify({ videoGameId: gameId, status }),
+        body: JSON.stringify({ videoGameId: gameId, status, notes }),
         headers: { 'Content-Type': 'application/json' },
       })
       if (!res.ok) throw new Error('Failed to update status')
@@ -176,7 +184,7 @@ export function LibraryTab({ page }: LibraryTabProps) {
                 >
                   {STATUS_LABELS[game.status]}
                 </Badge>
-                <div className="mt-auto flex gap-1 pt-2">
+                <div className="mt-auto flex flex-wrap gap-1 pt-2">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
@@ -185,7 +193,7 @@ export function LibraryTab({ page }: LibraryTabProps) {
                         className="h-7 text-xs"
                         disabled={updateStatusMutation.isPending}
                       >
-                        Change Status
+                        Status
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
@@ -198,6 +206,7 @@ export function LibraryTab({ page }: LibraryTabProps) {
                               updateStatusMutation.mutate({
                                 gameId: game.videoGameId,
                                 status: s,
+                                notes: game.notes,
                               })
                             }
                           >
@@ -206,6 +215,20 @@ export function LibraryTab({ page }: LibraryTabProps) {
                         ))}
                     </DropdownMenuContent>
                   </DropdownMenu>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 gap-1 text-xs"
+                    onClick={() => setNotesGame(game)}
+                  >
+                    Notes
+                    {game.notes && game.notes.trim() !== '' && (
+                      <Pencil
+                        className="size-3"
+                        aria-label="Has notes"
+                      />
+                    )}
+                  </Button>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -227,6 +250,19 @@ export function LibraryTab({ page }: LibraryTabProps) {
             hasPrevious={data.metadata.hasPrevious}
           />
         </>
+      )}
+
+      {notesGame && (
+        <NotesDialog
+          open={notesGame !== null}
+          onOpenChange={(open) => {
+            if (!open) setNotesGame(null)
+          }}
+          videoGameId={notesGame.videoGameId}
+          gameTitle={notesGame.title}
+          status={notesGame.status}
+          initialNotes={notesGame.notes}
+        />
       )}
     </div>
   )

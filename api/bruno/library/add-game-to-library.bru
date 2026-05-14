@@ -17,7 +17,8 @@ auth:bearer {
 body:json {
   {
     "videoGameId": "98b9126c-c6a5-4c53-9d41-ff990e116c49",
-    "status": "BACKLOG"
+    "status": "BACKLOG",
+    "notes": "Bought during summer sale — start after Elden Ring"
   }
 }
 
@@ -36,6 +37,7 @@ docs {
   |-------|------|----------|-------------|
   | videoGameId | UUID | Yes | The ID of the video game to add |
   | status | String | Yes | The status: `BACKLOG`, `PLAYING`, `COMPLETED`, `DROPPED` |
+  | notes | String | No | Private notes (max 2000 characters); omit or pass `null` for none |
 
   ## Response (201 Created)
 
@@ -48,13 +50,14 @@ docs {
     "releaseDate": "2025-01-15",
     "status": "BACKLOG",
     "addedAt": "2025-06-01T10:00:00",
-    "updatedAt": "2025-06-01T10:00:00"
+    "updatedAt": "2025-06-01T10:00:00",
+    "notes": "Bought during summer sale — start after Elden Ring"
   }
   ```
 
   ## Error Responses
 
-  - **400 Bad Request**: Missing or invalid fields
+  - **400 Bad Request**: Missing or invalid fields, or `notes` exceeds 2000 characters
   - **401 Unauthorized**: Not authenticated
   - **404 Not Found**: Video game does not exist
   - **409 Conflict**: Game already in library (use PUT to update status)

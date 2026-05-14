@@ -86,7 +86,7 @@ class UserGameCollectionServiceImplTest {
         testResponseDto = new UserGameResponseDto(
                 testUserGame.getId(), testGame.getId(), testGame.getTitle(),
                 testGame.getCoverUrl(), testGame.getReleaseDate(), GameStatus.BACKLOG,
-                testUserGame.getCreatedAt(), testUserGame.getUpdatedAt());
+                testUserGame.getCreatedAt(), testUserGame.getUpdatedAt(), null);
     }
 
     @Nested
@@ -97,7 +97,7 @@ class UserGameCollectionServiceImplTest {
         @DisplayName("should add game to library successfully")
         void shouldAddGameSuccessfully() {
             // Given
-            UserGameRequestDto request = new UserGameRequestDto(testGame.getId(), GameStatus.BACKLOG);
+            UserGameRequestDto request = new UserGameRequestDto(testGame.getId(), GameStatus.BACKLOG, null);
 
             when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(testUser));
             when(videoGameRepository.findById(testGame.getId())).thenReturn(Optional.of(testGame));
@@ -118,13 +118,35 @@ class UserGameCollectionServiceImplTest {
             assertThat(captor.getValue().getUser()).isEqualTo(testUser);
             assertThat(captor.getValue().getVideoGame()).isEqualTo(testGame);
             assertThat(captor.getValue().getStatus()).isEqualTo(GameStatus.BACKLOG);
+            assertThat(captor.getValue().getNotes()).isNull();
+        }
+
+        @Test
+        @DisplayName("should persist notes when provided on add")
+        void shouldPersistNotesOnAdd() {
+            // Given
+            UserGameRequestDto request = new UserGameRequestDto(testGame.getId(), GameStatus.PLAYING, "Great combat system");
+
+            when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(testUser));
+            when(videoGameRepository.findById(testGame.getId())).thenReturn(Optional.of(testGame));
+            when(userGameRepository.existsByUserIdAndVideoGameId(testUser.getId(), testGame.getId())).thenReturn(false);
+            when(userGameRepository.save(any(UserGame.class))).thenReturn(testUserGame);
+            when(userGameMapper.toResponseDto(testUserGame)).thenReturn(testResponseDto);
+
+            // When
+            service.addGameToLibrary("user@example.com", request);
+
+            // Then
+            ArgumentCaptor<UserGame> captor = ArgumentCaptor.forClass(UserGame.class);
+            verify(userGameRepository).save(captor.capture());
+            assertThat(captor.getValue().getNotes()).isEqualTo("Great combat system");
         }
 
         @Test
         @DisplayName("should throw GameAlreadyInLibraryException when game already exists")
         void shouldThrowWhenGameAlreadyInLibrary() {
             // Given
-            UserGameRequestDto request = new UserGameRequestDto(testGame.getId(), GameStatus.PLAYING);
+            UserGameRequestDto request = new UserGameRequestDto(testGame.getId(), GameStatus.PLAYING, null);
 
             when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(testUser));
             when(videoGameRepository.findById(testGame.getId())).thenReturn(Optional.of(testGame));
@@ -143,7 +165,7 @@ class UserGameCollectionServiceImplTest {
         void shouldThrowWhenVideoGameNotFound() {
             // Given
             UUID unknownGameId = UUID.randomUUID();
-            UserGameRequestDto request = new UserGameRequestDto(unknownGameId, GameStatus.BACKLOG);
+            UserGameRequestDto request = new UserGameRequestDto(unknownGameId, GameStatus.BACKLOG, null);
 
             when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(testUser));
             when(videoGameRepository.findById(unknownGameId)).thenReturn(Optional.empty());
@@ -158,7 +180,7 @@ class UserGameCollectionServiceImplTest {
         @DisplayName("should throw IllegalArgumentException when user not found")
         void shouldThrowWhenUserNotFound() {
             // Given
-            UserGameRequestDto request = new UserGameRequestDto(testGame.getId(), GameStatus.BACKLOG);
+            UserGameRequestDto request = new UserGameRequestDto(testGame.getId(), GameStatus.BACKLOG, null);
             when(userRepository.findByEmail("unknown@example.com")).thenReturn(Optional.empty());
 
             // When / Then
@@ -176,7 +198,7 @@ class UserGameCollectionServiceImplTest {
         @DisplayName("should update game status successfully")
         void shouldUpdateStatusSuccessfully() {
             // Given
-            UserGameRequestDto request = new UserGameRequestDto(testGame.getId(), GameStatus.COMPLETED);
+            UserGameRequestDto request = new UserGameRequestDto(testGame.getId(), GameStatus.COMPLETED, null);
             UserGame updatedUserGame = new UserGame(testUser, testGame, GameStatus.COMPLETED);
             updatedUserGame.setId(testUserGame.getId());
             updatedUserGame.setCreatedAt(testUserGame.getCreatedAt());
@@ -185,7 +207,7 @@ class UserGameCollectionServiceImplTest {
             UserGameResponseDto updatedResponse = new UserGameResponseDto(
                     testUserGame.getId(), testGame.getId(), testGame.getTitle(),
                     testGame.getCoverUrl(), testGame.getReleaseDate(), GameStatus.COMPLETED,
-                    testUserGame.getCreatedAt(), updatedUserGame.getUpdatedAt());
+                    testUserGame.getCreatedAt(), updatedUserGame.getUpdatedAt(), null);
 
             when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(testUser));
             when(userGameRepository.findByUserIdAndVideoGameId(testUser.getId(), testGame.getId()))
@@ -202,11 +224,51 @@ class UserGameCollectionServiceImplTest {
         }
 
         @Test
+        @DisplayName("should update notes on update")
+        void shouldUpdateNotes() {
+            // Given
+            UserGameRequestDto request = new UserGameRequestDto(testGame.getId(), GameStatus.PLAYING, "New note");
+            testUserGame.setNotes("Old note");
+
+            when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(testUser));
+            when(userGameRepository.findByUserIdAndVideoGameId(testUser.getId(), testGame.getId()))
+                    .thenReturn(Optional.of(testUserGame));
+            when(userGameRepository.save(testUserGame)).thenReturn(testUserGame);
+            when(userGameMapper.toResponseDto(testUserGame)).thenReturn(testResponseDto);
+
+            // When
+            service.updateGameStatus("user@example.com", testGame.getId(), request);
+
+            // Then
+            assertThat(testUserGame.getNotes()).isEqualTo("New note");
+        }
+
+        @Test
+        @DisplayName("should clear notes when request notes is null")
+        void shouldClearNotesWhenNull() {
+            // Given
+            UserGameRequestDto request = new UserGameRequestDto(testGame.getId(), GameStatus.COMPLETED, null);
+            testUserGame.setNotes("Existing note to be cleared");
+
+            when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(testUser));
+            when(userGameRepository.findByUserIdAndVideoGameId(testUser.getId(), testGame.getId()))
+                    .thenReturn(Optional.of(testUserGame));
+            when(userGameRepository.save(testUserGame)).thenReturn(testUserGame);
+            when(userGameMapper.toResponseDto(testUserGame)).thenReturn(testResponseDto);
+
+            // When
+            service.updateGameStatus("user@example.com", testGame.getId(), request);
+
+            // Then
+            assertThat(testUserGame.getNotes()).isNull();
+        }
+
+        @Test
         @DisplayName("should throw GameNotInLibraryException when game not in library")
         void shouldThrowWhenGameNotInLibrary() {
             // Given
             UUID videoGameId = UUID.randomUUID();
-            UserGameRequestDto request = new UserGameRequestDto(videoGameId, GameStatus.DROPPED);
+            UserGameRequestDto request = new UserGameRequestDto(videoGameId, GameStatus.DROPPED, null);
 
             when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(testUser));
             when(userGameRepository.findByUserIdAndVideoGameId(testUser.getId(), videoGameId))
