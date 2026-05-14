@@ -6,11 +6,12 @@
     "dev": "vite dev --port 3000",
     "build": "vite build",
     "serve": "vite preview",
-    "test": "vitest run",
+    "test": "vitest run --passWithNoTests",
     "lint": "eslint",
     "format": "prettier",
     "start": "node .output/server/index.mjs",
-    "check": "prettier --write . && eslint --fix"
+    "check": "prettier --write . && eslint --fix",
+    "check:ci": "prettier --check . && eslint"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

@@ -14,7 +14,7 @@ export async function apiFetch(
   init?: RequestInit,
 ): Promise<Response> {
   const base =
-    typeof window === 'undefined' ? process.env.API_INTERNAL_URL ?? '' : ''
+    typeof window === 'undefined' ? (process.env.API_INTERNAL_URL ?? '') : ''
   return fetch(`${base}${path}`, {
     ...init,
     credentials: 'include',

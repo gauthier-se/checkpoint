@@ -133,8 +133,8 @@ export function SteamAccountCard() {
             </Button>
           </div>
           <p className="text-muted-foreground text-xs">
-            Your Steam profile and game-details visibility must be Public for the
-            sync to read your owned games.
+            Your Steam profile and game-details visibility must be Public for
+            the sync to read your owned games.
           </p>
         </CardContent>
       </Card>

@@ -29,9 +29,7 @@ export function StarRating({ game, currentRating }: StarRatingProps) {
   const [hoveredScore, setHoveredScore] = useState<number | null>(null)
 
   const snapshotInteractionStatus = async () => {
-    await queryClient.cancelQueries(
-      gameInteractionStatusQueryOptions(game.id),
-    )
+    await queryClient.cancelQueries(gameInteractionStatusQueryOptions(game.id))
     return queryClient.getQueryData<GameInteractionStatusDto>(
       gameInteractionStatusQueryOptions(game.id).queryKey,
     )

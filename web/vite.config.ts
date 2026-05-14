@@ -7,7 +7,7 @@ import viteTsConfigPaths from 'vite-tsconfig-paths'
 
 const config = defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
-  const apiInternalUrl = env.API_INTERNAL_URL ?? 'http://localhost:8080'
+  const apiInternalUrl = env['API_INTERNAL_URL'] || 'http://localhost:8080'
 
   return {
     plugins: [

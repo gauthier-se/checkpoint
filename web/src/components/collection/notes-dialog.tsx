@@ -61,9 +61,7 @@ export function NotesDialog({
   })
 
   const tooLong = draft.length > NOTES_MAX_LENGTH
-  const counterClass = tooLong
-    ? 'text-destructive'
-    : 'text-muted-foreground'
+  const counterClass = tooLong ? 'text-destructive' : 'text-muted-foreground'
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

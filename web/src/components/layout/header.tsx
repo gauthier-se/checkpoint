@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from '@tanstack/react-router'
-import { useHotkey } from '@tanstack/react-hotkeys'
+import { useHotkey, useHotkeySequence } from '@tanstack/react-hotkeys'
 import { Command, Plus, Search, User } from 'lucide-react'
 import { Button } from '../ui/button'
 import { SearchCommand } from '../search/search-command'
@@ -30,9 +30,13 @@ export const Header = () => {
     setSearchOpen((prev) => !prev)
   })
 
-  useHotkey('Mod+J', () => {
-    if (user) setQuickLogOpen(true)
-  })
+  useHotkeySequence(
+    ['L', 'G'],
+    () => {
+      setQuickLogOpen(true)
+    },
+    { enabled: !!user },
+  )
 
   useNavigationHotkeys()
 
@@ -130,7 +134,7 @@ export const Header = () => {
               </TooltipTrigger>
               <TooltipContent className="flex items-center gap-2">
                 <span>Quick log</span>
-                <KbdHint keys={['Mod', 'J']} isMac={isMac} />
+                <KbdHint keys={['L', 'G']} isMac={isMac} />
               </TooltipContent>
             </Tooltip>
             <QuickLogModal open={quickLogOpen} onOpenChange={setQuickLogOpen} />

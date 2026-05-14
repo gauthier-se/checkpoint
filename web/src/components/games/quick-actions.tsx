@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-import { useHotkey, useHotkeySequence } from '@tanstack/react-hotkeys'
+import { useHotkey } from '@tanstack/react-hotkeys'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   Bookmark,
@@ -281,14 +281,6 @@ export function GameQuickActions({ game }: GameQuickActionsProps) {
     'B',
     () => {
       backlogMutation.mutate(status?.backlogPriority ?? null)
-    },
-    { enabled: hotkeysEnabled },
-  )
-
-  useHotkeySequence(
-    ['L', 'G'],
-    () => {
-      setPlayLogOpen(true)
     },
     { enabled: hotkeysEnabled },
   )
@@ -623,31 +615,23 @@ export function GameQuickActions({ game }: GameQuickActionsProps) {
           >
             <StickyNote className="w-4 h-4" />
             Notes
-            {status?.libraryNotes && status.libraryNotes.trim() !== '' && (
+            {status.libraryNotes && status.libraryNotes.trim() !== '' && (
               <Pencil className="w-3 h-3" aria-label="Has notes" />
             )}
           </Button>
         )}
 
         {/* Play Log Button */}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-2"
-              disabled={disabled}
-              onClick={() => setPlayLogOpen(true)}
-            >
-              <Gamepad2 className="w-4 h-4" />
-              Log Play
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent className="flex items-center gap-2">
-            <span>Log a play</span>
-            <KbdHint keys={['L', 'G']} />
-          </TooltipContent>
-        </Tooltip>
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-2"
+          disabled={disabled}
+          onClick={() => setPlayLogOpen(true)}
+        >
+          <Gamepad2 className="w-4 h-4" />
+          Log Play
+        </Button>
 
         {/* Rating Widget */}
         <div className="flex items-center ml-4 pl-4 border-l">

@@ -26,7 +26,7 @@ export const SHORTCUT_GROUPS: ReadonlyArray<ShortcutGroup> = [
     title: 'Global',
     items: [
       { keys: ['Mod', 'K'], label: 'Open search' },
-      { keys: ['Mod', 'J'], label: 'Quick log', authOnly: true },
+      { keys: ['L', 'G'], label: 'Quick log', authOnly: true },
       { keys: ['?'], label: 'Show keyboard shortcuts' },
     ],
   },
@@ -35,7 +35,6 @@ export const SHORTCUT_GROUPS: ReadonlyArray<ShortcutGroup> = [
     items: [
       { keys: ['W'], label: 'Toggle wishlist', authOnly: true },
       { keys: ['B'], label: 'Toggle backlog', authOnly: true },
-      { keys: ['L', 'G'], label: 'Log a play', authOnly: true },
     ],
   },
 ]

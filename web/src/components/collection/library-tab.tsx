@@ -223,10 +223,7 @@ export function LibraryTab({ page }: LibraryTabProps) {
                   >
                     Notes
                     {game.notes && game.notes.trim() !== '' && (
-                      <Pencil
-                        className="size-3"
-                        aria-label="Has notes"
-                      />
+                      <Pencil className="size-3" aria-label="Has notes" />
                     )}
                   </Button>
                   <Button
@@ -254,7 +251,7 @@ export function LibraryTab({ page }: LibraryTabProps) {
 
       {notesGame && (
         <NotesDialog
-          open={notesGame !== null}
+          open
           onOpenChange={(open) => {
             if (!open) setNotesGame(null)
           }}
