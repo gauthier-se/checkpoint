@@ -1,7 +1,9 @@
 package com.checkpoint.api.client;
 
+import java.util.List;
 import java.util.Optional;
 
+import com.checkpoint.api.dto.steam.SteamOwnedGameDto;
 import com.checkpoint.api.dto.steam.SteamPlayerSummaryDto;
 
 /**
@@ -32,4 +34,17 @@ public interface SteamApiClient {
      * @return the resolved SteamID64, or empty if the vanity is not recognized
      */
     Optional<String> resolveVanityUrl(String vanity);
+
+    /**
+     * Fetches every game owned by a Steam user via {@code IPlayerService/GetOwnedGames}
+     * (with {@code include_appinfo=true} and {@code include_played_free_games=true}).
+     *
+     * <p>Returns an empty list when the library is private or the user owns nothing —
+     * Steam represents both as an empty outer object. Visibility validation is the
+     * caller's responsibility (see {@code SteamPlayerSummaryDto#communityVisibilityState}).</p>
+     *
+     * @param steamId the 17-digit SteamID64
+     * @return the list of owned games (may be empty); never {@code null}
+     */
+    List<SteamOwnedGameDto> getOwnedGames(String steamId);
 }

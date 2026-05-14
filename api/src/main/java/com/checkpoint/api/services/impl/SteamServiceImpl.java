@@ -1,23 +1,42 @@
 package com.checkpoint.api.services.impl;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.checkpoint.api.client.IgdbApiClient;
 import com.checkpoint.api.client.SteamApiClient;
+import com.checkpoint.api.dto.igdb.IgdbExternalGameDto;
 import com.checkpoint.api.dto.steam.SteamAccountDto;
+import com.checkpoint.api.dto.steam.SteamOwnedGameDto;
 import com.checkpoint.api.dto.steam.SteamPlayerSummaryDto;
+import com.checkpoint.api.dto.steam.SteamSyncSummaryDto;
 import com.checkpoint.api.entities.User;
+import com.checkpoint.api.entities.UserGame;
+import com.checkpoint.api.entities.VideoGame;
+import com.checkpoint.api.enums.GameStatus;
 import com.checkpoint.api.exceptions.InvalidSteamIdException;
+import com.checkpoint.api.exceptions.SteamAccountNotLinkedException;
 import com.checkpoint.api.exceptions.SteamApiException;
+import com.checkpoint.api.exceptions.SteamLibraryPrivateException;
 import com.checkpoint.api.exceptions.UserNotFoundException;
+import com.checkpoint.api.repositories.UserGameRepository;
 import com.checkpoint.api.repositories.UserRepository;
+import com.checkpoint.api.repositories.VideoGameRepository;
+import com.checkpoint.api.services.GameImportService;
 import com.checkpoint.api.services.SteamService;
 
 /**
@@ -36,12 +55,31 @@ public class SteamServiceImpl implements SteamService {
             "^(?:https?://)?(?:www\\.)?steamcommunity\\.com/id/([A-Za-z0-9_-]{2,32})/?$");
     private static final Pattern VANITY_NAME_PATTERN = Pattern.compile("^[A-Za-z0-9_-]{2,32}$");
 
+    /**
+     * Steam {@code communityvisibilitystate} value that grants access to owned games.
+     * Anything else (1 = private, 2 = friends-only) blocks {@code GetOwnedGames}.
+     */
+    private static final int STEAM_VISIBILITY_PUBLIC = 3;
+
     private final UserRepository userRepository;
     private final SteamApiClient steamApiClient;
+    private final IgdbApiClient igdbApiClient;
+    private final VideoGameRepository videoGameRepository;
+    private final UserGameRepository userGameRepository;
+    private final GameImportService gameImportService;
 
-    public SteamServiceImpl(UserRepository userRepository, SteamApiClient steamApiClient) {
+    public SteamServiceImpl(UserRepository userRepository,
+                            SteamApiClient steamApiClient,
+                            IgdbApiClient igdbApiClient,
+                            VideoGameRepository videoGameRepository,
+                            UserGameRepository userGameRepository,
+                            GameImportService gameImportService) {
         this.userRepository = userRepository;
         this.steamApiClient = steamApiClient;
+        this.igdbApiClient = igdbApiClient;
+        this.videoGameRepository = videoGameRepository;
+        this.userGameRepository = userGameRepository;
+        this.gameImportService = gameImportService;
     }
 
     @Override
@@ -161,6 +199,108 @@ public class SteamServiceImpl implements SteamService {
         return steamApiClient.resolveVanityUrl(vanity)
                 .orElseThrow(() -> new InvalidSteamIdException(
                         "Steam does not recognize vanity name: " + vanity));
+    }
+
+    @Override
+    @Transactional
+    public SteamSyncSummaryDto syncSteamLibrary(String userEmail) {
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new UserNotFoundException(userEmail));
+
+        String steamId = user.getSteamId();
+        if (steamId == null || steamId.isBlank()) {
+            throw new SteamAccountNotLinkedException(
+                    "No Steam account linked. Link your Steam account first.");
+        }
+
+        SteamPlayerSummaryDto summary = steamApiClient.fetchPlayerSummary(steamId)
+                .orElseThrow(() -> new SteamApiException(
+                        "Steam did not return a profile for SteamID " + steamId));
+        if (summary.communityVisibilityState() == null
+                || summary.communityVisibilityState() != STEAM_VISIBILITY_PUBLIC) {
+            throw new SteamLibraryPrivateException(
+                    "Your Steam library is private. Change visibility to Public on Steam, then retry.");
+        }
+
+        List<SteamOwnedGameDto> owned = steamApiClient.getOwnedGames(steamId);
+        int total = owned.size();
+        if (total == 0) {
+            log.info("Steam sync for {} found no owned games", userEmail);
+            return new SteamSyncSummaryDto(0, 0, 0, 0);
+        }
+
+        List<Long> appIds = owned.stream()
+                .map(SteamOwnedGameDto::appId)
+                .filter(Objects::nonNull)
+                .toList();
+
+        List<IgdbExternalGameDto> externalGames = igdbApiClient.findIgdbIdsForSteamAppIds(appIds);
+
+        Set<Long> matchedIgdbIds = new HashSet<>();
+        Set<Long> matchedAppIds = new HashSet<>();
+        for (IgdbExternalGameDto row : externalGames) {
+            Long appId = parseAppId(row.uid());
+            if (appId == null) {
+                continue;
+            }
+            matchedAppIds.add(appId);
+            matchedIgdbIds.add(row.game());
+        }
+        int unmatched = total - matchedAppIds.size();
+
+        if (matchedIgdbIds.isEmpty()) {
+            log.info("Steam sync for {}: total={}, no IGDB matches", userEmail, total);
+            return new SteamSyncSummaryDto(total, 0, 0, unmatched);
+        }
+
+        // Identify which matched IGDB IDs are not yet in the local DB and import them.
+        List<VideoGame> alreadyLocal = videoGameRepository.findAllByIgdbIdIn(matchedIgdbIds);
+        Set<Long> localIgdbIds = alreadyLocal.stream()
+                .map(VideoGame::getIgdbId)
+                .collect(Collectors.toSet());
+        List<Long> toImport = matchedIgdbIds.stream()
+                .filter(id -> !localIgdbIds.contains(id))
+                .toList();
+        if (!toImport.isEmpty()) {
+            log.info("Steam sync for {}: importing {} new games from IGDB", userEmail, toImport.size());
+            gameImportService.importGamesByIds(toImport);
+        }
+
+        // Re-fetch so we have the full set of resolved VideoGame entities (including the freshly imported ones).
+        List<VideoGame> resolvedGames = videoGameRepository.findAllByIgdbIdIn(matchedIgdbIds);
+        List<UUID> resolvedVideoGameIds = resolvedGames.stream()
+                .map(VideoGame::getId)
+                .toList();
+        Set<UUID> existingVideoGameIds = new HashSet<>(
+                userGameRepository.findExistingVideoGameIds(user.getId(), resolvedVideoGameIds));
+
+        List<UserGame> toAdd = new ArrayList<>();
+        for (VideoGame game : resolvedGames) {
+            if (!existingVideoGameIds.contains(game.getId())) {
+                toAdd.add(new UserGame(user, game, GameStatus.BACKLOG));
+            }
+        }
+        if (!toAdd.isEmpty()) {
+            userGameRepository.saveAll(toAdd);
+        }
+
+        int imported = toAdd.size();
+        int skipped = resolvedGames.size() - imported;
+
+        log.info("Steam sync for {}: total={}, imported={}, skipped={}, unmatched={}",
+                userEmail, total, imported, skipped, unmatched);
+        return new SteamSyncSummaryDto(total, imported, skipped, unmatched);
+    }
+
+    private Long parseAppId(String uid) {
+        if (uid == null || uid.isBlank()) {
+            return null;
+        }
+        try {
+            return Long.parseLong(uid.trim());
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     private SteamAccountDto persistLink(User user, SteamPlayerSummaryDto summary) {

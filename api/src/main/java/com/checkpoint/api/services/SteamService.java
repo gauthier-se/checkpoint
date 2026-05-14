@@ -3,6 +3,7 @@ package com.checkpoint.api.services;
 import java.util.Optional;
 
 import com.checkpoint.api.dto.steam.SteamAccountDto;
+import com.checkpoint.api.dto.steam.SteamSyncSummaryDto;
 import com.checkpoint.api.entities.User;
 
 /**
@@ -58,4 +59,17 @@ public interface SteamService {
      * @return the account info, or empty if Steam cannot be queried
      */
     Optional<SteamAccountDto> getLinkedAccount(String steamId);
+
+    /**
+     * Imports every owned Steam game into the authenticated user's CheckPoint library with
+     * status {@code BACKLOG}, matching Steam appIds to IGDB game IDs via the IGDB
+     * {@code /external_games} endpoint. Games already in the user's library are skipped
+     * (their status is preserved); games not present in IGDB are counted as unmatched.
+     *
+     * @param userEmail the authenticated user's email
+     * @return per-bucket counts describing the outcome of the sync
+     * @throws com.checkpoint.api.exceptions.SteamAccountNotLinkedException if the user has no Steam account linked
+     * @throws com.checkpoint.api.exceptions.SteamLibraryPrivateException   if the Steam profile visibility is not public
+     */
+    SteamSyncSummaryDto syncSteamLibrary(String userEmail);
 }

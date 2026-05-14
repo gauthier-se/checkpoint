@@ -63,7 +63,8 @@ class SteamProfileRefreshTaskTest {
                 "https://steamcommunity.com/id/fresh",
                 "https://avatar.url/s.jpg",
                 "https://avatar.url/m.jpg",
-                "https://avatar.url/full.jpg");
+                "https://avatar.url/full.jpg",
+                3);
     }
 
     @Test

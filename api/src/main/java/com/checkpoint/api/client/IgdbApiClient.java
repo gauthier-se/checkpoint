@@ -2,6 +2,7 @@ package com.checkpoint.api.client;
 
 import java.util.List;
 
+import com.checkpoint.api.dto.igdb.IgdbExternalGameDto;
 import com.checkpoint.api.dto.igdb.IgdbGameDto;
 import com.checkpoint.api.dto.igdb.IgdbTimeToBeatDto;
 
@@ -53,4 +54,16 @@ public interface IgdbApiClient {
      * @return the time-to-beat DTO, or {@code null} when unavailable
      */
     IgdbTimeToBeatDto fetchTimeToBeat(long igdbGameId);
+
+    /**
+     * Resolves a list of Steam application IDs to IGDB game IDs via IGDB's
+     * {@code /external_games} endpoint (category 1 = Steam).
+     *
+     * <p>The endpoint caps each response at 500 rows, so the input is chunked internally.
+     * Rows whose {@code game} field is null (orphan external entries) are skipped.</p>
+     *
+     * @param steamAppIds the Steam application IDs to look up
+     * @return one DTO per matched row; appIds without an IGDB match are simply absent
+     */
+    List<IgdbExternalGameDto> findIgdbIdsForSteamAppIds(List<Long> steamAppIds);
 }

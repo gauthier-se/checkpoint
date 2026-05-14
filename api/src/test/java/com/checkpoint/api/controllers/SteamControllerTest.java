@@ -21,7 +21,10 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.checkpoint.api.dto.steam.SteamAccountDto;
+import com.checkpoint.api.dto.steam.SteamSyncSummaryDto;
 import com.checkpoint.api.exceptions.InvalidSteamIdException;
+import com.checkpoint.api.exceptions.SteamAccountNotLinkedException;
+import com.checkpoint.api.exceptions.SteamLibraryPrivateException;
 import com.checkpoint.api.security.ApiAuthenticationEntryPoint;
 import com.checkpoint.api.security.JwtAuthenticationFilter;
 import com.checkpoint.api.services.SteamService;
@@ -134,6 +137,50 @@ class SteamControllerTest {
                     .andExpect(status().isNoContent());
 
             verify(steamService).unlinkSteamAccount(EMAIL);
+        }
+    }
+
+    @Nested
+    @DisplayName("POST /api/me/steam/sync")
+    class Sync {
+
+        @Test
+        @DisplayName("returns 200 and the sync summary on success")
+        @WithMockUser(username = EMAIL)
+        void sync_success() throws Exception {
+            SteamSyncSummaryDto summary = new SteamSyncSummaryDto(10, 7, 2, 1);
+            when(steamService.syncSteamLibrary(EMAIL)).thenReturn(summary);
+
+            mockMvc.perform(post("/api/me/steam/sync"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.total").value(10))
+                    .andExpect(jsonPath("$.imported").value(7))
+                    .andExpect(jsonPath("$.skipped").value(2))
+                    .andExpect(jsonPath("$.unmatched").value(1));
+
+            verify(steamService).syncSteamLibrary(EMAIL);
+        }
+
+        @Test
+        @DisplayName("returns 400 when the user has no Steam account linked")
+        @WithMockUser(username = EMAIL)
+        void sync_returnsBadRequestWhenNotLinked() throws Exception {
+            when(steamService.syncSteamLibrary(EMAIL))
+                    .thenThrow(new SteamAccountNotLinkedException("No Steam account linked."));
+
+            mockMvc.perform(post("/api/me/steam/sync"))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("returns 400 when the Steam profile is private")
+        @WithMockUser(username = EMAIL)
+        void sync_returnsBadRequestWhenLibraryPrivate() throws Exception {
+            when(steamService.syncSteamLibrary(EMAIL))
+                    .thenThrow(new SteamLibraryPrivateException("Your Steam library is private."));
+
+            mockMvc.perform(post("/api/me/steam/sync"))
+                    .andExpect(status().isBadRequest());
         }
     }
 }

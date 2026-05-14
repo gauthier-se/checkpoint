@@ -43,7 +43,9 @@ import com.checkpoint.api.exceptions.ReviewAlreadyExistsException;
 import com.checkpoint.api.exceptions.ReviewNotFoundException;
 import com.checkpoint.api.exceptions.InvalidSteamIdException;
 import com.checkpoint.api.exceptions.SelfFollowException;
+import com.checkpoint.api.exceptions.SteamAccountNotLinkedException;
 import com.checkpoint.api.exceptions.SteamApiException;
+import com.checkpoint.api.exceptions.SteamLibraryPrivateException;
 import com.checkpoint.api.exceptions.SteamOpenIdException;
 import com.checkpoint.api.exceptions.TagNotFoundException;
 import com.checkpoint.api.exceptions.DuplicateTagException;
@@ -343,6 +345,48 @@ public class GlobalExceptionHandler {
         );
 
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(error);
+    }
+
+    /**
+     * Handles SteamAccountNotLinkedException when an action requires a linked Steam account
+     * but the user has none.
+     *
+     * @param ex the exception
+     * @return error response with 400 status
+     */
+    @ExceptionHandler(SteamAccountNotLinkedException.class)
+    public ResponseEntity<ErrorResponse> handleSteamAccountNotLinked(SteamAccountNotLinkedException ex) {
+        log.warn("Steam account not linked: {}", ex.getMessage());
+
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                "Bad Request",
+                ex.getMessage(),
+                LocalDateTime.now()
+        );
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
+    /**
+     * Handles SteamLibraryPrivateException when the user's Steam library visibility
+     * prevents reading owned games.
+     *
+     * @param ex the exception
+     * @return error response with 400 status
+     */
+    @ExceptionHandler(SteamLibraryPrivateException.class)
+    public ResponseEntity<ErrorResponse> handleSteamLibraryPrivate(SteamLibraryPrivateException ex) {
+        log.warn("Steam library private: {}", ex.getMessage());
+
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                "Bad Request",
+                ex.getMessage(),
+                LocalDateTime.now()
+        );
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
     /**

@@ -3,28 +3,48 @@ package com.checkpoint.api.services;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyCollection;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.checkpoint.api.client.IgdbApiClient;
 import com.checkpoint.api.client.SteamApiClient;
+import com.checkpoint.api.dto.igdb.IgdbExternalGameDto;
 import com.checkpoint.api.dto.steam.SteamAccountDto;
+import com.checkpoint.api.dto.steam.SteamOwnedGameDto;
 import com.checkpoint.api.dto.steam.SteamPlayerSummaryDto;
+import com.checkpoint.api.dto.steam.SteamSyncSummaryDto;
 import com.checkpoint.api.entities.User;
+import com.checkpoint.api.entities.UserGame;
+import com.checkpoint.api.entities.VideoGame;
+import com.checkpoint.api.enums.GameStatus;
 import com.checkpoint.api.exceptions.InvalidSteamIdException;
+import com.checkpoint.api.exceptions.SteamAccountNotLinkedException;
 import com.checkpoint.api.exceptions.SteamApiException;
+import com.checkpoint.api.exceptions.SteamLibraryPrivateException;
 import com.checkpoint.api.exceptions.UserNotFoundException;
+import com.checkpoint.api.repositories.UserGameRepository;
 import com.checkpoint.api.repositories.UserRepository;
+import com.checkpoint.api.repositories.VideoGameRepository;
+import com.checkpoint.api.services.GameImportService;
 import com.checkpoint.api.services.impl.SteamServiceImpl;
 
 /**
@@ -42,6 +62,18 @@ class SteamServiceImplTest {
     @Mock
     private SteamApiClient steamApiClient;
 
+    @Mock
+    private IgdbApiClient igdbApiClient;
+
+    @Mock
+    private VideoGameRepository videoGameRepository;
+
+    @Mock
+    private UserGameRepository userGameRepository;
+
+    @Mock
+    private GameImportService gameImportService;
+
     @InjectMocks
     private SteamServiceImpl steamService;
 
@@ -52,16 +84,34 @@ class SteamServiceImplTest {
         user = new User();
         user.setEmail(EMAIL);
         user.setPseudo("alice");
+        user.setId(UUID.randomUUID());
     }
 
     private SteamPlayerSummaryDto summary() {
+        return summary(3);
+    }
+
+    private SteamPlayerSummaryDto summary(Integer visibility) {
         return new SteamPlayerSummaryDto(
                 STEAM_ID,
                 "AliceOnSteam",
                 "https://steamcommunity.com/id/alice",
                 "https://avatar.url/s.jpg",
                 "https://avatar.url/m.jpg",
-                "https://avatar.url/full.jpg");
+                "https://avatar.url/full.jpg",
+                visibility);
+    }
+
+    private SteamOwnedGameDto ownedGame(long appId, String name) {
+        return new SteamOwnedGameDto(appId, name, 0L, "icon");
+    }
+
+    private VideoGame videoGameWith(long igdbId) {
+        VideoGame vg = new VideoGame();
+        vg.setId(UUID.randomUUID());
+        vg.setIgdbId(igdbId);
+        vg.setTitle("Game " + igdbId);
+        return vg;
     }
 
     @Test
@@ -275,5 +325,161 @@ class SteamServiceImplTest {
     void getLinkedAccount_nullOrBlank() {
         assertThat(steamService.getLinkedAccount(null)).isEmpty();
         assertThat(steamService.getLinkedAccount(" ")).isEmpty();
+    }
+
+    @Test
+    @DisplayName("syncSteamLibrary throws SteamAccountNotLinkedException when user has no steamId")
+    void syncSteamLibrary_throwsWhenNoSteamAccountLinked() {
+        when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
+
+        assertThatThrownBy(() -> steamService.syncSteamLibrary(EMAIL))
+                .isInstanceOf(SteamAccountNotLinkedException.class);
+
+        verify(steamApiClient, never()).fetchPlayerSummary(any());
+        verify(steamApiClient, never()).getOwnedGames(any());
+    }
+
+    @Test
+    @DisplayName("syncSteamLibrary throws SteamLibraryPrivateException when communityVisibilityState != 3")
+    void syncSteamLibrary_throwsWhenProfilePrivate() {
+        user.setSteamId(STEAM_ID);
+        when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
+        when(steamApiClient.fetchPlayerSummary(STEAM_ID)).thenReturn(Optional.of(summary(1)));
+
+        assertThatThrownBy(() -> steamService.syncSteamLibrary(EMAIL))
+                .isInstanceOf(SteamLibraryPrivateException.class);
+
+        verify(steamApiClient, never()).getOwnedGames(any());
+    }
+
+    @Test
+    @DisplayName("syncSteamLibrary returns zero-counts summary when the library is empty")
+    void syncSteamLibrary_returnsZeroSummaryWhenLibraryEmpty() {
+        user.setSteamId(STEAM_ID);
+        when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
+        when(steamApiClient.fetchPlayerSummary(STEAM_ID)).thenReturn(Optional.of(summary()));
+        when(steamApiClient.getOwnedGames(STEAM_ID)).thenReturn(List.of());
+
+        SteamSyncSummaryDto result = steamService.syncSteamLibrary(EMAIL);
+
+        assertThat(result).isEqualTo(new SteamSyncSummaryDto(0, 0, 0, 0));
+        verify(igdbApiClient, never()).findIgdbIdsForSteamAppIds(anyList());
+        verify(userGameRepository, never()).saveAll(any());
+    }
+
+    @Test
+    @DisplayName("syncSteamLibrary imports missing games and adds matched games to the library with BACKLOG status")
+    void syncSteamLibrary_matchesAndImportsHappyPath() {
+        user.setSteamId(STEAM_ID);
+        when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
+        when(steamApiClient.fetchPlayerSummary(STEAM_ID)).thenReturn(Optional.of(summary()));
+        // 3 owned: 100, 200, 300. IGDB matches: 100->1000, 200->2000. 300 unmatched.
+        when(steamApiClient.getOwnedGames(STEAM_ID)).thenReturn(List.of(
+                ownedGame(100L, "Game A"),
+                ownedGame(200L, "Game B"),
+                ownedGame(300L, "Obscure Steam tool")));
+        when(igdbApiClient.findIgdbIdsForSteamAppIds(anyList())).thenReturn(List.of(
+                new IgdbExternalGameDto(1L, "100", 1000L),
+                new IgdbExternalGameDto(2L, "200", 2000L)));
+
+        // First lookup: only IGDB 1000 exists locally; 2000 needs import.
+        VideoGame existingLocal = videoGameWith(1000L);
+        VideoGame importedAfter = videoGameWith(2000L);
+        when(videoGameRepository.findAllByIgdbIdIn(anyCollection()))
+                .thenReturn(List.of(existingLocal))                 // pre-import check
+                .thenReturn(List.of(existingLocal, importedAfter)); // post-import resolution
+
+        when(userGameRepository.findExistingVideoGameIds(eq(user.getId()), anyCollection()))
+                .thenReturn(List.of());
+
+        SteamSyncSummaryDto result = steamService.syncSteamLibrary(EMAIL);
+
+        assertThat(result).isEqualTo(new SteamSyncSummaryDto(3, 2, 0, 1));
+        verify(gameImportService).importGamesByIds(List.of(2000L));
+
+        ArgumentCaptor<List<UserGame>> captor = ArgumentCaptor.forClass(List.class);
+        verify(userGameRepository).saveAll(captor.capture());
+        List<UserGame> saved = captor.getValue();
+        assertThat(saved).hasSize(2);
+        assertThat(saved).allMatch(ug -> ug.getStatus() == GameStatus.BACKLOG);
+        assertThat(saved).allMatch(ug -> ug.getUser() == user);
+        assertThat(saved.stream().map(ug -> ug.getVideoGame().getIgdbId()))
+                .containsExactlyInAnyOrder(1000L, 2000L);
+    }
+
+    @Test
+    @DisplayName("syncSteamLibrary skips games already in the user's library and does not override their status")
+    void syncSteamLibrary_skipsGamesAlreadyInCollection() {
+        user.setSteamId(STEAM_ID);
+        when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
+        when(steamApiClient.fetchPlayerSummary(STEAM_ID)).thenReturn(Optional.of(summary()));
+        when(steamApiClient.getOwnedGames(STEAM_ID)).thenReturn(List.of(
+                ownedGame(100L, "Game A"),
+                ownedGame(200L, "Game B")));
+        when(igdbApiClient.findIgdbIdsForSteamAppIds(anyList())).thenReturn(List.of(
+                new IgdbExternalGameDto(1L, "100", 1000L),
+                new IgdbExternalGameDto(2L, "200", 2000L)));
+
+        VideoGame g1 = videoGameWith(1000L);
+        VideoGame g2 = videoGameWith(2000L);
+        // Both games already exist locally — no IGDB import needed.
+        when(videoGameRepository.findAllByIgdbIdIn(anyCollection())).thenReturn(List.of(g1, g2));
+        // g1 is already in the library; g2 is new.
+        when(userGameRepository.findExistingVideoGameIds(eq(user.getId()), anyCollection()))
+                .thenReturn(List.of(g1.getId()));
+
+        SteamSyncSummaryDto result = steamService.syncSteamLibrary(EMAIL);
+
+        assertThat(result).isEqualTo(new SteamSyncSummaryDto(2, 1, 1, 0));
+        verify(gameImportService, never()).importGamesByIds(any());
+
+        ArgumentCaptor<List<UserGame>> captor = ArgumentCaptor.forClass(List.class);
+        verify(userGameRepository).saveAll(captor.capture());
+        List<UserGame> saved = captor.getValue();
+        assertThat(saved).hasSize(1);
+        assertThat(saved.get(0).getVideoGame().getIgdbId()).isEqualTo(2000L);
+    }
+
+    @Test
+    @DisplayName("syncSteamLibrary forwards the full appId list to IGDB for large libraries (batching is the client's job)")
+    void syncSteamLibrary_handlesLargeLibraryBatching() {
+        user.setSteamId(STEAM_ID);
+        when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
+        when(steamApiClient.fetchPlayerSummary(STEAM_ID)).thenReturn(Optional.of(summary()));
+
+        List<SteamOwnedGameDto> owned = Stream.iterate(1L, i -> i + 1)
+                .limit(750)
+                .map(i -> ownedGame(i, "Game " + i))
+                .toList();
+        when(steamApiClient.getOwnedGames(STEAM_ID)).thenReturn(owned);
+        when(igdbApiClient.findIgdbIdsForSteamAppIds(anyList())).thenReturn(List.of());
+
+        SteamSyncSummaryDto result = steamService.syncSteamLibrary(EMAIL);
+
+        assertThat(result.total()).isEqualTo(750);
+        assertThat(result.imported()).isZero();
+        assertThat(result.unmatched()).isEqualTo(750);
+
+        ArgumentCaptor<List<Long>> captor = ArgumentCaptor.forClass(List.class);
+        verify(igdbApiClient).findIgdbIdsForSteamAppIds(captor.capture());
+        assertThat(captor.getValue()).hasSize(750);
+    }
+
+    @Test
+    @DisplayName("syncSteamLibrary counts unmatched correctly when IGDB returns no matches at all")
+    void syncSteamLibrary_allUnmatched() {
+        user.setSteamId(STEAM_ID);
+        when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
+        when(steamApiClient.fetchPlayerSummary(STEAM_ID)).thenReturn(Optional.of(summary()));
+        when(steamApiClient.getOwnedGames(STEAM_ID)).thenReturn(List.of(
+                ownedGame(100L, "Obscure Demo"),
+                ownedGame(200L, "Test Tool")));
+        when(igdbApiClient.findIgdbIdsForSteamAppIds(anyList())).thenReturn(new ArrayList<>());
+
+        SteamSyncSummaryDto result = steamService.syncSteamLibrary(EMAIL);
+
+        assertThat(result).isEqualTo(new SteamSyncSummaryDto(2, 0, 0, 2));
+        verify(gameImportService, never()).importGamesByIds(any());
+        verify(userGameRepository, never()).saveAll(any());
     }
 }

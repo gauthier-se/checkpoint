@@ -12,6 +12,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
 import com.checkpoint.api.client.SteamApiClient;
+import com.checkpoint.api.dto.steam.SteamOwnedGameDto;
+import com.checkpoint.api.dto.steam.SteamOwnedGamesResponseDto;
 import com.checkpoint.api.dto.steam.SteamPlayerSummariesResponseDto;
 import com.checkpoint.api.dto.steam.SteamPlayerSummaryDto;
 import com.checkpoint.api.dto.steam.SteamResolveVanityResponseDto;
@@ -123,6 +125,40 @@ public class SteamApiClientImpl implements SteamApiClient {
         } catch (Exception e) {
             log.error("Error calling Steam ResolveVanityURL for {}: {}", vanity, e.getMessage());
             throw new SteamApiException("Failed to resolve Steam vanity URL", e);
+        }
+    }
+
+    @Override
+    public List<SteamOwnedGameDto> getOwnedGames(String steamId) {
+        if (apiKey == null || apiKey.isBlank()) {
+            throw new SteamApiException("Steam API key is not configured");
+        }
+
+        RateLimiter.waitForPermission(rateLimiter);
+
+        log.debug("Fetching Steam owned games for {}", steamId);
+
+        try {
+            SteamOwnedGamesResponseDto response = steamClient.get()
+                    .uri(uriBuilder -> uriBuilder
+                            .path("/IPlayerService/GetOwnedGames/v0001/")
+                            .queryParam("key", apiKey)
+                            .queryParam("steamid", steamId)
+                            .queryParam("include_appinfo", "true")
+                            .queryParam("include_played_free_games", "true")
+                            .queryParam("format", "json")
+                            .build())
+                    .retrieve()
+                    .body(SteamOwnedGamesResponseDto.class);
+
+            if (response == null || response.response() == null) {
+                return List.of();
+            }
+            List<SteamOwnedGameDto> games = response.response().games();
+            return games != null ? games : List.of();
+        } catch (Exception e) {
+            log.error("Error calling Steam GetOwnedGames for {}: {}", steamId, e.getMessage());
+            throw new SteamApiException("Failed to fetch owned games from Steam", e);
         }
     }
 }

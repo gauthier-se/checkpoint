@@ -2,8 +2,10 @@ package com.checkpoint.api.client.impl;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
 import com.checkpoint.api.client.IgdbApiClient;
+import com.checkpoint.api.dto.igdb.IgdbExternalGameDto;
 import com.checkpoint.api.dto.igdb.IgdbGameDto;
 import com.checkpoint.api.dto.igdb.IgdbTimeToBeatDto;
 import com.checkpoint.api.exceptions.IgdbApiException;
@@ -132,6 +135,70 @@ public class IgdbApiClientImpl implements IgdbApiClient {
                 """, minRatingCount, limit);
 
         return executeQuery("/games", query);
+    }
+
+    /**
+     * Maximum number of rows IGDB will return in a single {@code /external_games} response.
+     * The hard cap is 500; we chunk the input to stay at or below it.
+     */
+    private static final int EXTERNAL_GAMES_BATCH_SIZE = 500;
+
+    /**
+     * IGDB {@code external_game_source} identifier for Steam. The legacy {@code category}
+     * field on {@code /external_games} was replaced by {@code external_game_source}
+     * (a foreign key to the {@code external_game_sources} table); the integer value
+     * for Steam is unchanged at {@code 1}.
+     */
+    private static final int STEAM_EXTERNAL_GAME_SOURCE = 1;
+
+    @Override
+    public List<IgdbExternalGameDto> findIgdbIdsForSteamAppIds(List<Long> steamAppIds) {
+        if (steamAppIds == null || steamAppIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        log.info("Resolving {} Steam appIds via IGDB external_games", steamAppIds.size());
+
+        List<IgdbExternalGameDto> aggregated = new ArrayList<>();
+        for (int i = 0; i < steamAppIds.size(); i += EXTERNAL_GAMES_BATCH_SIZE) {
+            List<Long> batch = steamAppIds.subList(
+                    i, Math.min(i + EXTERNAL_GAMES_BATCH_SIZE, steamAppIds.size()));
+            aggregated.addAll(fetchExternalGamesBatch(batch));
+        }
+
+        return aggregated.stream()
+                .filter(row -> row.game() != null)
+                .toList();
+    }
+
+    private List<IgdbExternalGameDto> fetchExternalGamesBatch(List<Long> batch) {
+        RateLimiter.waitForPermission(rateLimiter);
+
+        String uids = batch.stream()
+                .map(appId -> "\"" + appId + "\"")
+                .collect(Collectors.joining(","));
+
+        String query = String.format("""
+                fields uid,game;
+                where external_game_source = %d & uid = (%s);
+                limit %d;
+                """, STEAM_EXTERNAL_GAME_SOURCE, uids, EXTERNAL_GAMES_BATCH_SIZE);
+
+        log.debug("Executing IGDB external_games query for {} appIds", batch.size());
+
+        try {
+            List<IgdbExternalGameDto> result = igdbClient.post()
+                    .uri("/external_games")
+                    .contentType(MediaType.TEXT_PLAIN)
+                    .body(query)
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<List<IgdbExternalGameDto>>() {});
+
+            return result != null ? result : Collections.emptyList();
+        } catch (Exception e) {
+            log.error("Error executing IGDB external_games query: {}", e.getMessage(), e);
+            throw new IgdbApiException("Failed to fetch external games from IGDB", e);
+        }
     }
 
     @Override

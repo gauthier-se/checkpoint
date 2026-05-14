@@ -1,6 +1,7 @@
 package com.checkpoint.api.repositories;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -37,6 +38,15 @@ public interface VideoGameRepository extends JpaRepository<VideoGame, UUID>, Vid
      * @return true if exists, false otherwise
      */
     boolean existsByIgdbId(Long igdbId);
+
+    /**
+     * Fetches every video game whose IGDB ID is in the given collection.
+     * Used by the Steam library sync to bulk-resolve matched IGDB IDs in a single query.
+     *
+     * @param igdbIds the IGDB game IDs to look up
+     * @return the matching video games (may be empty)
+     */
+    List<VideoGame> findAllByIgdbIdIn(Collection<Long> igdbIds);
 
     /**
      * Fetches a paginated list of games as GameCardDto projections.

@@ -1,6 +1,6 @@
 import { useForm } from '@tanstack/react-form'
-import { useQueryClient } from '@tanstack/react-query'
-import { Link2, Link2Off } from 'lucide-react'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { Link2, Link2Off, RefreshCw } from 'lucide-react'
 import { toast } from 'sonner'
 import { z } from 'zod'
 import { Button } from '@/components/ui/button'
@@ -23,6 +23,13 @@ const linkSchema = z.object({
     .min(1, 'Please enter a SteamID, profile URL, or vanity name')
     .max(256, 'Input is too long'),
 })
+
+type SteamSyncSummary = {
+  total: number
+  imported: number
+  skipped: number
+  unmatched: number
+}
 
 export function SteamAccountCard() {
   const { user } = useAuth()
@@ -65,6 +72,27 @@ export function SteamAccountCard() {
     window.location.href = '/api/auth/steam/openid/start?action=link'
   }
 
+  const syncMutation = useMutation<SteamSyncSummary>({
+    mutationFn: async () => {
+      const res = await apiFetch('/api/me/steam/sync', { method: 'POST' })
+      if (!res.ok) {
+        const data = await res.json().catch(() => null)
+        throw new Error(data?.message ?? 'Could not sync Steam library.')
+      }
+      return (await res.json()) as SteamSyncSummary
+    },
+    onSuccess: async (summary) => {
+      toast.success(
+        `Imported ${summary.imported} game${summary.imported === 1 ? '' : 's'} from Steam ` +
+          `(${summary.skipped} already in library, ${summary.unmatched} not found in IGDB).`,
+      )
+      await queryClient.invalidateQueries({ queryKey: ['library', 'me'] })
+    },
+    onError: (err) => {
+      toast.error(err.message)
+    },
+  })
+
   if (!user) return null
 
   if (user.steamId) {
@@ -89,10 +117,25 @@ export function SteamAccountCard() {
               {user.steamId}
             </div>
           </div>
-          <Button variant="destructive" onClick={handleUnlink}>
-            <Link2Off className="mr-2 size-4" />
-            Unlink Steam
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              onClick={() => syncMutation.mutate()}
+              disabled={syncMutation.isPending}
+            >
+              <RefreshCw
+                className={`mr-2 size-4 ${syncMutation.isPending ? 'animate-spin' : ''}`}
+              />
+              {syncMutation.isPending ? 'Syncing…' : 'Sync Steam library'}
+            </Button>
+            <Button variant="destructive" onClick={handleUnlink}>
+              <Link2Off className="mr-2 size-4" />
+              Unlink Steam
+            </Button>
+          </div>
+          <p className="text-muted-foreground text-xs">
+            Your Steam profile and game-details visibility must be Public for the
+            sync to read your owned games.
+          </p>
         </CardContent>
       </Card>
     )

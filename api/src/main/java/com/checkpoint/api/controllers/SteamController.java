@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.checkpoint.api.dto.steam.LinkSteamRequestDto;
 import com.checkpoint.api.dto.steam.SteamAccountDto;
+import com.checkpoint.api.dto.steam.SteamSyncSummaryDto;
 import com.checkpoint.api.services.SteamService;
 
 import jakarta.validation.Valid;
@@ -64,5 +65,19 @@ public class SteamController {
         log.info("DELETE /api/me/steam/unlink - user: {}", userDetails.getUsername());
         steamService.unlinkSteamAccount(userDetails.getUsername());
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Imports the authenticated user's owned Steam games into their CheckPoint library
+     * with status {@code BACKLOG}. Returns counts of total/imported/skipped/unmatched.
+     *
+     * @param userDetails the authenticated user
+     * @return the sync summary
+     */
+    @PostMapping("/sync")
+    public ResponseEntity<SteamSyncSummaryDto> sync(@AuthenticationPrincipal UserDetails userDetails) {
+        log.info("POST /api/me/steam/sync - user: {}", userDetails.getUsername());
+        SteamSyncSummaryDto summary = steamService.syncSteamLibrary(userDetails.getUsername());
+        return ResponseEntity.ok(summary);
     }
 }

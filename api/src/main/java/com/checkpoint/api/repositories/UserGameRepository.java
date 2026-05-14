@@ -1,5 +1,7 @@
 package com.checkpoint.api.repositories;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -37,6 +39,18 @@ public interface UserGameRepository extends JpaRepository<UserGame, UUID> {
      * Checks if a user already has a specific game in their library.
      */
     boolean existsByUserIdAndVideoGameId(UUID userId, UUID videoGameId);
+
+    /**
+     * Returns the IDs of every video game from {@code videoGameIds} that is already
+     * in the given user's library. Used by the Steam library sync to skip duplicates
+     * in a single round-trip.
+     */
+    @Query("""
+            SELECT ug.videoGame.id FROM UserGame ug
+            WHERE ug.user.id = :userId AND ug.videoGame.id IN :videoGameIds
+            """)
+    List<UUID> findExistingVideoGameIds(@Param("userId") UUID userId,
+                                        @Param("videoGameIds") Collection<UUID> videoGameIds);
 
     /**
      * Deletes a user-game association by user ID and video game ID.

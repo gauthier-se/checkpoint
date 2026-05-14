@@ -1,0 +1,68 @@
+meta {
+  name: Sync Steam Library
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/api/me/steam/sync
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  # Sync Steam Library
+
+  Imports every owned Steam game from the authenticated user's linked Steam
+  account into their CheckPoint library with status `BACKLOG`. Steam appIds
+  are resolved to IGDB game IDs via the IGDB `/external_games` endpoint
+  (`external_game_source = 1` for Steam). Resolved games that are not yet in
+  the local catalog are imported on the fly via the existing
+  `GameImportService`. Games already in the user's library are skipped — their
+  status is preserved.
+
+  The sync is **synchronous**: the request blocks until everything is matched,
+  imported, and persisted, then returns per-bucket counts. Large libraries can
+  take 10–30 s; expect to hit the IGDB rate limiter (1 request/sec) once per
+  batch of 500 appIds.
+
+  Requires a linked Steam account (see `POST /api/me/steam/link` or the
+  OpenID flow) **and** a publicly visible Steam profile — Steam's
+  `GetOwnedGames` endpoint returns no data when `communityvisibilitystate`
+  is anything other than `3` (public).
+
+  ## Response (200 OK)
+
+  ```json
+  {
+    "total": 3,
+    "imported": 3,
+    "skipped": 0,
+    "unmatched": 0
+  }
+  ```
+
+  - **total**: total Steam games owned by the user
+  - **imported**: games newly added to the user's CheckPoint library
+  - **skipped**: games that matched IGDB but were already in the library
+  - **unmatched**: Steam appIds with no IGDB entry (demos, niche indies,
+    non-game software, …)
+
+  ## Error Responses
+
+  - **400 Bad Request**: no Steam account linked, or the Steam profile is
+    private (visibility != public)
+  - **401 Unauthorized**: not authenticated
+  - **503 Service Unavailable**: the Steam Web API or IGDB API call failed
+    (Steam/IGDB down, `STEAM_API_KEY` not configured, IGDB credentials
+    invalid)
+
+  ## Configuration
+
+  Requires `STEAM_API_KEY`, `IGDB_CLIENT_ID`, and `IGDB_CLIENT_SECRET` to be
+  set in the environment.
+}
