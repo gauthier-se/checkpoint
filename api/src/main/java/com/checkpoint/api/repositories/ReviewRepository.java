@@ -6,6 +6,7 @@ import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import com.checkpoint.api.entities.Review;
 
@@ -81,5 +82,18 @@ public interface ReviewRepository extends JpaRepository<Review, UUID> {
      * @return a page of reported reviews
      */
     Page<Review> findByReportsIsNotEmpty(Pageable pageable);
+
+    /**
+     * Finds video games ranked by review count (descending).
+     * Returns each game's id and title alongside the review count.
+     *
+     * @param pageable pagination parameters (used to cap the result size)
+     * @return a page of Object[] where [0] = game id (UUID), [1] = title (String), [2] = review count (Long)
+     */
+    @Query("SELECT r.videoGame.id, r.videoGame.title, COUNT(r) AS rc "
+            + "FROM Review r "
+            + "GROUP BY r.videoGame.id, r.videoGame.title "
+            + "ORDER BY rc DESC")
+    Page<Object[]> findTopReviewedGames(Pageable pageable);
 
 }

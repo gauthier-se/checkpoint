@@ -142,6 +142,13 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     boolean isFollowing(@Param("followerId") UUID followerId, @Param("followingId") UUID followingId);
 
     /**
+     * Counts the number of users that are not banned.
+     *
+     * @return the active (non-banned) user count
+     */
+    long countByBannedFalse();
+
+    /**
      * Finds users ranked by follower count (descending).
      * Returns each user alongside their follower count.
      *

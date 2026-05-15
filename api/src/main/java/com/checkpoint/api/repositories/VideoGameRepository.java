@@ -96,6 +96,14 @@ public interface VideoGameRepository extends JpaRepository<VideoGame, UUID>, Vid
     Long countRatings(@Param("videoGameId") UUID videoGameId);
 
     /**
+     * Counts the number of parent games (DLCs and expansions excluded).
+     *
+     * @return the count of standalone games
+     */
+    @Query("SELECT COUNT(vg) FROM VideoGame vg WHERE vg.parentGame IS NULL")
+    long countParentGames();
+
+    /**
      * Finds trending games ranked by weighted recent activity score.
      * Uses correlated subqueries to count recent library additions, play sessions,
      * ratings, reviews, likes, and wishlist additions within the given time window.

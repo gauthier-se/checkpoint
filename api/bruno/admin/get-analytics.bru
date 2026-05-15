@@ -1,0 +1,69 @@
+meta {
+  name: Get Analytics Dashboard
+  type: http
+  seq: 23
+}
+
+get {
+  url: {{baseUrl}}/api/admin/analytics
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  # Get Analytics Dashboard
+
+  Retrieve aggregated platform-wide KPIs and top-5 lists for the admin dashboard.
+  Requires admin authentication.
+
+  ## Authentication
+
+  - **Bearer Token**: JWT token obtained from `/api/auth/token`
+  - **Required Role**: `ROLE_ADMIN`
+
+  ## Response
+
+  Returns a JSON object with:
+  - `totalUsers`: total number of registered users
+  - `activeUsers`: users that are not banned
+  - `totalGames`: standalone games (DLCs and expansions excluded)
+  - `totalReviews`: total number of reviews
+  - `openReports`: reports awaiting moderation (dismissed reports are deleted)
+  - `topReviewedGames`: up to 5 games with the highest review count (`id`, `title`, `reviewCount`)
+  - `topReviewers`: up to 5 users who have written the most reviews (`id`, `username`, `reviewCount`)
+
+  ## Example Response
+
+  ```json
+  {
+    "totalUsers": 142,
+    "activeUsers": 138,
+    "totalGames": 87,
+    "totalReviews": 412,
+    "openReports": 3,
+    "topReviewedGames": [
+      {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "title": "Hades",
+        "reviewCount": 17
+      }
+    ],
+    "topReviewers": [
+      {
+        "id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+        "username": "alice",
+        "reviewCount": 9
+      }
+    ]
+  }
+  ```
+
+  ## Error Responses
+
+  - **401 Unauthorized**: Missing or invalid JWT token
+  - **403 Forbidden**: User does not have `ROLE_ADMIN`
+}
