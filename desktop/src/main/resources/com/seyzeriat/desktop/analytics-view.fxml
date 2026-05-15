@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox spacing="20" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.seyzeriat.desktop.controller.AnalyticsController"
+      styleClass="users-view">
+    <padding>
+        <Insets bottom="20" left="20" right="20" top="20"/>
+    </padding>
+
+    <!-- Header -->
+    <Label text="Tableau de bord" styleClass="view-title"/>
+
+    <!-- Status bar -->
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <Label fx:id="statusLabel" styleClass="status-label"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button fx:id="refreshButton" text="Actualiser" onAction="#onRefresh" styleClass="search-button"/>
+        <ProgressIndicator fx:id="loadingIndicator" prefWidth="24" prefHeight="24"/>
+    </HBox>
+
+    <!-- KPI cards row -->
+    <HBox spacing="15">
+        <VBox styleClass="kpi-card" HBox.hgrow="ALWAYS">
+            <Label text="Utilisateurs" styleClass="kpi-label"/>
+            <Label fx:id="totalUsersValue" text="–" styleClass="kpi-value"/>
+        </VBox>
+        <VBox styleClass="kpi-card" HBox.hgrow="ALWAYS">
+            <Label text="Actifs" styleClass="kpi-label"/>
+            <Label fx:id="activeUsersValue" text="–" styleClass="kpi-value"/>
+        </VBox>
+        <VBox styleClass="kpi-card" HBox.hgrow="ALWAYS">
+            <Label text="Jeux" styleClass="kpi-label"/>
+            <Label fx:id="totalGamesValue" text="–" styleClass="kpi-value"/>
+        </VBox>
+        <VBox styleClass="kpi-card" HBox.hgrow="ALWAYS">
+            <Label text="Avis" styleClass="kpi-label"/>
+            <Label fx:id="totalReviewsValue" text="–" styleClass="kpi-value"/>
+        </VBox>
+        <VBox styleClass="kpi-card" HBox.hgrow="ALWAYS">
+            <Label text="Signalements" styleClass="kpi-label"/>
+            <Label fx:id="openReportsValue" text="–" styleClass="kpi-value"/>
+        </VBox>
+    </HBox>
+
+    <!-- Top-5 lists -->
+    <HBox spacing="20" VBox.vgrow="ALWAYS">
+        <VBox spacing="8" HBox.hgrow="ALWAYS">
+            <Label text="Top 5 jeux les plus commentés" styleClass="kpi-label"/>
+            <TableView fx:id="topGamesTable" VBox.vgrow="ALWAYS" styleClass="users-table">
+                <columns>
+                    <TableColumn fx:id="topGameTitleColumn" text="Jeu" prefWidth="260"/>
+                    <TableColumn fx:id="topGameCountColumn" text="Avis" prefWidth="80"/>
+                </columns>
+                <placeholder>
+                    <Label text="Aucun avis enregistré." styleClass="status-label"/>
+                </placeholder>
+            </TableView>
+        </VBox>
+        <VBox spacing="8" HBox.hgrow="ALWAYS">
+            <Label text="Top 5 reviewers" styleClass="kpi-label"/>
+            <TableView fx:id="topReviewersTable" VBox.vgrow="ALWAYS" styleClass="users-table">
+                <columns>
+                    <TableColumn fx:id="topReviewerNameColumn" text="Utilisateur" prefWidth="220"/>
+                    <TableColumn fx:id="topReviewerCountColumn" text="Avis" prefWidth="80"/>
+                </columns>
+                <placeholder>
+                    <Label text="Aucun reviewer actif." styleClass="status-label"/>
+                </placeholder>
+            </TableView>
+        </VBox>
+    </HBox>
+</VBox>

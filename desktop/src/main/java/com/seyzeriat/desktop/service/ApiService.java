@@ -12,6 +12,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.seyzeriat.desktop.dto.AnalyticsResult;
 import com.seyzeriat.desktop.dto.BulkImportResult;
 import com.seyzeriat.desktop.dto.ExternalGameResult;
 import com.seyzeriat.desktop.dto.ImportedGameResult;
@@ -168,6 +169,31 @@ public class ApiService {
         }
 
         return objectMapper.readValue(response.body(), BulkImportResult.class);
+    }
+
+    /**
+     * Fetches the platform-wide analytics snapshot for the admin dashboard.
+     *
+     * @return the analytics payload (KPIs and top-5 lists)
+     * @throws IOException           if the request fails
+     * @throws InterruptedException  if the request is interrupted
+     * @throws UnauthorizedException if the token is expired / invalid or the user lacks ROLE_ADMIN
+     */
+    public AnalyticsResult getAnalytics() throws IOException, InterruptedException, UnauthorizedException {
+        String url = BASE_URL + "/api/admin/analytics";
+
+        HttpRequest.Builder builder = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("Accept", "application/json")
+                .GET();
+
+        HttpResponse<String> response = sendWithAuth(builder);
+
+        if (response.statusCode() != 200) {
+            throw new IOException("Failed to fetch analytics with status " + response.statusCode() + ": " + response.body());
+        }
+
+        return objectMapper.readValue(response.body(), AnalyticsResult.class);
     }
 
     /**

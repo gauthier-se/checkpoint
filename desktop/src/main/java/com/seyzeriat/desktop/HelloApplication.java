@@ -3,6 +3,7 @@ package com.seyzeriat.desktop;
 import java.io.IOException;
 import java.util.Objects;
 
+import com.seyzeriat.desktop.controller.AnalyticsController;
 import com.seyzeriat.desktop.controller.BulkImportController;
 import com.seyzeriat.desktop.controller.ImportGamesController;
 import com.seyzeriat.desktop.controller.LoginController;
@@ -14,7 +15,6 @@ import com.seyzeriat.desktop.service.TokenManager;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -90,8 +90,8 @@ public class HelloApplication extends Application {
         HBox root = new HBox();
         root.getChildren().addAll(sidebar, contentArea);
 
-        // Load the welcome view by default
-        showWelcomeView();
+        // Load the analytics dashboard by default
+        showAnalyticsView();
 
         Scene scene = new Scene(root, 1100, 700);
         scene.getStylesheets().add(stylesheetUrl);
@@ -109,7 +109,7 @@ public class HelloApplication extends Application {
         Label appTitle = new Label("Checkpoint");
         appTitle.getStyleClass().add("app-title");
 
-        Button homeBtn = createNavButton("Accueil", this::showWelcomeView);
+        Button analyticsBtn = createNavButton("Tableau de bord", this::showAnalyticsView);
         Button importBtn = createNavButton("Importer des jeux", this::showImportGamesView);
         Button bulkImportBtn = createNavButton("Import en masse", this::showBulkImportView);
         Button usersBtn = createNavButton("Utilisateurs", this::showUsersView);
@@ -117,9 +117,9 @@ public class HelloApplication extends Application {
         Button reportsBtn = createNavButton("Modération des signalements", this::showReportsView);
         Button newsBtn = createNavButton("Actualités", this::showNewsView);
 
-        // Set home as active by default
-        homeBtn.getStyleClass().add("active");
-        activeNavButton = homeBtn;
+        // Set analytics dashboard as active by default
+        analyticsBtn.getStyleClass().add("active");
+        activeNavButton = analyticsBtn;
 
         // Spacer to push logout to the bottom
         Region spacer = new Region();
@@ -131,7 +131,7 @@ public class HelloApplication extends Application {
         logoutBtn.setMaxWidth(Double.MAX_VALUE);
         logoutBtn.setOnAction(event -> showLoginView());
 
-        sidebar.getChildren().addAll(appTitle, homeBtn, importBtn, bulkImportBtn, usersBtn, reviewsBtn, reportsBtn, newsBtn, spacer, logoutBtn);
+        sidebar.getChildren().addAll(appTitle, analyticsBtn, importBtn, bulkImportBtn, usersBtn, reviewsBtn, reportsBtn, newsBtn, spacer, logoutBtn);
         return sidebar;
     }
 
@@ -150,20 +150,19 @@ public class HelloApplication extends Application {
         return btn;
     }
 
-    private void showWelcomeView() {
-        VBox welcome = new VBox(15);
-        welcome.setAlignment(Pos.CENTER);
-        welcome.setPadding(new Insets(40));
-        welcome.getStyleClass().add("welcome-view");
+    private void showAnalyticsView() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("analytics-view.fxml"));
+            Node analyticsView = loader.load();
 
-        Label title = new Label("Bienvenue sur Checkpoint");
-        title.getStyleClass().add("welcome-title");
+            AnalyticsController controller = loader.getController();
+            controller.setApplication(this);
 
-        Label subtitle = new Label("Utilisez le menu à gauche pour naviguer.");
-        subtitle.getStyleClass().add("welcome-subtitle");
-
-        welcome.getChildren().addAll(title, subtitle);
-        setContent(welcome);
+            setContent(analyticsView);
+        } catch (IOException e) {
+            Label error = new Label("Erreur lors du chargement de la vue : " + e.getMessage());
+            setContent(error);
+        }
     }
 
     private void showImportGamesView() {
