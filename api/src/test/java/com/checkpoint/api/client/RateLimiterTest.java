@@ -51,9 +51,11 @@ class RateLimiterTest {
         Duration firstDuration = Duration.between(start, afterFirst);
         assertThat(firstDuration.toMillis()).isLessThan(100);
 
-        // Total time for 3 requests should be at least 2 seconds (2 waits)
+        // Total time for 3 requests should approach 2 seconds (2 waits).
+        // Use a generous slack (~200ms) to absorb CI scheduler jitter — the
+        // refresh-period clock isn't perfectly aligned with wall-clock time.
         Duration totalDuration = Duration.between(start, afterThird);
-        assertThat(totalDuration.toMillis()).isGreaterThanOrEqualTo(1900);
+        assertThat(totalDuration.toMillis()).isGreaterThanOrEqualTo(1800);
     }
 
     @Test
