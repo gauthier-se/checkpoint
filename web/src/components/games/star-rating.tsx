@@ -126,9 +126,7 @@ export function StarRating({ game, currentRating }: StarRatingProps) {
                 aria-hidden
                 className="absolute inset-0 h-6 w-6 fill-yellow-400 text-yellow-500"
                 style={
-                  isHalfFilled
-                    ? { clipPath: 'inset(0 50% 0 0)' }
-                    : undefined
+                  isHalfFilled ? { clipPath: 'inset(0 50% 0 0)' } : undefined
                 }
               />
             )}

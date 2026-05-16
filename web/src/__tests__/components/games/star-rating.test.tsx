@@ -1,16 +1,6 @@
-import {
-  QueryClient,
-  QueryClientProvider,
-} from '@tanstack/react-query'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import {
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ReactNode } from 'react'
 import type { GameDetail } from '@/types/game'
 import { StarRating } from '@/components/games/star-rating'
@@ -101,9 +91,7 @@ describe('StarRating (half-star)', () => {
 
     for (let half = 1; half <= 10; half++) {
       const label = `Rate ${(half / 2).toFixed(1)} stars`
-      expect(
-        screen.getByRole('button', { name: label }),
-      ).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: label })).toBeInTheDocument()
     }
   })
 
@@ -136,9 +124,7 @@ describe('StarRating (half-star)', () => {
     // currentRating = 5 → clicking the 2.5★ button removes
     fireEvent.click(screen.getByLabelText('Rate 2.5 stars'))
 
-    await waitFor(() =>
-      expect(removeRatingMock).toHaveBeenCalledTimes(1),
-    )
+    await waitFor(() => expect(removeRatingMock).toHaveBeenCalledTimes(1))
     expect(rateGameMock).not.toHaveBeenCalled()
   })
 
