@@ -19,6 +19,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
@@ -31,18 +32,23 @@ import com.checkpoint.api.dto.playlog.GamePlayLogRequestDto;
 import com.checkpoint.api.dto.playlog.GamePlayLogResponseDto;
 import com.checkpoint.api.entities.Platform;
 import com.checkpoint.api.entities.User;
+import com.checkpoint.api.entities.UserGame;
 import com.checkpoint.api.entities.UserGamePlay;
 import com.checkpoint.api.entities.VideoGame;
+import com.checkpoint.api.enums.GameStatus;
 import com.checkpoint.api.enums.PlayStatus;
 import com.checkpoint.api.exceptions.GameNotFoundException;
 import com.checkpoint.api.exceptions.PlayLogNotFoundException;
 import com.checkpoint.api.events.GameFinishedEvent;
 import com.checkpoint.api.mapper.GamePlayLogMapper;
+import com.checkpoint.api.repositories.BacklogRepository;
 import com.checkpoint.api.repositories.PlatformRepository;
 import com.checkpoint.api.repositories.TagRepository;
 import com.checkpoint.api.repositories.UserGamePlayRepository;
+import com.checkpoint.api.repositories.UserGameRepository;
 import com.checkpoint.api.repositories.UserRepository;
 import com.checkpoint.api.repositories.VideoGameRepository;
+import com.checkpoint.api.repositories.WishRepository;
 import com.checkpoint.api.services.RateService;
 
 @ExtendWith(MockitoExtension.class)
@@ -62,6 +68,15 @@ class GamePlayLogServiceImplTest {
 
     @Mock
     private TagRepository tagRepository;
+
+    @Mock
+    private WishRepository wishRepository;
+
+    @Mock
+    private BacklogRepository backlogRepository;
+
+    @Mock
+    private UserGameRepository userGameRepository;
 
     @Mock
     private GamePlayLogMapper gamePlayLogMapper;
@@ -89,6 +104,9 @@ class GamePlayLogServiceImplTest {
                 videoGameRepository,
                 platformRepository,
                 tagRepository,
+                wishRepository,
+                backlogRepository,
+                userGameRepository,
                 gamePlayLogMapper,
                 rateService,
                 eventPublisher
@@ -478,6 +496,184 @@ class GamePlayLogServiceImplTest {
             // Then
             assertThat(result).hasSize(1);
             assertThat(result.get(0)).isEqualTo(testResponseDto);
+        }
+    }
+
+    @Nested
+    @DisplayName("logPlay() — collection reconciliation")
+    class CollectionReconciliation {
+
+        private void stubLogPlayHappyPath(GamePlayLogRequestDto request) {
+            when(userRepository.findByEmail(testUser.getEmail())).thenReturn(Optional.of(testUser));
+            when(videoGameRepository.findById(testGame.getId())).thenReturn(Optional.of(testGame));
+            when(platformRepository.findById(testPlatform.getId())).thenReturn(Optional.of(testPlatform));
+            when(gamePlayLogMapper.toEntity(request)).thenReturn(testPlayLog);
+            when(userGamePlayRepository.save(any(UserGamePlay.class))).thenReturn(testPlayLog);
+            when(gamePlayLogMapper.toDto(testPlayLog)).thenReturn(testResponseDto);
+        }
+
+        private GamePlayLogRequestDto requestWithStatus(PlayStatus status) {
+            return new GamePlayLogRequestDto(
+                    testGame.getId(), testPlatform.getId(), status,
+                    LocalDate.now(), LocalDate.now(), 2000, "owned", false, null, null
+            );
+        }
+
+        private GameStatus capturedSavedStatus() {
+            ArgumentCaptor<UserGame> captor = ArgumentCaptor.forClass(UserGame.class);
+            verify(userGameRepository).save(captor.capture());
+            return captor.getValue().getStatus();
+        }
+
+        @Test
+        @DisplayName("should remove the game from wishlist and backlog on log")
+        void shouldRemoveFromWishlistAndBacklog() {
+            // Given
+            stubLogPlayHappyPath(testRequestDto);
+
+            // When
+            gamePlayLogService.logPlay(testUser.getEmail(), testRequestDto);
+
+            // Then
+            verify(wishRepository).deleteByUserIdAndVideoGameId(testUser.getId(), testGame.getId());
+            verify(backlogRepository).deleteByUserIdAndVideoGameId(testUser.getId(), testGame.getId());
+        }
+
+        @Test
+        @DisplayName("should add the game to library when not already present")
+        void shouldAddToLibraryWhenAbsent() {
+            // Given
+            stubLogPlayHappyPath(testRequestDto);
+            when(userGameRepository.findByUserIdAndVideoGameId(testUser.getId(), testGame.getId()))
+                    .thenReturn(Optional.empty());
+
+            // When
+            gamePlayLogService.logPlay(testUser.getEmail(), testRequestDto);
+
+            // Then
+            ArgumentCaptor<UserGame> captor = ArgumentCaptor.forClass(UserGame.class);
+            verify(userGameRepository).save(captor.capture());
+            UserGame saved = captor.getValue();
+            assertThat(saved.getUser()).isEqualTo(testUser);
+            assertThat(saved.getVideoGame()).isEqualTo(testGame);
+            assertThat(saved.getStatus()).isEqualTo(GameStatus.COMPLETED);
+        }
+
+        @Test
+        @DisplayName("should update existing library entry status without touching notes")
+        void shouldUpdateExistingLibraryEntryStatusOnly() {
+            // Given
+            UserGame existing = new UserGame(testUser, testGame, GameStatus.BACKLOG);
+            existing.setNotes("my note");
+            stubLogPlayHappyPath(testRequestDto);
+            when(userGameRepository.findByUserIdAndVideoGameId(testUser.getId(), testGame.getId()))
+                    .thenReturn(Optional.of(existing));
+
+            // When
+            gamePlayLogService.logPlay(testUser.getEmail(), testRequestDto);
+
+            // Then
+            verify(userGameRepository).save(existing);
+            assertThat(existing.getStatus()).isEqualTo(GameStatus.COMPLETED);
+            assertThat(existing.getNotes()).isEqualTo("my note");
+        }
+
+        @Test
+        @DisplayName("should map ARE_PLAYING to PLAYING")
+        void shouldMapArePlayingToPlaying() {
+            // Given
+            GamePlayLogRequestDto request = requestWithStatus(PlayStatus.ARE_PLAYING);
+            stubLogPlayHappyPath(request);
+
+            // When
+            gamePlayLogService.logPlay(testUser.getEmail(), request);
+
+            // Then
+            assertThat(capturedSavedStatus()).isEqualTo(GameStatus.PLAYING);
+        }
+
+        @Test
+        @DisplayName("should map PLAYED to PLAYING")
+        void shouldMapPlayedToPlaying() {
+            // Given
+            GamePlayLogRequestDto request = requestWithStatus(PlayStatus.PLAYED);
+            stubLogPlayHappyPath(request);
+
+            // When
+            gamePlayLogService.logPlay(testUser.getEmail(), request);
+
+            // Then
+            assertThat(capturedSavedStatus()).isEqualTo(GameStatus.PLAYING);
+        }
+
+        @Test
+        @DisplayName("should map SHELVED to PLAYING")
+        void shouldMapShelvedToPlaying() {
+            // Given
+            GamePlayLogRequestDto request = requestWithStatus(PlayStatus.SHELVED);
+            stubLogPlayHappyPath(request);
+
+            // When
+            gamePlayLogService.logPlay(testUser.getEmail(), request);
+
+            // Then
+            assertThat(capturedSavedStatus()).isEqualTo(GameStatus.PLAYING);
+        }
+
+        @Test
+        @DisplayName("should map COMPLETED to COMPLETED")
+        void shouldMapCompletedToCompleted() {
+            // Given
+            GamePlayLogRequestDto request = requestWithStatus(PlayStatus.COMPLETED);
+            stubLogPlayHappyPath(request);
+
+            // When
+            gamePlayLogService.logPlay(testUser.getEmail(), request);
+
+            // Then
+            assertThat(capturedSavedStatus()).isEqualTo(GameStatus.COMPLETED);
+        }
+
+        @Test
+        @DisplayName("should map RETIRED to DROPPED")
+        void shouldMapRetiredToDropped() {
+            // Given
+            GamePlayLogRequestDto request = requestWithStatus(PlayStatus.RETIRED);
+            stubLogPlayHappyPath(request);
+
+            // When
+            gamePlayLogService.logPlay(testUser.getEmail(), request);
+
+            // Then
+            assertThat(capturedSavedStatus()).isEqualTo(GameStatus.DROPPED);
+        }
+
+        @Test
+        @DisplayName("should map ABANDONED to DROPPED")
+        void shouldMapAbandonedToDropped() {
+            // Given
+            GamePlayLogRequestDto request = requestWithStatus(PlayStatus.ABANDONED);
+            stubLogPlayHappyPath(request);
+
+            // When
+            gamePlayLogService.logPlay(testUser.getEmail(), request);
+
+            // Then
+            assertThat(capturedSavedStatus()).isEqualTo(GameStatus.DROPPED);
+        }
+
+        @Test
+        @DisplayName("should default to PLAYING when play status is null")
+        void shouldDefaultNullStatusToPlaying() {
+            // Given
+            GamePlayLogRequestDto request = requestWithStatus(null);
+            stubLogPlayHappyPath(request);
+
+            // When
+            gamePlayLogService.logPlay(testUser.getEmail(), request);
+
+            // Then
+            assertThat(capturedSavedStatus()).isEqualTo(GameStatus.PLAYING);
         }
     }
 }
