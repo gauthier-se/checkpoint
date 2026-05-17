@@ -10,6 +10,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { ButtonGroup } from '@/components/ui/button-group'
+import { GameCardHoverActions } from '@/components/games/game-card-hover-actions'
 import { getPageNumbers } from '@/lib/pagination'
 import { userTagGamesQueryOptions } from '@/queries/tags'
 
@@ -146,6 +147,7 @@ function TagGamesPage() {
                       </span>
                     )}
                   </div>
+                  <GameCardHoverActions gameId={entry.videoGameId} />
                 </div>
                 <p className="text-sm font-medium leading-tight line-clamp-2 group-hover:underline">
                   {entry.title}

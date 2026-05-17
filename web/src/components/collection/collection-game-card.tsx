@@ -1,4 +1,5 @@
 import { Link } from '@tanstack/react-router'
+import { GameCardHoverActions } from '@/components/games/game-card-hover-actions'
 
 interface CollectionGameCardProps {
   videoGameId: string
@@ -43,6 +44,7 @@ export function CollectionGameCard({
               </span>
             )}
           </div>
+          <GameCardHoverActions gameId={videoGameId} />
         </div>
       </Link>
       <h3 className="text-sm font-semibold leading-tight line-clamp-2">
