@@ -20,18 +20,23 @@ import com.checkpoint.api.dto.playlog.GamePlayLogResponseDto;
 import com.checkpoint.api.entities.Platform;
 import com.checkpoint.api.entities.Tag;
 import com.checkpoint.api.entities.User;
+import com.checkpoint.api.entities.UserGame;
 import com.checkpoint.api.entities.UserGamePlay;
 import com.checkpoint.api.entities.VideoGame;
+import com.checkpoint.api.enums.GameStatus;
 import com.checkpoint.api.enums.PlayStatus;
 import com.checkpoint.api.events.GameFinishedEvent;
 import com.checkpoint.api.exceptions.GameNotFoundException;
 import com.checkpoint.api.exceptions.PlayLogNotFoundException;
 import com.checkpoint.api.mapper.GamePlayLogMapper;
+import com.checkpoint.api.repositories.BacklogRepository;
 import com.checkpoint.api.repositories.PlatformRepository;
 import com.checkpoint.api.repositories.TagRepository;
 import com.checkpoint.api.repositories.UserGamePlayRepository;
+import com.checkpoint.api.repositories.UserGameRepository;
 import com.checkpoint.api.repositories.UserRepository;
 import com.checkpoint.api.repositories.VideoGameRepository;
+import com.checkpoint.api.repositories.WishRepository;
 import com.checkpoint.api.services.GamePlayLogService;
 import com.checkpoint.api.services.RateService;
 
@@ -50,6 +55,9 @@ public class GamePlayLogServiceImpl implements GamePlayLogService {
     private final VideoGameRepository videoGameRepository;
     private final PlatformRepository platformRepository;
     private final TagRepository tagRepository;
+    private final WishRepository wishRepository;
+    private final BacklogRepository backlogRepository;
+    private final UserGameRepository userGameRepository;
     private final GamePlayLogMapper gamePlayLogMapper;
     private final RateService rateService;
     private final ApplicationEventPublisher eventPublisher;
@@ -60,6 +68,9 @@ public class GamePlayLogServiceImpl implements GamePlayLogService {
             VideoGameRepository videoGameRepository,
             PlatformRepository platformRepository,
             TagRepository tagRepository,
+            WishRepository wishRepository,
+            BacklogRepository backlogRepository,
+            UserGameRepository userGameRepository,
             GamePlayLogMapper gamePlayLogMapper,
             RateService rateService,
             ApplicationEventPublisher eventPublisher
@@ -69,6 +80,9 @@ public class GamePlayLogServiceImpl implements GamePlayLogService {
         this.videoGameRepository = videoGameRepository;
         this.platformRepository = platformRepository;
         this.tagRepository = tagRepository;
+        this.wishRepository = wishRepository;
+        this.backlogRepository = backlogRepository;
+        this.userGameRepository = userGameRepository;
         this.gamePlayLogMapper = gamePlayLogMapper;
         this.rateService = rateService;
         this.eventPublisher = eventPublisher;
@@ -79,6 +93,10 @@ public class GamePlayLogServiceImpl implements GamePlayLogService {
      *
      * <p>When a score is provided, the global {@link com.checkpoint.api.entities.Rate Rate}
      * is upserted so that it always reflects the most recent play log rating.</p>
+     *
+     * <p>Logging a play also reconciles the user's collections: the game is removed
+     * from the wishlist and backlog if present, and upserted into the library with a
+     * {@link GameStatus} derived from the play's {@link PlayStatus}.</p>
      */
     @Override
     public GamePlayLogResponseDto logPlay(String userEmail, GamePlayLogRequestDto request) {
@@ -97,6 +115,8 @@ public class GamePlayLogServiceImpl implements GamePlayLogService {
         associateTags(playLog, request.tagIds(), user.getId());
 
         UserGamePlay savedPlayLog = userGamePlayRepository.save(playLog);
+
+        reconcileUserCollections(user, videoGame, request.status());
 
         if (request.score() != null) {
             log.info("Syncing global rating for game {} with score {} from new play log", request.videoGameId(), request.score());
@@ -295,6 +315,46 @@ public class GamePlayLogServiceImpl implements GamePlayLogService {
 
         List<Tag> tags = tagRepository.findAllByIdInAndUserId(tagIds, userId);
         playLog.setTags(new HashSet<>(tags));
+    }
+
+    /**
+     * Reconciles the user's collections after a play is logged: removes the game
+     * from wishlist and backlog if present, and upserts a library entry whose
+     * status mirrors the latest play. Existing library notes are preserved.
+     *
+     * @param user       the authenticated user
+     * @param videoGame  the played game
+     * @param playStatus the play's status (may be {@code null}; defaults to {@link GameStatus#PLAYING})
+     */
+    private void reconcileUserCollections(User user, VideoGame videoGame, PlayStatus playStatus) {
+        wishRepository.deleteByUserIdAndVideoGameId(user.getId(), videoGame.getId());
+        backlogRepository.deleteByUserIdAndVideoGameId(user.getId(), videoGame.getId());
+
+        GameStatus newStatus = mapPlayStatusToGameStatus(playStatus);
+
+        userGameRepository.findByUserIdAndVideoGameId(user.getId(), videoGame.getId())
+                .ifPresentOrElse(
+                        existing -> {
+                            existing.setStatus(newStatus);
+                            userGameRepository.save(existing);
+                        },
+                        () -> userGameRepository.save(new UserGame(user, videoGame, newStatus))
+                );
+    }
+
+    /**
+     * Maps a {@link PlayStatus} to the corresponding library {@link GameStatus}.
+     * A {@code null} play status defaults to {@link GameStatus#PLAYING}.
+     */
+    private GameStatus mapPlayStatusToGameStatus(PlayStatus playStatus) {
+        if (playStatus == null) {
+            return GameStatus.PLAYING;
+        }
+        return switch (playStatus) {
+            case ARE_PLAYING, PLAYED, SHELVED -> GameStatus.PLAYING;
+            case COMPLETED -> GameStatus.COMPLETED;
+            case RETIRED, ABANDONED -> GameStatus.DROPPED;
+        };
     }
 
     /**

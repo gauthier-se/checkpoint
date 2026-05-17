@@ -1,4 +1,5 @@
 import { useForm } from '@tanstack/react-form'
+import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { z } from 'zod'
 import { Star } from 'lucide-react'
@@ -50,6 +51,7 @@ const playLogSchema = z.object({
 })
 
 export function PlayLogForm({ game, onSuccess, onCancel }: PlayLogFormProps) {
+  const queryClient = useQueryClient()
   const form = useForm({
     defaultValues: {
       platformId: '',
@@ -89,6 +91,15 @@ export function PlayLogForm({ game, onSuccess, onCancel }: PlayLogFormProps) {
             haveSpoilers: value.haveSpoilers === true,
           })
         }
+
+        // Logging a play moves the game out of wishlist/backlog and into the library,
+        // so refresh the user's collection lists and per-game interaction status.
+        void queryClient.invalidateQueries({ queryKey: ['library', 'me'] })
+        void queryClient.invalidateQueries({ queryKey: ['wishlist', 'me'] })
+        void queryClient.invalidateQueries({ queryKey: ['backlog', 'me'] })
+        void queryClient.invalidateQueries({
+          queryKey: ['games', game.id, 'interaction-status'],
+        })
 
         toast.success('Play session logged successfully!')
         onSuccess?.()
