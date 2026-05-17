@@ -37,10 +37,9 @@ import {
 import { KbdHint } from '@/components/ui/kbd'
 import { useAuth } from '@/hooks/use-auth'
 import { useIsDesktop } from '@/hooks/use-is-desktop'
+import { useWishlistBacklogActions } from '@/hooks/use-wishlist-backlog-actions'
 import {
   gameInteractionStatusQueryOptions,
-  toggleBacklog,
-  toggleWishlist,
   updateBacklogPriority,
   updateLibraryStatus,
   updateWishlistPriority,
@@ -64,50 +63,12 @@ export function GameQuickActions({ game }: GameQuickActionsProps) {
 
   const hotkeysEnabled = isDesktop && !!user
 
-  // Mutations with optimistic updates
-  const wishlistMutation = useMutation({
-    mutationFn: (priority: Priority | null) =>
-      toggleWishlist(game.id, status?.inWishlist ?? false, priority),
-    meta: { suppressGlobalError: true },
-    onMutate: async () => {
-      await queryClient.cancelQueries(
-        gameInteractionStatusQueryOptions(game.id),
-      )
-      const previous = queryClient.getQueryData<GameInteractionStatusDto>(
-        gameInteractionStatusQueryOptions(game.id).queryKey,
-      )
-      queryClient.setQueryData<GameInteractionStatusDto>(
-        gameInteractionStatusQueryOptions(game.id).queryKey,
-        (old) => {
-          if (!old) return old
-          return { ...old, inWishlist: !old.inWishlist }
-        },
-      )
-      return { previous }
-    },
-    onError: (_err, _variables, context) => {
-      toast.error('Failed to update wishlist')
-      if (context?.previous) {
-        queryClient.setQueryData(
-          gameInteractionStatusQueryOptions(game.id).queryKey,
-          context.previous,
-        )
-      }
-    },
-    onSettled: () => {
-      void queryClient.invalidateQueries(
-        gameInteractionStatusQueryOptions(game.id),
-      )
-    },
-    onSuccess: (_, __, context) => {
-      // If previous was false, it means we added it
-      if (!context.previous?.inWishlist) {
-        toast.success('Added to wishlist')
-      } else {
-        toast.success('Removed from wishlist')
-      }
-    },
-  })
+  const {
+    toggleWishlist: toggleWishlistAction,
+    toggleBacklog: toggleBacklogAction,
+    wishlistPending,
+    backlogPending,
+  } = useWishlistBacklogActions(game.id)
 
   const wishlistPriorityMutation = useMutation({
     meta: { suppressGlobalError: true },
@@ -139,49 +100,6 @@ export function GameQuickActions({ game }: GameQuickActionsProps) {
       void queryClient.invalidateQueries(
         gameInteractionStatusQueryOptions(game.id),
       )
-    },
-  })
-
-  const backlogMutation = useMutation({
-    meta: { suppressGlobalError: true },
-    mutationFn: (priority: Priority | null) =>
-      toggleBacklog(game.id, status?.inBacklog ?? false, priority),
-    onMutate: async () => {
-      await queryClient.cancelQueries(
-        gameInteractionStatusQueryOptions(game.id),
-      )
-      const previous = queryClient.getQueryData<GameInteractionStatusDto>(
-        gameInteractionStatusQueryOptions(game.id).queryKey,
-      )
-      queryClient.setQueryData<GameInteractionStatusDto>(
-        gameInteractionStatusQueryOptions(game.id).queryKey,
-        (old) => {
-          if (!old) return old
-          return { ...old, inBacklog: !old.inBacklog }
-        },
-      )
-      return { previous }
-    },
-    onError: (_err, _variables, context) => {
-      toast.error('Failed to update backlog')
-      if (context?.previous) {
-        queryClient.setQueryData(
-          gameInteractionStatusQueryOptions(game.id).queryKey,
-          context.previous,
-        )
-      }
-    },
-    onSettled: () => {
-      void queryClient.invalidateQueries(
-        gameInteractionStatusQueryOptions(game.id),
-      )
-    },
-    onSuccess: (_, __, context) => {
-      if (!context.previous?.inBacklog) {
-        toast.success('Added to backlog')
-      } else {
-        toast.success('Removed from backlog')
-      }
     },
   })
 
@@ -277,7 +195,7 @@ export function GameQuickActions({ game }: GameQuickActionsProps) {
   useHotkey(
     'W',
     () => {
-      wishlistMutation.mutate(status?.wishlistPriority ?? null)
+      toggleWishlistAction(status?.wishlistPriority ?? null)
     },
     { enabled: hotkeysEnabled },
   )
@@ -285,7 +203,7 @@ export function GameQuickActions({ game }: GameQuickActionsProps) {
   useHotkey(
     'B',
     () => {
-      backlogMutation.mutate(status?.backlogPriority ?? null)
+      toggleBacklogAction(status?.backlogPriority ?? null)
     },
     { enabled: hotkeysEnabled },
   )
@@ -326,7 +244,7 @@ export function GameQuickActions({ game }: GameQuickActionsProps) {
                     className="gap-2 focus:ring-0"
                     disabled={
                       disabled ||
-                      wishlistMutation.isPending ||
+                      wishlistPending ||
                       wishlistPriorityMutation.isPending
                     }
                   >
@@ -387,7 +305,7 @@ export function GameQuickActions({ game }: GameQuickActionsProps) {
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="text-destructive focus:text-destructive"
-                onClick={() => wishlistMutation.mutate(null)}
+                onClick={() => toggleWishlistAction(null)}
               >
                 <Trash2 className="w-4 h-4 mr-2" />
                 Remove from wishlist
@@ -403,7 +321,7 @@ export function GameQuickActions({ game }: GameQuickActionsProps) {
                     variant="outline"
                     size="sm"
                     className="gap-2 focus:ring-0"
-                    disabled={disabled || wishlistMutation.isPending}
+                    disabled={disabled || wishlistPending}
                   >
                     <Heart className="w-4 h-4" />
                     Wishlist
@@ -417,19 +335,17 @@ export function GameQuickActions({ game }: GameQuickActionsProps) {
               </TooltipContent>
             </Tooltip>
             <DropdownMenuContent align="start">
-              <DropdownMenuItem onClick={() => wishlistMutation.mutate(null)}>
+              <DropdownMenuItem onClick={() => toggleWishlistAction(null)}>
                 Add to wishlist
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => wishlistMutation.mutate('LOW')}>
+              <DropdownMenuItem onClick={() => toggleWishlistAction('LOW')}>
                 Add as Low
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => wishlistMutation.mutate('MEDIUM')}
-              >
+              <DropdownMenuItem onClick={() => toggleWishlistAction('MEDIUM')}>
                 Add as Medium
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => wishlistMutation.mutate('HIGH')}>
+              <DropdownMenuItem onClick={() => toggleWishlistAction('HIGH')}>
                 Add as High
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -448,7 +364,7 @@ export function GameQuickActions({ game }: GameQuickActionsProps) {
                     className="gap-2 focus:ring-0"
                     disabled={
                       disabled ||
-                      backlogMutation.isPending ||
+                      backlogPending ||
                       backlogPriorityMutation.isPending
                     }
                   >
@@ -506,7 +422,7 @@ export function GameQuickActions({ game }: GameQuickActionsProps) {
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="text-destructive focus:text-destructive"
-                onClick={() => backlogMutation.mutate(null)}
+                onClick={() => toggleBacklogAction(null)}
               >
                 <Trash2 className="w-4 h-4 mr-2" />
                 Remove from backlog
@@ -522,7 +438,7 @@ export function GameQuickActions({ game }: GameQuickActionsProps) {
                     variant="outline"
                     size="sm"
                     className="gap-2 focus:ring-0"
-                    disabled={disabled || backlogMutation.isPending}
+                    disabled={disabled || backlogPending}
                   >
                     <Bookmark className="w-4 h-4" />
                     Backlog
@@ -536,19 +452,17 @@ export function GameQuickActions({ game }: GameQuickActionsProps) {
               </TooltipContent>
             </Tooltip>
             <DropdownMenuContent align="start">
-              <DropdownMenuItem onClick={() => backlogMutation.mutate(null)}>
+              <DropdownMenuItem onClick={() => toggleBacklogAction(null)}>
                 Add to backlog
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => backlogMutation.mutate('LOW')}>
+              <DropdownMenuItem onClick={() => toggleBacklogAction('LOW')}>
                 Add as Low
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => backlogMutation.mutate('MEDIUM')}
-              >
+              <DropdownMenuItem onClick={() => toggleBacklogAction('MEDIUM')}>
                 Add as Medium
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => backlogMutation.mutate('HIGH')}>
+              <DropdownMenuItem onClick={() => toggleBacklogAction('HIGH')}>
                 Add as High
               </DropdownMenuItem>
             </DropdownMenuContent>

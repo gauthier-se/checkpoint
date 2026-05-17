@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import type { Game } from '@/types/game'
+import { GameCardHoverActions } from '@/components/games/game-card-hover-actions'
 
 interface GameCardProps {
   game: Game
@@ -22,6 +23,7 @@ export function GameCard({ game }: GameCardProps) {
           </span>
         )}
       </div>
+      <GameCardHoverActions gameId={game.id} />
     </Link>
   )
 }
