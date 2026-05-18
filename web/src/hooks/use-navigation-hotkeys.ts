@@ -36,6 +36,12 @@ export function useNavigationHotkeys() {
         },
       },
       {
+        sequence: ['G', 'B'],
+        callback: () => {
+          void navigate({ to: '/leaderboard', search: { sortBy: 'xp' } })
+        },
+      },
+      {
         sequence: ['G', 'W'],
         callback: () => {
           void navigate({ to: '/news', search: { page: 1 } })

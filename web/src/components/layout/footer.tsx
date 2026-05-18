@@ -40,6 +40,9 @@ export const Footer = ({ onOpenKeymaps }: FooterProps) => {
               Contact
             </Link>
             <Link to="/roadmap">Roadmap</Link>
+            <Link to="/leaderboard" search={{ sortBy: 'xp' }}>
+              Leaderboard
+            </Link>
             {onOpenKeymaps && (
               <button
                 type="button"

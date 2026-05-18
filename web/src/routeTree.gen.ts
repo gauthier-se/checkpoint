@@ -18,6 +18,7 @@ import { Route as AuthLoginRouteImport } from './routes/_auth/login'
 import { Route as AuthForgotPasswordRouteImport } from './routes/_auth/forgot-password'
 import { Route as AppRoadmapRouteImport } from './routes/_app/roadmap'
 import { Route as AppLegalRouteImport } from './routes/_app/legal'
+import { Route as AppLeaderboardRouteImport } from './routes/_app/leaderboard'
 import { Route as AppAboutRouteImport } from './routes/_app/about'
 import { Route as AppProtectedRouteImport } from './routes/_app/_protected'
 import { Route as AppNewsIndexRouteImport } from './routes/_app/news/index'
@@ -84,6 +85,11 @@ const AppRoadmapRoute = AppRoadmapRouteImport.update({
 const AppLegalRoute = AppLegalRouteImport.update({
   id: '/legal',
   path: '/legal',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppLeaderboardRoute = AppLeaderboardRouteImport.update({
+  id: '/leaderboard',
+  path: '/leaderboard',
   getParentRoute: () => AppRoute,
 } as any)
 const AppAboutRoute = AppAboutRouteImport.update({
@@ -220,6 +226,7 @@ const AppProtectedListsListIdEditRoute =
 
 export interface FileRoutesByFullPath {
   '/about': typeof AppAboutRoute
+  '/leaderboard': typeof AppLeaderboardRoute
   '/legal': typeof AppLegalRoute
   '/roadmap': typeof AppRoadmapRoute
   '/forgot-password': typeof AuthForgotPasswordRoute
@@ -252,6 +259,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/about': typeof AppAboutRoute
+  '/leaderboard': typeof AppLeaderboardRoute
   '/legal': typeof AppLegalRoute
   '/roadmap': typeof AppRoadmapRoute
   '/forgot-password': typeof AuthForgotPasswordRoute
@@ -287,6 +295,7 @@ export interface FileRoutesById {
   '/_auth': typeof AuthRouteWithChildren
   '/_app/_protected': typeof AppProtectedRouteWithChildren
   '/_app/about': typeof AppAboutRoute
+  '/_app/leaderboard': typeof AppLeaderboardRoute
   '/_app/legal': typeof AppLegalRoute
   '/_app/roadmap': typeof AppRoadmapRoute
   '/_auth/forgot-password': typeof AuthForgotPasswordRoute
@@ -321,6 +330,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/about'
+    | '/leaderboard'
     | '/legal'
     | '/roadmap'
     | '/forgot-password'
@@ -353,6 +363,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/about'
+    | '/leaderboard'
     | '/legal'
     | '/roadmap'
     | '/forgot-password'
@@ -387,6 +398,7 @@ export interface FileRouteTypes {
     | '/_auth'
     | '/_app/_protected'
     | '/_app/about'
+    | '/_app/leaderboard'
     | '/_app/legal'
     | '/_app/roadmap'
     | '/_auth/forgot-password'
@@ -486,6 +498,13 @@ declare module '@tanstack/react-router' {
       path: '/legal'
       fullPath: '/legal'
       preLoaderRoute: typeof AppLegalRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/leaderboard': {
+      id: '/_app/leaderboard'
+      path: '/leaderboard'
+      fullPath: '/leaderboard'
+      preLoaderRoute: typeof AppLeaderboardRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/about': {
@@ -712,6 +731,7 @@ const AppProtectedRouteWithChildren = AppProtectedRoute._addFileChildren(
 interface AppRouteChildren {
   AppProtectedRoute: typeof AppProtectedRouteWithChildren
   AppAboutRoute: typeof AppAboutRoute
+  AppLeaderboardRoute: typeof AppLeaderboardRoute
   AppLegalRoute: typeof AppLegalRoute
   AppRoadmapRoute: typeof AppRoadmapRoute
   AppIndexRoute: typeof AppIndexRoute
@@ -729,6 +749,7 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppProtectedRoute: AppProtectedRouteWithChildren,
   AppAboutRoute: AppAboutRoute,
+  AppLeaderboardRoute: AppLeaderboardRoute,
   AppLegalRoute: AppLegalRoute,
   AppRoadmapRoute: AppRoadmapRoute,
   AppIndexRoute: AppIndexRoute,

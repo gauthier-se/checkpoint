@@ -194,6 +194,25 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     Page<User> findByPseudoContainingIgnoreCase(String pseudo, Pageable pageable);
 
     /**
+     * Returns non-banned users ordered by XP descending. Used by the public leaderboard.
+     *
+     * @param pageable pagination parameters (the caller controls the limit)
+     * @return a page of users ranked by XP
+     */
+    @Query("SELECT u FROM User u WHERE u.banned = false ORDER BY u.xpPoint DESC")
+    Page<User> findLeaderboardByXp(Pageable pageable);
+
+    /**
+     * Returns non-banned users ordered by level descending, breaking ties on XP descending.
+     * Used by the public leaderboard.
+     *
+     * @param pageable pagination parameters (the caller controls the limit)
+     * @return a page of users ranked by level, then XP
+     */
+    @Query("SELECT u FROM User u WHERE u.banned = false ORDER BY u.level DESC, u.xpPoint DESC")
+    Page<User> findLeaderboardByLevel(Pageable pageable);
+
+    /**
      * Finds the IDs of all users that the given user follows.
      *
      * @param userId the user's ID

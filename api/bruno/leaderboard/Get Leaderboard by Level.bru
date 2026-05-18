@@ -1,0 +1,38 @@
+meta {
+  name: Get Leaderboard by Level
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/leaderboard?sortBy=level&limit=50
+  body: none
+  auth: none
+}
+
+params:query {
+  sortBy: level
+  limit: 50
+}
+
+docs {
+  # Get Leaderboard by Level
+
+  Returns the top users ranked by level descending, with XP as the tie-breaker.
+  Banned users are excluded.
+
+  ## Authentication
+
+  No authentication required (public endpoint).
+
+  ## Query Parameters
+
+  | Parameter | Type    | Default | Description                          |
+  |-----------|---------|---------|--------------------------------------|
+  | sortBy    | String  | xp      | Set to `level` to use this ranking   |
+  | limit     | Integer | 50      | Number of entries to return (1..100) |
+
+  ## Response (200 OK)
+
+  Same shape as `Get Leaderboard by XP`.
+}

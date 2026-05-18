@@ -1,0 +1,52 @@
+meta {
+  name: Get Leaderboard by XP
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/leaderboard?sortBy=xp&limit=50
+  body: none
+  auth: none
+}
+
+params:query {
+  sortBy: xp
+  limit: 50
+}
+
+docs {
+  # Get Leaderboard by XP
+
+  Returns the top users ranked by XP descending. Banned users are excluded.
+
+  ## Authentication
+
+  No authentication required (public endpoint).
+
+  ## Query Parameters
+
+  | Parameter | Type    | Default | Description                              |
+  |-----------|---------|---------|------------------------------------------|
+  | sortBy    | String  | xp      | Ranking criterion: `xp` or `level`       |
+  | limit     | Integer | 50      | Number of entries to return (1..100)     |
+
+  ## Response (200 OK)
+
+  ```json
+  [
+    {
+      "rank": 1,
+      "id": "uuid",
+      "pseudo": "topplayer",
+      "picture": "https://...",
+      "level": 42,
+      "xpPoint": 99999
+    }
+  ]
+  ```
+
+  ## Errors
+
+  - `400 Bad Request` when `limit` is outside `[1, 100]` or `sortBy` is not `xp`/`level`.
+}
