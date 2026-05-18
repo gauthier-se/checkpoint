@@ -1,10 +1,26 @@
 import { formatDistanceToNow } from 'date-fns'
-import type { Notification } from '@/types/notification'
+import { Award, Trophy } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
+import type { Notification, NotificationType } from '@/types/notification'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Checkbox } from '@/components/ui/checkbox'
 import { cn } from '@/lib/utils'
 
-export function getNotificationHref(notification: Notification): string {
+function getSystemIcon(type: NotificationType): LucideIcon | null {
+  switch (type) {
+    case 'LEVEL_UP':
+      return Trophy
+    case 'BADGE_UNLOCKED':
+      return Award
+    default:
+      return null
+  }
+}
+
+export function getNotificationHref(
+  notification: Notification,
+  currentUsername: string | null,
+): string {
   switch (notification.type) {
     case 'FOLLOW':
       return `/profile/${notification.senderPseudo}`
@@ -14,6 +30,10 @@ export function getNotificationHref(notification: Notification): string {
       return `/games/${notification.referenceId}`
     case 'LIKE_LIST':
       return `/lists/${notification.referenceId}`
+    case 'LEVEL_UP':
+      return currentUsername ? `/profile/${currentUsername}` : '/profile'
+    case 'BADGE_UNLOCKED':
+      return currentUsername ? `/profile/${currentUsername}#badges` : '/profile'
     default:
       return '/'
   }
@@ -40,6 +60,8 @@ export function NotificationItem({
     addSuffix: true,
   })
 
+  const SystemIcon = getSystemIcon(notification.type)
+
   return (
     <div
       className={cn(
@@ -62,14 +84,23 @@ export function NotificationItem({
         onClick={onClick}
         className="flex flex-1 items-start gap-3 text-left"
       >
-        <Avatar className="size-8 shrink-0">
-          {notification.senderPicture && (
-            <AvatarImage src={notification.senderPicture} />
-          )}
-          <AvatarFallback className="text-xs">
-            {notification.senderPseudo?.charAt(0).toUpperCase() ?? '?'}
-          </AvatarFallback>
-        </Avatar>
+        {SystemIcon ? (
+          <div
+            data-testid="notification-icon"
+            className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary"
+          >
+            <SystemIcon className="size-4" />
+          </div>
+        ) : (
+          <Avatar className="size-8 shrink-0">
+            {notification.senderPicture && (
+              <AvatarImage src={notification.senderPicture} />
+            )}
+            <AvatarFallback className="text-xs">
+              {notification.senderPseudo?.charAt(0).toUpperCase() ?? '?'}
+            </AvatarFallback>
+          </Avatar>
+        )}
         <div className="min-w-0 flex-1">
           <p className="text-sm leading-snug">{notification.message}</p>
           <p className="mt-0.5 text-xs text-muted-foreground">{timeAgo}</p>

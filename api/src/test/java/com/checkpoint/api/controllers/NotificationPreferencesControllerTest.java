@@ -59,7 +59,7 @@ class NotificationPreferencesControllerTest {
         @WithMockUser(username = "user@example.com")
         void getPreferences_shouldReturn200WithDto() throws Exception {
             // Given
-            NotificationPreferencesDto dto = new NotificationPreferencesDto(true, true, true, true, true);
+            NotificationPreferencesDto dto = new NotificationPreferencesDto(true, true, true, true, true, true, true);
             when(preferencesService.getOrCreate(eq("user@example.com"))).thenReturn(dto);
 
             // When / Then
@@ -83,8 +83,8 @@ class NotificationPreferencesControllerTest {
         void updatePreferences_shouldReturnUpdatedDto() throws Exception {
             // Given
             UpdateNotificationPreferencesDto body = new UpdateNotificationPreferencesDto(
-                    false, true, true, true, false);
-            NotificationPreferencesDto updated = new NotificationPreferencesDto(false, true, true, true, false);
+                    false, true, true, true, false, null, null);
+            NotificationPreferencesDto updated = new NotificationPreferencesDto(false, true, true, true, false, true, true);
 
             when(preferencesService.update(eq("user@example.com"), any(UpdateNotificationPreferencesDto.class)))
                     .thenReturn(updated);
@@ -106,8 +106,8 @@ class NotificationPreferencesControllerTest {
         void updatePreferences_shouldHandlePartialBody() throws Exception {
             // Given
             UpdateNotificationPreferencesDto body = new UpdateNotificationPreferencesDto(
-                    false, null, null, null, null);
-            NotificationPreferencesDto updated = new NotificationPreferencesDto(false, true, true, true, true);
+                    false, null, null, null, null, null, null);
+            NotificationPreferencesDto updated = new NotificationPreferencesDto(false, true, true, true, true, true, true);
 
             when(preferencesService.update(eq("user@example.com"), any(UpdateNotificationPreferencesDto.class)))
                     .thenReturn(updated);

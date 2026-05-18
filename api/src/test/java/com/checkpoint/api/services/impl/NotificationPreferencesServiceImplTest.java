@@ -98,6 +98,8 @@ class NotificationPreferencesServiceImplTest {
             assertThat(result.likeListEnabled()).isTrue();
             assertThat(result.likeGameEnabled()).isTrue();
             assertThat(result.commentReplyEnabled()).isTrue();
+            assertThat(result.levelUpEnabled()).isTrue();
+            assertThat(result.badgeUnlockedEnabled()).isTrue();
 
             ArgumentCaptor<NotificationPreferences> captor = ArgumentCaptor.forClass(NotificationPreferences.class);
             verify(preferencesRepository).save(captor.capture());
@@ -126,7 +128,7 @@ class NotificationPreferencesServiceImplTest {
                     .thenAnswer(invocation -> invocation.getArgument(0));
 
             UpdateNotificationPreferencesDto dto = new UpdateNotificationPreferencesDto(
-                    false, null, null, null, false);
+                    false, null, null, null, false, null, null);
 
             // When
             NotificationPreferencesDto result = preferencesService.update("user@example.com", dto);
@@ -137,6 +139,30 @@ class NotificationPreferencesServiceImplTest {
             assertThat(result.likeListEnabled()).isTrue();
             assertThat(result.likeGameEnabled()).isTrue();
             assertThat(result.commentReplyEnabled()).isFalse();
+            assertThat(result.levelUpEnabled()).isTrue();
+            assertThat(result.badgeUnlockedEnabled()).isTrue();
+        }
+
+        @Test
+        @DisplayName("should toggle the level-up and badge-unlocked flags independently")
+        void update_shouldToggleProgressionFlags() {
+            // Given
+            NotificationPreferences existing = new NotificationPreferences(user);
+            when(preferencesRepository.findByUserEmail("user@example.com"))
+                    .thenReturn(Optional.of(existing));
+            when(preferencesRepository.save(any(NotificationPreferences.class)))
+                    .thenAnswer(invocation -> invocation.getArgument(0));
+
+            UpdateNotificationPreferencesDto dto = new UpdateNotificationPreferencesDto(
+                    null, null, null, null, null, false, false);
+
+            // When
+            NotificationPreferencesDto result = preferencesService.update("user@example.com", dto);
+
+            // Then
+            assertThat(result.followEnabled()).isTrue();
+            assertThat(result.levelUpEnabled()).isFalse();
+            assertThat(result.badgeUnlockedEnabled()).isFalse();
         }
 
         @Test
@@ -149,7 +175,7 @@ class NotificationPreferencesServiceImplTest {
                     .thenAnswer(invocation -> invocation.getArgument(0));
 
             UpdateNotificationPreferencesDto dto = new UpdateNotificationPreferencesDto(
-                    false, null, null, null, null);
+                    false, null, null, null, null, null, null);
 
             // When
             NotificationPreferencesDto result = preferencesService.update("user@example.com", dto);
@@ -192,6 +218,21 @@ class NotificationPreferencesServiceImplTest {
 
             // Then
             assertThat(enabled).isFalse();
+        }
+
+        @Test
+        @DisplayName("should gate LEVEL_UP and BADGE_UNLOCKED on their own flags")
+        void isEnabled_shouldGateProgressionTypes() {
+            // Given
+            UUID recipientId = UUID.randomUUID();
+            NotificationPreferences prefs = new NotificationPreferences(user);
+            prefs.setLevelUpEnabled(false);
+            prefs.setBadgeUnlockedEnabled(true);
+            when(preferencesRepository.findByUserId(recipientId)).thenReturn(Optional.of(prefs));
+
+            // Then
+            assertThat(preferencesService.isEnabled(recipientId, NotificationType.LEVEL_UP)).isFalse();
+            assertThat(preferencesService.isEnabled(recipientId, NotificationType.BADGE_UNLOCKED)).isTrue();
         }
     }
 }

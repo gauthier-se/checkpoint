@@ -6,6 +6,8 @@ export type NotificationType =
   | 'LIKE_LIST'
   | 'LIKE_GAME'
   | 'COMMENT_REPLY'
+  | 'LEVEL_UP'
+  | 'BADGE_UNLOCKED'
 
 export type NotificationFilter = 'all' | 'unread' | NotificationType
 
@@ -15,6 +17,8 @@ export const NOTIFICATION_TYPES: ReadonlyArray<NotificationType> = [
   'LIKE_LIST',
   'LIKE_GAME',
   'COMMENT_REPLY',
+  'LEVEL_UP',
+  'BADGE_UNLOCKED',
 ]
 
 export const NOTIFICATION_FILTERS: ReadonlyArray<NotificationFilter> = [
@@ -31,6 +35,8 @@ export const NOTIFICATION_FILTER_LABELS: Record<NotificationFilter, string> = {
   LIKE_LIST: 'List likes',
   LIKE_GAME: 'Game likes',
   COMMENT_REPLY: 'Replies',
+  LEVEL_UP: 'Level ups',
+  BADGE_UNLOCKED: 'Badges',
 }
 
 export interface Notification {

@@ -4,6 +4,8 @@ export interface NotificationPreferences {
   likeListEnabled: boolean
   likeGameEnabled: boolean
   commentReplyEnabled: boolean
+  levelUpEnabled: boolean
+  badgeUnlockedEnabled: boolean
 }
 
 export type UpdateNotificationPreferences = Partial<NotificationPreferences>

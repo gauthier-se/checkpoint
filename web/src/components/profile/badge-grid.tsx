@@ -20,7 +20,10 @@ export function BadgeGrid({ badges }: BadgeGridProps) {
 
   return (
     <TooltipProvider>
-      <div className="grid grid-cols-4 gap-3 sm:grid-cols-6 md:grid-cols-8">
+      <div
+        id="badges"
+        className="grid grid-cols-4 gap-3 sm:grid-cols-6 md:grid-cols-8"
+      >
         {badges.map((badge) => (
           <Tooltip key={badge.id}>
             <TooltipTrigger asChild>

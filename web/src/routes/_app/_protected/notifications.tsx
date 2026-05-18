@@ -21,6 +21,7 @@ import {
   notificationsQueryOptions,
   unreadCountQueryOptions,
 } from '@/queries/notifications'
+import { useAuth } from '@/hooks/use-auth'
 import { getPageNumbers } from '@/lib/pagination'
 import { cn } from '@/lib/utils'
 
@@ -69,6 +70,7 @@ function NotificationsPage() {
   const { page, filter } = Route.useSearch()
   const navigate = useNavigate({ from: '/notifications' })
   const queryClient = useQueryClient()
+  const { user } = useAuth()
 
   const [selectMode, setSelectMode] = useState(false)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
@@ -242,7 +244,7 @@ function NotificationsPage() {
                 handleItemClick(
                   notification.id,
                   notification.isRead,
-                  getNotificationHref(notification),
+                  getNotificationHref(notification, user?.username ?? null),
                 )
               }
             />

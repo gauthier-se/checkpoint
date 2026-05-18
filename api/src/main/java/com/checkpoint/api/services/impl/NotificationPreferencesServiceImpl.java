@@ -68,6 +68,12 @@ public class NotificationPreferencesServiceImpl implements NotificationPreferenc
         if (dto.commentReplyEnabled() != null) {
             preferences.setCommentReplyEnabled(dto.commentReplyEnabled());
         }
+        if (dto.levelUpEnabled() != null) {
+            preferences.setLevelUpEnabled(dto.levelUpEnabled());
+        }
+        if (dto.badgeUnlockedEnabled() != null) {
+            preferences.setBadgeUnlockedEnabled(dto.badgeUnlockedEnabled());
+        }
 
         NotificationPreferences saved = preferencesRepository.save(preferences);
         log.info("Notification preferences updated for user {}", userEmail);

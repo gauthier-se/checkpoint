@@ -21,6 +21,8 @@ const preferencesSchema = z.object({
   likeListEnabled: z.boolean(),
   likeGameEnabled: z.boolean(),
   commentReplyEnabled: z.boolean(),
+  levelUpEnabled: z.boolean(),
+  badgeUnlockedEnabled: z.boolean(),
 })
 
 const toggles = [
@@ -49,6 +51,16 @@ const toggles = [
     label: 'Comment replies',
     description: 'When someone replies to one of your comments',
   },
+  {
+    name: 'levelUpEnabled',
+    label: 'Level ups',
+    description: 'When you reach a new level',
+  },
+  {
+    name: 'badgeUnlockedEnabled',
+    label: 'Badge unlocks',
+    description: 'When you earn a new badge',
+  },
 ] as const
 
 interface NotificationPreferencesFormProps {
@@ -67,6 +79,8 @@ export function NotificationPreferencesForm({
       likeListEnabled: preferences.likeListEnabled,
       likeGameEnabled: preferences.likeGameEnabled,
       commentReplyEnabled: preferences.commentReplyEnabled,
+      levelUpEnabled: preferences.levelUpEnabled,
+      badgeUnlockedEnabled: preferences.badgeUnlockedEnabled,
     },
     validators: {
       onSubmit: preferencesSchema,

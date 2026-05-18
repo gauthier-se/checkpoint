@@ -27,6 +27,7 @@ import {
   NotificationItem,
   getNotificationHref,
 } from '@/components/notifications/notification-item'
+import { useAuth } from '@/hooks/use-auth'
 import {
   markAllNotificationsAsRead,
   markNotificationAsRead,
@@ -53,6 +54,7 @@ function useIsMobile(breakpoint = 640) {
 function NotificationPanel({ onClose }: { onClose: () => void }) {
   const queryClient = useQueryClient()
   const navigate = useNavigate()
+  const { user } = useAuth()
   const [page, setPage] = useState(0)
   const [allNotifications, setAllNotifications] = useState<Array<Notification>>(
     [],
@@ -94,7 +96,7 @@ function NotificationPanel({ onClose }: { onClose: () => void }) {
       markReadMutation.mutate(notification.id)
     }
     onClose()
-    navigate({ to: getNotificationHref(notification) })
+    navigate({ to: getNotificationHref(notification, user?.username ?? null) })
   }
 
   const hasUnread = (unreadData?.count ?? 0) > 0
