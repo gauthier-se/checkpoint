@@ -1,8 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import type {
-  LeaderboardEntry,
-  LeaderboardSortBy,
-} from '@/types/leaderboard'
+import type { LeaderboardEntry, LeaderboardSortBy } from '@/types/leaderboard'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { cn } from '@/lib/utils'
 

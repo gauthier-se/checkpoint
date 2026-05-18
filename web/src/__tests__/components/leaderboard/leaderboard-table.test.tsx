@@ -1,8 +1,8 @@
 import { render, screen, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
-import { LeaderboardTable } from '@/components/leaderboard/leaderboard-table'
 import type { LeaderboardEntry } from '@/types/leaderboard'
+import { LeaderboardTable } from '@/components/leaderboard/leaderboard-table'
 
 vi.mock('@tanstack/react-router', () => ({
   Link: ({
@@ -65,9 +65,7 @@ describe('LeaderboardTable', () => {
 
   it('renders an empty state when there are no entries', () => {
     render(<LeaderboardTable entries={[]} sortBy="xp" />)
-    expect(
-      screen.getByText(/no players to show yet/i),
-    ).toBeInTheDocument()
+    expect(screen.getByText(/no players to show yet/i)).toBeInTheDocument()
     expect(screen.queryByRole('listitem')).not.toBeInTheDocument()
   })
 })

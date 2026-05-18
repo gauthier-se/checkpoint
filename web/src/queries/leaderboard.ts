@@ -1,8 +1,5 @@
 import { queryOptions } from '@tanstack/react-query'
-import type {
-  LeaderboardEntry,
-  LeaderboardSortBy,
-} from '@/types/leaderboard'
+import type { LeaderboardEntry, LeaderboardSortBy } from '@/types/leaderboard'
 import { apiFetch } from '@/services/api'
 
 export const leaderboardQueryOptions = (
