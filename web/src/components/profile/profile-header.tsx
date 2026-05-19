@@ -4,6 +4,7 @@ import { Link } from '@tanstack/react-router'
 import { XpProgressBar } from './xp-progress-bar'
 import { BadgeGrid } from './badge-grid'
 import { FavoriteGamesSection } from './favorite-games-section'
+import { RecentActivitySection } from './recent-activity-section'
 import type { UserProfile } from '@/types/profile'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -132,6 +133,12 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
       {/* Favorites */}
       <FavoriteGamesSection
         favorites={profile.favorites}
+        isOwner={profile.isOwner}
+      />
+
+      {/* Recent activity */}
+      <RecentActivitySection
+        recentPlays={profile.recentPlays}
         isOwner={profile.isOwner}
       />
     </div>

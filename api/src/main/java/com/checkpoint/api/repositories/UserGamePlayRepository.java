@@ -65,6 +65,21 @@ public interface UserGamePlayRepository extends JpaRepository<UserGamePlay, UUID
     Optional<UserGamePlay> findByIdWithRelations(@Param("id") UUID id);
 
     /**
+     * Returns the most recent play logs for a user, ordered by createdAt descending.
+     * The {@code videoGame} and {@code review} associations are eagerly fetched
+     * so the caller can populate {@code RecentPlayDto} without N+1 queries.
+     * Use {@code PageRequest.of(0, 5)} to limit to 5.
+     */
+    @Query("""
+            SELECT p FROM UserGamePlay p
+            JOIN FETCH p.videoGame
+            LEFT JOIN FETCH p.review
+            WHERE p.user.id = :userId
+            ORDER BY p.createdAt DESC
+            """)
+    List<UserGamePlay> findRecentByUserId(@Param("userId") UUID userId, Pageable pageable);
+
+    /**
      * Finds the most recent play log with a non-null score for a specific user and game.
      * Used to recalculate the global rating after a scored log is updated or deleted.
      *

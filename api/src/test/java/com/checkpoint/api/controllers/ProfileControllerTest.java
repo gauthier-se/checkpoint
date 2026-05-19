@@ -29,6 +29,7 @@ import com.checkpoint.api.dto.catalog.ReviewResponseDto;
 import com.checkpoint.api.dto.catalog.ReviewUserDto;
 import com.checkpoint.api.dto.collection.WishResponseDto;
 import com.checkpoint.api.dto.profile.BadgeDto;
+import com.checkpoint.api.dto.profile.RecentPlayDto;
 import com.checkpoint.api.dto.profile.UserProfileDto;
 import com.checkpoint.api.exceptions.ProfilePrivateException;
 import com.checkpoint.api.exceptions.UserNotFoundException;
@@ -63,11 +64,18 @@ class ProfileControllerTest {
         @DisplayName("should return profile for existing user")
         void getUserProfile_shouldReturnProfile() throws Exception {
             // Given
+            UUID playId = UUID.randomUUID();
+            UUID gameId = UUID.randomUUID();
+            RecentPlayDto recentPlay = new RecentPlayDto(
+                    playId, gameId, "Elden Ring", "/covers/elden.png",
+                    9, true, false, true, LocalDateTime.now()
+            );
             UserProfileDto profile = new UserProfileDto(
                     UUID.randomUUID(), "testuser", "A bio", null,
                     5, 4500, 5000, false,
                     List.of(new BadgeDto(UUID.randomUUID(), "First Review", null, "Write your first review")),
                     List.of(),
+                    List.of(recentPlay),
                     10L, 5L, 3L, 7L,
                     null, false, LocalDateTime.now()
             );
@@ -88,6 +96,13 @@ class ProfileControllerTest {
                     .andExpect(jsonPath("$.reviewCount").value(3))
                     .andExpect(jsonPath("$.wishlistCount").value(7))
                     .andExpect(jsonPath("$.badges[0].name").value("First Review"))
+                    .andExpect(jsonPath("$.recentPlays[0].id").value(playId.toString()))
+                    .andExpect(jsonPath("$.recentPlays[0].videoGameId").value(gameId.toString()))
+                    .andExpect(jsonPath("$.recentPlays[0].title").value("Elden Ring"))
+                    .andExpect(jsonPath("$.recentPlays[0].score").value(9))
+                    .andExpect(jsonPath("$.recentPlays[0].hasReview").value(true))
+                    .andExpect(jsonPath("$.recentPlays[0].isReplay").value(false))
+                    .andExpect(jsonPath("$.recentPlays[0].isLiked").value(true))
                     .andExpect(jsonPath("$.isOwner").value(false));
         }
 
@@ -99,7 +114,7 @@ class ProfileControllerTest {
             UserProfileDto profile = new UserProfileDto(
                     UUID.randomUUID(), "testuser", null, null,
                     1, 0, 1000, false,
-                    List.of(), List.of(), 0L, 0L, 0L, 0L,
+                    List.of(), List.of(), List.of(), 0L, 0L, 0L, 0L,
                     true, false, LocalDateTime.now()
             );
 

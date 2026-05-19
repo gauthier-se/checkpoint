@@ -18,9 +18,11 @@ docs {
   # Get User Profile
 
   Retrieves the public profile for a user by username.
-  Returns avatar, bio, level, XP, badges, follower/following counts, and review/wishlist counts.
+  Returns avatar, bio, level, XP, badges, favorite games, recent plays (last 5),
+  follower/following counts, and review/wishlist counts.
 
   When accessed by an authenticated user, the response includes `isFollowing` and `isOwner` flags.
+  When the profile is private and the viewer is not the owner, `recentPlays` is an empty array.
 
   ## Path Parameters
 
@@ -44,6 +46,27 @@ docs {
         "name": "First Review",
         "picture": null,
         "description": "Write your first review"
+      }
+    ],
+    "favorites": [
+      {
+        "gameId": "uuid",
+        "title": "Elden Ring",
+        "coverUrl": "/covers/elden.png",
+        "displayOrder": 0
+      }
+    ],
+    "recentPlays": [
+      {
+        "id": "uuid",
+        "videoGameId": "uuid",
+        "title": "Hades II",
+        "coverUrl": "/covers/hades.png",
+        "score": 9,
+        "hasReview": true,
+        "isReplay": false,
+        "isLiked": true,
+        "createdAt": "2026-05-18T14:22:00"
       }
     ],
     "followerCount": 10,

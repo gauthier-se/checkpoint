@@ -1,9 +1,13 @@
 package com.checkpoint.api.repositories;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.checkpoint.api.entities.Like;
@@ -48,6 +52,22 @@ public interface LikeRepository extends JpaRepository<Like, UUID> {
      * Checks if a user has liked a specific video game (top-level like).
      */
     boolean existsByUserIdAndVideoGameId(UUID userId, UUID videoGameId);
+
+    /**
+     * Returns the subset of {@code videoGameIds} that the given user has liked.
+     * Batched single-query lookup used to populate the {@code isLiked} flag for
+     * a list of plays without triggering N+1.
+     *
+     * @param userId       the user ID
+     * @param videoGameIds the candidate video game IDs (must be non-empty)
+     */
+    @Query("""
+            SELECT l.videoGame.id FROM Like l
+            WHERE l.user.id = :userId
+              AND l.videoGame.id IN :videoGameIds
+            """)
+    List<UUID> findVideoGameIdsLikedByUser(@Param("userId") UUID userId,
+                                            @Param("videoGameIds") Collection<UUID> videoGameIds);
 
     /**
      * Counts the number of likes for a comment.

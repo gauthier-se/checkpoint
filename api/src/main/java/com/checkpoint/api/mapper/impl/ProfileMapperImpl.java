@@ -8,10 +8,12 @@ import org.springframework.stereotype.Component;
 import com.checkpoint.api.dto.profile.BadgeDto;
 import com.checkpoint.api.dto.profile.FavoriteDto;
 import com.checkpoint.api.dto.profile.ProfileUpdatedDto;
+import com.checkpoint.api.dto.profile.RecentPlayDto;
 import com.checkpoint.api.dto.profile.UserProfileDto;
 import com.checkpoint.api.entities.Badge;
 import com.checkpoint.api.entities.Favorite;
 import com.checkpoint.api.entities.User;
+import com.checkpoint.api.entities.UserGamePlay;
 import com.checkpoint.api.mapper.ProfileMapper;
 
 /**
@@ -24,7 +26,8 @@ public class ProfileMapperImpl implements ProfileMapper {
      * {@inheritDoc}
      */
     @Override
-    public UserProfileDto toUserProfileDto(User user, Long followerCount, Long followingCount,
+    public UserProfileDto toUserProfileDto(User user, List<RecentPlayDto> recentPlays,
+                                            Long followerCount, Long followingCount,
                                             Long reviewCount, Long wishlistCount,
                                             Boolean isFollowing, Boolean isOwner) {
         List<BadgeDto> badgeDtos = user.getBadges().stream()
@@ -49,6 +52,7 @@ public class ProfileMapperImpl implements ProfileMapper {
                 user.getIsPrivate(),
                 badgeDtos,
                 favoriteDtos,
+                recentPlays,
                 followerCount,
                 followingCount,
                 reviewCount,
@@ -56,6 +60,24 @@ public class ProfileMapperImpl implements ProfileMapper {
                 isFollowing,
                 isOwner,
                 user.getCreatedAt()
+        );
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public RecentPlayDto toRecentPlayDto(UserGamePlay play, boolean isLiked) {
+        return new RecentPlayDto(
+                play.getId(),
+                play.getVideoGame().getId(),
+                play.getVideoGame().getTitle(),
+                play.getVideoGame().getCoverUrl(),
+                play.getScore(),
+                play.getReview() != null,
+                Boolean.TRUE.equals(play.getIsReplay()),
+                isLiked,
+                play.getCreatedAt()
         );
     }
 

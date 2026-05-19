@@ -12,6 +12,18 @@ export interface FavoriteGame {
   displayOrder: number
 }
 
+export interface RecentPlay {
+  id: string
+  videoGameId: string
+  title: string
+  coverUrl: string | null
+  score: number | null
+  hasReview: boolean
+  isReplay: boolean
+  isLiked: boolean
+  createdAt: string
+}
+
 export interface UserProfile {
   id: string
   username: string
@@ -23,6 +35,7 @@ export interface UserProfile {
   isPrivate: boolean
   badges: Array<BadgeDto>
   favorites: Array<FavoriteGame>
+  recentPlays: Array<RecentPlay>
   followerCount: number
   followingCount: number
   reviewCount: number
