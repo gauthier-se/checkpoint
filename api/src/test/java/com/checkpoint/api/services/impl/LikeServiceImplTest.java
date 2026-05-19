@@ -120,6 +120,11 @@ class LikeServiceImplTest {
                     .thenReturn(Optional.empty());
             when(likeRepository.countByReviewId(review.getId()))
                     .thenReturn(3L);
+            when(likeRepository.save(any(Like.class))).thenAnswer(invocation -> {
+                Like like = invocation.getArgument(0);
+                like.setId(UUID.randomUUID());
+                return like;
+            });
 
             // When
             LikeResponseDto result = likeService.toggleReviewLike("user@example.com", review.getId());

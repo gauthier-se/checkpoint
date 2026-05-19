@@ -1,5 +1,6 @@
 package com.checkpoint.api.config;
 
+import java.time.Clock;
 import java.util.concurrent.Executor;
 
 import org.springframework.context.annotation.Bean;
@@ -29,5 +30,16 @@ public class AsyncConfig {
         executor.setThreadNamePrefix("gamification-");
         executor.initialize();
         return executor;
+    }
+
+    /**
+     * Exposes the system UTC clock as a bean so time-dependent services can be
+     * tested deterministically by replacing it with a fixed clock.
+     *
+     * @return a system clock in UTC
+     */
+    @Bean
+    public Clock clock() {
+        return Clock.systemUTC();
     }
 }

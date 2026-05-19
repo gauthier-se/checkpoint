@@ -57,4 +57,10 @@ public interface GameListRepository extends JpaRepository<GameList, UUID> {
             ORDER BY (SELECT COUNT(l) FROM Like l WHERE l.gameList.id = gl.id) DESC
             """)
     Page<GameList> findPopularPublic(Pageable pageable);
+
+    /**
+     * Counts the total number of lists owned by a user. Used by the
+     * gamification system to detect the user's first-ever list.
+     */
+    long countByUserId(UUID userId);
 }

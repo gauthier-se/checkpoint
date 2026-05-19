@@ -17,6 +17,7 @@ import com.checkpoint.api.entities.Review;
 import com.checkpoint.api.entities.User;
 import com.checkpoint.api.enums.NotificationType;
 import com.checkpoint.api.events.NotificationEvent;
+import com.checkpoint.api.events.ReviewLikedEvent;
 import com.checkpoint.api.exceptions.CommentNotFoundException;
 import com.checkpoint.api.exceptions.GameListNotFoundException;
 import com.checkpoint.api.exceptions.ReviewNotFoundException;
@@ -87,13 +88,19 @@ public class LikeServiceImpl implements LikeService {
             return new LikeResponseDto(false, Math.max(0, likesCount));
         } else {
             Like like = Like.forReview(user, review);
-            likeRepository.save(like);
+            Like savedLike = likeRepository.save(like);
             long likesCount = likeRepository.countByReviewId(reviewId) + 1;
             log.info("User {} liked review {}", user.getPseudo(), reviewId);
 
+            UUID reviewAuthorId = review.getUser().getId();
+            if (!reviewAuthorId.equals(user.getId())) {
+                eventPublisher.publishEvent(new ReviewLikedEvent(
+                        user.getId(), reviewAuthorId, reviewId, savedLike.getId()));
+            }
+
             String message = user.getPseudo() + " liked your review of " + review.getVideoGame().getTitle();
             eventPublisher.publishEvent(new NotificationEvent(
-                    review.getUser().getId(), user.getId(),
+                    reviewAuthorId, user.getId(),
                     NotificationType.LIKE_REVIEW, reviewId, message));
 
             return new LikeResponseDto(true, likesCount);

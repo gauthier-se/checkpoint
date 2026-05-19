@@ -1,9 +1,11 @@
 package com.checkpoint.api.services.impl;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -11,6 +13,8 @@ import com.checkpoint.api.dto.catalog.RateResponseDto;
 import com.checkpoint.api.entities.Rate;
 import com.checkpoint.api.entities.User;
 import com.checkpoint.api.entities.VideoGame;
+import com.checkpoint.api.events.GameRatedEvent;
+import com.checkpoint.api.events.UserActivityEvent;
 import com.checkpoint.api.exceptions.GameNotFoundException;
 import com.checkpoint.api.exceptions.RateNotFoundException;
 import com.checkpoint.api.mapper.RateMapper;
@@ -33,15 +37,18 @@ public class RateServiceImpl implements RateService {
     private final VideoGameRepository videoGameRepository;
     private final UserRepository userRepository;
     private final RateMapper rateMapper;
+    private final ApplicationEventPublisher eventPublisher;
 
     public RateServiceImpl(RateRepository rateRepository,
                            VideoGameRepository videoGameRepository,
                            UserRepository userRepository,
-                           RateMapper rateMapper) {
+                           RateMapper rateMapper,
+                           ApplicationEventPublisher eventPublisher) {
         this.rateRepository = rateRepository;
         this.videoGameRepository = videoGameRepository;
         this.userRepository = userRepository;
         this.rateMapper = rateMapper;
+        this.eventPublisher = eventPublisher;
     }
 
     /**
@@ -57,12 +64,19 @@ public class RateServiceImpl implements RateService {
         VideoGame videoGame = videoGameRepository.findById(videoGameId)
                 .orElseThrow(() -> new GameNotFoundException(videoGameId));
 
-        Rate rate = rateRepository.findByUserEmailAndVideoGameId(userEmail, videoGameId)
-                .orElseGet(() -> new Rate(user, videoGame, score));
+        Optional<Rate> existing = rateRepository.findByUserEmailAndVideoGameId(userEmail, videoGameId);
+        boolean firstTime = existing.isEmpty();
+
+        Rate rate = existing.orElseGet(() -> new Rate(user, videoGame, score));
         rate.setScore(score);
         Rate savedRate = rateRepository.save(rate);
 
         updateGameAverageRating(videoGame);
+
+        if (firstTime) {
+            eventPublisher.publishEvent(new GameRatedEvent(user.getId(), videoGameId));
+        }
+        eventPublisher.publishEvent(new UserActivityEvent(user.getId()));
 
         return rateMapper.toDto(savedRate);
     }

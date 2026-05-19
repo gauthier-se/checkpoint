@@ -16,6 +16,7 @@ import com.checkpoint.api.entities.GameList;
 import com.checkpoint.api.entities.Review;
 import com.checkpoint.api.entities.User;
 import com.checkpoint.api.enums.NotificationType;
+import com.checkpoint.api.events.CommentReplyEvent;
 import com.checkpoint.api.events.NotificationEvent;
 import com.checkpoint.api.exceptions.CommentNotFoundException;
 import com.checkpoint.api.exceptions.GameListNotFoundException;
@@ -147,6 +148,15 @@ public class CommentServiceImpl implements CommentService {
         Comment savedReply = commentRepository.save(reply);
 
         log.info("User {} replied to comment {}", user.getPseudo(), parentCommentId);
+
+        Comment effectiveParent = savedReply.getParentComment();
+        UUID effectiveParentId = effectiveParent.getId();
+        UUID effectiveParentAuthorId = effectiveParent.getUser().getId();
+
+        if (!effectiveParentAuthorId.equals(user.getId())) {
+            eventPublisher.publishEvent(new CommentReplyEvent(
+                    user.getId(), effectiveParentAuthorId, effectiveParentId));
+        }
 
         String message = user.getPseudo() + " replied to your comment";
         eventPublisher.publishEvent(new NotificationEvent(

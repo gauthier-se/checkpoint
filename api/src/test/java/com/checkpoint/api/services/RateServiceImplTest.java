@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import com.checkpoint.api.dto.catalog.RateResponseDto;
 import com.checkpoint.api.entities.Rate;
@@ -44,6 +45,9 @@ class RateServiceImplTest {
     @Mock
     private RateMapper rateMapper;
 
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
+
     private RateServiceImpl rateService;
 
     private User testUser;
@@ -52,7 +56,7 @@ class RateServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        rateService = new RateServiceImpl(rateRepository, videoGameRepository, userRepository, rateMapper);
+        rateService = new RateServiceImpl(rateRepository, videoGameRepository, userRepository, rateMapper, eventPublisher);
 
         gameId = UUID.randomUUID();
 

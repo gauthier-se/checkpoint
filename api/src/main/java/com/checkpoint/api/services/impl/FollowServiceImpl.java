@@ -15,6 +15,8 @@ import com.checkpoint.api.dto.social.FollowUserDto;
 import com.checkpoint.api.entities.User;
 import com.checkpoint.api.enums.NotificationType;
 import com.checkpoint.api.events.NotificationEvent;
+import com.checkpoint.api.events.UserFollowedEvent;
+import com.checkpoint.api.events.UserGainedFollowerEvent;
 import com.checkpoint.api.exceptions.SelfFollowException;
 import com.checkpoint.api.exceptions.UserNotFoundException;
 import com.checkpoint.api.mapper.FollowMapper;
@@ -66,6 +68,9 @@ public class FollowServiceImpl implements FollowService {
         } else {
             currentUser.follow(targetUser);
             log.info("User {} followed user {}", currentUser.getPseudo(), targetUser.getPseudo());
+
+            eventPublisher.publishEvent(new UserFollowedEvent(currentUser.getId(), targetUser.getId()));
+            eventPublisher.publishEvent(new UserGainedFollowerEvent(targetUser.getId(), currentUser.getId()));
 
             String message = currentUser.getPseudo() + " started following you";
             eventPublisher.publishEvent(new NotificationEvent(

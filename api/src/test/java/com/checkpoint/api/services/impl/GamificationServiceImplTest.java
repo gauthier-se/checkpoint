@@ -19,11 +19,15 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import com.checkpoint.api.entities.User;
+import com.checkpoint.api.entities.XpGrant;
+import com.checkpoint.api.enums.XpEventType;
 import com.checkpoint.api.events.UserLeveledUpEvent;
 import com.checkpoint.api.repositories.UserRepository;
+import com.checkpoint.api.repositories.XpGrantRepository;
 
 /**
  * Unit tests for {@link GamificationServiceImpl}.
@@ -35,6 +39,9 @@ class GamificationServiceImplTest {
     private UserRepository userRepository;
 
     @Mock
+    private XpGrantRepository xpGrantRepository;
+
+    @Mock
     private ApplicationEventPublisher eventPublisher;
 
     private GamificationServiceImpl gamificationService;
@@ -44,7 +51,7 @@ class GamificationServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        gamificationService = new GamificationServiceImpl(userRepository, eventPublisher);
+        gamificationService = new GamificationServiceImpl(userRepository, xpGrantRepository, eventPublisher);
 
         userId = UUID.randomUUID();
         testUser = new User();
@@ -60,13 +67,10 @@ class GamificationServiceImplTest {
         @Test
         @DisplayName("Should add XP to user without leveling up")
         void addXp_shouldAddXpWithoutLevelUp() {
-            // Given
             when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
 
-            // When
             gamificationService.addXp(userId, 50);
 
-            // Then
             ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
             verify(userRepository).save(userCaptor.capture());
             User savedUser = userCaptor.getValue();
@@ -77,14 +81,11 @@ class GamificationServiceImplTest {
         @Test
         @DisplayName("Should level up when XP reaches threshold")
         void addXp_shouldLevelUpWhenThresholdReached() {
-            // Given
             testUser.setXpPoint(950);
             when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
 
-            // When
             gamificationService.addXp(userId, 50);
 
-            // Then
             ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
             verify(userRepository).save(userCaptor.capture());
             User savedUser = userCaptor.getValue();
@@ -95,14 +96,11 @@ class GamificationServiceImplTest {
         @Test
         @DisplayName("Should handle multiple level ups at once")
         void addXp_shouldHandleMultipleLevelUps() {
-            // Given
             testUser.setXpPoint(900);
             when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
 
-            // When
             gamificationService.addXp(userId, 2100);
 
-            // Then
             ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
             verify(userRepository).save(userCaptor.capture());
             User savedUser = userCaptor.getValue();
@@ -113,14 +111,11 @@ class GamificationServiceImplTest {
         @Test
         @DisplayName("Should not level up when XP is below threshold")
         void addXp_shouldNotLevelUpBelowThreshold() {
-            // Given
             testUser.setXpPoint(800);
             when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
 
-            // When
             gamificationService.addXp(userId, 100);
 
-            // Then
             ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
             verify(userRepository).save(userCaptor.capture());
             User savedUser = userCaptor.getValue();
@@ -131,15 +126,12 @@ class GamificationServiceImplTest {
         @Test
         @DisplayName("Should level up correctly at higher levels")
         void addXp_shouldLevelUpCorrectlyAtHigherLevels() {
-            // Given
             testUser.setXpPoint(1900);
             testUser.setLevel(2);
             when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
 
-            // When
             gamificationService.addXp(userId, 100);
 
-            // Then
             ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
             verify(userRepository).save(userCaptor.capture());
             User savedUser = userCaptor.getValue();
@@ -150,10 +142,8 @@ class GamificationServiceImplTest {
         @Test
         @DisplayName("Should throw when user not found")
         void addXp_shouldThrowWhenUserNotFound() {
-            // Given
             when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
-            // When / Then
             assertThatThrownBy(() -> gamificationService.addXp(userId, 50))
                     .isInstanceOf(UsernameNotFoundException.class);
         }
@@ -161,14 +151,11 @@ class GamificationServiceImplTest {
         @Test
         @DisplayName("Should publish UserLeveledUpEvent with the new level when leveling up")
         void addXp_shouldPublishLevelUpEvent() {
-            // Given
             testUser.setXpPoint(950);
             when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
 
-            // When
             gamificationService.addXp(userId, 50);
 
-            // Then
             ArgumentCaptor<UserLeveledUpEvent> eventCaptor =
                     ArgumentCaptor.forClass(UserLeveledUpEvent.class);
             verify(eventPublisher).publishEvent(eventCaptor.capture());
@@ -179,15 +166,67 @@ class GamificationServiceImplTest {
         @Test
         @DisplayName("Should not publish UserLeveledUpEvent when no level-up occurs")
         void addXp_shouldNotPublishWhenNoLevelUp() {
-            // Given
             testUser.setXpPoint(100);
             when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
 
-            // When
             gamificationService.addXp(userId, 50);
 
-            // Then
             verify(eventPublisher, never()).publishEvent(any());
+        }
+    }
+
+    @Nested
+    @DisplayName("awardXp()")
+    class AwardXp {
+
+        @Test
+        @DisplayName("Should insert audit row and award XP on first grant")
+        void awardXp_shouldInsertAndAwardOnFirstGrant() {
+            UUID targetId = UUID.randomUUID();
+            when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
+
+            gamificationService.awardXp(userId, 10, XpEventType.USER_FOLLOWED, targetId);
+
+            ArgumentCaptor<XpGrant> grantCaptor = ArgumentCaptor.forClass(XpGrant.class);
+            verify(xpGrantRepository).saveAndFlush(grantCaptor.capture());
+            XpGrant savedGrant = grantCaptor.getValue();
+            assertThat(savedGrant.getUser()).isSameAs(testUser);
+            assertThat(savedGrant.getEventType()).isEqualTo(XpEventType.USER_FOLLOWED);
+            assertThat(savedGrant.getTargetId()).isEqualTo(targetId);
+            assertThat(savedGrant.getXpAmount()).isEqualTo(10);
+
+            ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
+            verify(userRepository).save(userCaptor.capture());
+            assertThat(userCaptor.getValue().getXpPoint()).isEqualTo(10);
+        }
+
+        @Test
+        @DisplayName("Should skip XP update when the audit insert violates the unique key")
+        void awardXp_shouldSkipOnDuplicate() {
+            UUID targetId = UUID.randomUUID();
+            when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
+            when(xpGrantRepository.saveAndFlush(any(XpGrant.class)))
+                    .thenThrow(new DataIntegrityViolationException("uk_xp_grants_user_event_target"));
+
+            gamificationService.awardXp(userId, 10, XpEventType.USER_FOLLOWED, targetId);
+
+            verify(userRepository, never()).save(any(User.class));
+            verify(eventPublisher, never()).publishEvent(any());
+        }
+
+        @Test
+        @DisplayName("Should publish UserLeveledUpEvent when the awarded XP crosses a threshold")
+        void awardXp_shouldPublishLevelUpEvent() {
+            testUser.setXpPoint(995);
+            UUID targetId = UUID.randomUUID();
+            when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
+
+            gamificationService.awardXp(userId, 10, XpEventType.GAME_RATED, targetId);
+
+            ArgumentCaptor<UserLeveledUpEvent> eventCaptor =
+                    ArgumentCaptor.forClass(UserLeveledUpEvent.class);
+            verify(eventPublisher).publishEvent(eventCaptor.capture());
+            assertThat(eventCaptor.getValue().getNewLevel()).isEqualTo(2);
         }
     }
 }

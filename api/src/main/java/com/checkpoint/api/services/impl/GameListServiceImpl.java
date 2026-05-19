@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,8 @@ import com.checkpoint.api.entities.GameList;
 import com.checkpoint.api.entities.GameListEntry;
 import com.checkpoint.api.entities.User;
 import com.checkpoint.api.entities.VideoGame;
+import com.checkpoint.api.events.ListCreatedEvent;
+import com.checkpoint.api.events.UserActivityEvent;
 import com.checkpoint.api.exceptions.GameAlreadyInListException;
 import com.checkpoint.api.exceptions.GameListNotFoundException;
 import com.checkpoint.api.exceptions.GameNotFoundException;
@@ -50,6 +53,7 @@ public class GameListServiceImpl implements GameListService {
     private final LikeRepository likeRepository;
     private final CommentRepository commentRepository;
     private final GameListMapper gameListMapper;
+    private final ApplicationEventPublisher eventPublisher;
 
     public GameListServiceImpl(GameListRepository gameListRepository,
                                GameListEntryRepository gameListEntryRepository,
@@ -57,7 +61,8 @@ public class GameListServiceImpl implements GameListService {
                                VideoGameRepository videoGameRepository,
                                LikeRepository likeRepository,
                                CommentRepository commentRepository,
-                               GameListMapper gameListMapper) {
+                               GameListMapper gameListMapper,
+                               ApplicationEventPublisher eventPublisher) {
         this.gameListRepository = gameListRepository;
         this.gameListEntryRepository = gameListEntryRepository;
         this.userRepository = userRepository;
@@ -65,6 +70,7 @@ public class GameListServiceImpl implements GameListService {
         this.likeRepository = likeRepository;
         this.commentRepository = commentRepository;
         this.gameListMapper = gameListMapper;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -78,6 +84,13 @@ public class GameListServiceImpl implements GameListService {
         gameList.setIsPrivate(request.isPrivate() != null ? request.isPrivate() : false);
 
         GameList saved = gameListRepository.save(gameList);
+
+        // First-list XP: only on the user's very first list AND only if public.
+        // Counted after the save, so the threshold is exactly 1.
+        if (!saved.getIsPrivate() && gameListRepository.countByUserId(user.getId()) == 1) {
+            eventPublisher.publishEvent(new ListCreatedEvent(user.getId(), saved.getId()));
+        }
+        eventPublisher.publishEvent(new UserActivityEvent(user.getId()));
 
         log.info("List '{}' created with ID {} for user {}", saved.getTitle(), saved.getId(), userEmail);
         return gameListMapper.toDetailDto(saved, List.of(), 0L, 0L, true, false);
@@ -106,6 +119,8 @@ public class GameListServiceImpl implements GameListService {
         long likesCount = likeRepository.countByGameListId(listId);
 
         long commentsCount = commentRepository.countByGameListId(listId);
+
+        eventPublisher.publishEvent(new UserActivityEvent(user.getId()));
 
         log.info("List '{}' updated for user {}", updated.getTitle(), userEmail);
         return gameListMapper.toDetailDto(updated, entries, likesCount, commentsCount, true, false);
@@ -158,6 +173,8 @@ public class GameListServiceImpl implements GameListService {
 
         long commentsCount = commentRepository.countByGameListId(listId);
 
+        eventPublisher.publishEvent(new UserActivityEvent(user.getId()));
+
         log.info("Game '{}' added to list '{}' at position {}", videoGame.getTitle(), gameList.getTitle(), entry.getPosition());
         return gameListMapper.toDetailDto(gameList, entries, likesCount, commentsCount, true, false);
     }
@@ -182,6 +199,8 @@ public class GameListServiceImpl implements GameListService {
             remaining.get(i).setPosition(i);
         }
         gameListEntryRepository.saveAll(remaining);
+
+        eventPublisher.publishEvent(new UserActivityEvent(user.getId()));
 
         log.info("Game {} removed from list {}", videoGameId, listId);
     }
@@ -208,6 +227,8 @@ public class GameListServiceImpl implements GameListService {
         long likesCount = likeRepository.countByGameListId(listId);
 
         long commentsCount = commentRepository.countByGameListId(listId);
+
+        eventPublisher.publishEvent(new UserActivityEvent(user.getId()));
 
         log.info("Games reordered in list '{}'", gameList.getTitle());
         return gameListMapper.toDetailDto(gameList, entries, likesCount, commentsCount, true, false);

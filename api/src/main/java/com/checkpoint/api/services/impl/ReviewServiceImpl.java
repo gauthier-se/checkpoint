@@ -17,6 +17,7 @@ import com.checkpoint.api.entities.Review;
 import com.checkpoint.api.entities.User;
 import com.checkpoint.api.entities.UserGamePlay;
 import com.checkpoint.api.events.ReviewCreatedEvent;
+import com.checkpoint.api.events.UserActivityEvent;
 import com.checkpoint.api.exceptions.GameNotFoundException;
 import com.checkpoint.api.exceptions.PlayLogNotFoundException;
 import com.checkpoint.api.exceptions.ReviewAlreadyExistsException;
@@ -130,6 +131,7 @@ public class ReviewServiceImpl implements ReviewService {
         log.info("Created review for play log {} by user {}", playId, user.getPseudo());
 
         eventPublisher.publishEvent(new ReviewCreatedEvent(user.getId()));
+        eventPublisher.publishEvent(new UserActivityEvent(user.getId()));
 
         return reviewMapper.toDto(savedReview);
     }
@@ -149,6 +151,8 @@ public class ReviewServiceImpl implements ReviewService {
         review.setHaveSpoilers(request.haveSpoilers());
         Review savedReview = reviewRepository.save(review);
         log.info("Updated review for play log {} by user {}", playId, user.getPseudo());
+
+        eventPublisher.publishEvent(new UserActivityEvent(user.getId()));
 
         return reviewMapper.toDto(savedReview);
     }

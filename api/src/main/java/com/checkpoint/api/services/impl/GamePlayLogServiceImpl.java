@@ -26,6 +26,7 @@ import com.checkpoint.api.entities.VideoGame;
 import com.checkpoint.api.enums.GameStatus;
 import com.checkpoint.api.enums.PlayStatus;
 import com.checkpoint.api.events.GameFinishedEvent;
+import com.checkpoint.api.events.UserActivityEvent;
 import com.checkpoint.api.exceptions.GameNotFoundException;
 import com.checkpoint.api.exceptions.PlayLogNotFoundException;
 import com.checkpoint.api.mapper.GamePlayLogMapper;
@@ -126,6 +127,7 @@ public class GamePlayLogServiceImpl implements GamePlayLogService {
         if (PlayStatus.COMPLETED.equals(savedPlayLog.getStatus())) {
             eventPublisher.publishEvent(new GameFinishedEvent(user.getId()));
         }
+        eventPublisher.publishEvent(new UserActivityEvent(user.getId()));
 
         return gamePlayLogMapper.toDto(savedPlayLog);
     }
@@ -174,6 +176,7 @@ public class GamePlayLogServiceImpl implements GamePlayLogService {
         if (PlayStatus.COMPLETED.equals(updatedPlayLog.getStatus()) && !PlayStatus.COMPLETED.equals(previousStatus)) {
             eventPublisher.publishEvent(new GameFinishedEvent(user.getId()));
         }
+        eventPublisher.publishEvent(new UserActivityEvent(user.getId()));
 
         return gamePlayLogMapper.toDto(updatedPlayLog);
     }

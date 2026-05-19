@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -76,6 +77,9 @@ class GameListServiceImplTest {
     @Mock
     private GameListMapper gameListMapper;
 
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
+
     private GameListServiceImpl service;
 
     private User testUser;
@@ -89,7 +93,8 @@ class GameListServiceImplTest {
         service = new GameListServiceImpl(
                 gameListRepository, gameListEntryRepository,
                 userRepository, videoGameRepository,
-                likeRepository, commentRepository, gameListMapper);
+                likeRepository, commentRepository, gameListMapper,
+                eventPublisher);
 
         testUser = new User("testuser", "user@example.com", "password");
         testUser.setId(UUID.randomUUID());
