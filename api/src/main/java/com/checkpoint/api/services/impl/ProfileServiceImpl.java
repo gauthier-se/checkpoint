@@ -1,8 +1,14 @@
 package com.checkpoint.api.services.impl;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,16 +18,20 @@ import com.checkpoint.api.dto.catalog.ReviewResponseDto;
 import com.checkpoint.api.dto.collection.WishResponseDto;
 import com.checkpoint.api.dto.list.GameListCardDto;
 import com.checkpoint.api.dto.profile.ProfileUpdatedDto;
+import com.checkpoint.api.dto.profile.RecentPlayDto;
 import com.checkpoint.api.dto.profile.UpdateProfileDto;
 import com.checkpoint.api.dto.profile.UserProfileDto;
 import com.checkpoint.api.entities.User;
+import com.checkpoint.api.entities.UserGamePlay;
 import com.checkpoint.api.exceptions.ProfilePrivateException;
 import com.checkpoint.api.exceptions.PseudoAlreadyExistsException;
 import com.checkpoint.api.exceptions.UserNotFoundException;
 import com.checkpoint.api.mapper.ProfileMapper;
 import com.checkpoint.api.mapper.ReviewMapper;
 import com.checkpoint.api.mapper.WishMapper;
+import com.checkpoint.api.repositories.LikeRepository;
 import com.checkpoint.api.repositories.ReviewRepository;
+import com.checkpoint.api.repositories.UserGamePlayRepository;
 import com.checkpoint.api.repositories.UserRepository;
 import com.checkpoint.api.repositories.WishRepository;
 import com.checkpoint.api.services.GameListService;
@@ -39,10 +49,13 @@ public class ProfileServiceImpl implements ProfileService {
     private static final Logger log = LoggerFactory.getLogger(ProfileServiceImpl.class);
 
     private static final String PROFILE_PICTURES_DIR = "profiles";
+    private static final int RECENT_PLAYS_LIMIT = 5;
 
     private final UserRepository userRepository;
     private final ReviewRepository reviewRepository;
     private final WishRepository wishRepository;
+    private final UserGamePlayRepository userGamePlayRepository;
+    private final LikeRepository likeRepository;
     private final GameListService gameListService;
     private final StorageService storageService;
     private final ProfileMapper profileMapper;
@@ -52,18 +65,22 @@ public class ProfileServiceImpl implements ProfileService {
     /**
      * Constructs a new ProfileServiceImpl.
      *
-     * @param userRepository   the user repository
-     * @param reviewRepository the review repository
-     * @param wishRepository   the wish repository
-     * @param gameListService  the game list service
-     * @param storageService   the storage service
-     * @param profileMapper    the profile mapper
-     * @param reviewMapper     the review mapper
-     * @param wishMapper       the wish mapper
+     * @param userRepository         the user repository
+     * @param reviewRepository       the review repository
+     * @param wishRepository         the wish repository
+     * @param userGamePlayRepository the user game play repository
+     * @param likeRepository         the like repository
+     * @param gameListService        the game list service
+     * @param storageService         the storage service
+     * @param profileMapper          the profile mapper
+     * @param reviewMapper           the review mapper
+     * @param wishMapper             the wish mapper
      */
     public ProfileServiceImpl(UserRepository userRepository,
                                ReviewRepository reviewRepository,
                                WishRepository wishRepository,
+                               UserGamePlayRepository userGamePlayRepository,
+                               LikeRepository likeRepository,
                                GameListService gameListService,
                                StorageService storageService,
                                ProfileMapper profileMapper,
@@ -72,6 +89,8 @@ public class ProfileServiceImpl implements ProfileService {
         this.userRepository = userRepository;
         this.reviewRepository = reviewRepository;
         this.wishRepository = wishRepository;
+        this.userGamePlayRepository = userGamePlayRepository;
+        this.likeRepository = likeRepository;
         this.gameListService = gameListService;
         this.storageService = storageService;
         this.profileMapper = profileMapper;
@@ -105,9 +124,45 @@ public class ProfileServiceImpl implements ProfileService {
             }
         }
 
+        List<RecentPlayDto> recentPlays = buildRecentPlays(user, isOwner);
+
         return profileMapper.toUserProfileDto(
-                user, followerCount, followingCount,
+                user, recentPlays, followerCount, followingCount,
                 reviewCount, wishlistCount, isFollowing, isOwner);
+    }
+
+    /**
+     * Builds the 5 most recent play projections for a user. Returns an empty list when the
+     * profile is private and the viewer is not the owner (the client uses this to hide the
+     * section without leaking additional signal beyond the existing {@code isPrivate} flag).
+     * Likes are batch-resolved with a single {@code findVideoGameIdsLikedByUser} query.
+     *
+     * @param user    the profile owner (with associations already loaded)
+     * @param isOwner whether the viewer is the profile owner
+     * @return the compact recent plays, possibly empty
+     */
+    private List<RecentPlayDto> buildRecentPlays(User user, boolean isOwner) {
+        if (Boolean.TRUE.equals(user.getIsPrivate()) && !isOwner) {
+            return List.of();
+        }
+
+        List<UserGamePlay> plays = userGamePlayRepository.findRecentByUserId(
+                user.getId(), PageRequest.of(0, RECENT_PLAYS_LIMIT));
+
+        if (plays.isEmpty()) {
+            return List.of();
+        }
+
+        List<UUID> gameIds = plays.stream()
+                .map(p -> p.getVideoGame().getId())
+                .toList();
+
+        Set<UUID> likedGameIds = new HashSet<>(
+                likeRepository.findVideoGameIdsLikedByUser(user.getId(), gameIds));
+
+        return plays.stream()
+                .map(p -> profileMapper.toRecentPlayDto(p, likedGameIds.contains(p.getVideoGame().getId())))
+                .toList();
     }
 
     /**

@@ -1,8 +1,11 @@
 package com.checkpoint.api.integration;
 
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.time.LocalDateTime;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -19,11 +22,18 @@ import org.springframework.transaction.annotation.Transactional;
 import jakarta.persistence.EntityManager;
 
 import com.checkpoint.api.entities.Badge;
+import com.checkpoint.api.entities.Like;
+import com.checkpoint.api.entities.Platform;
+import com.checkpoint.api.entities.Review;
 import com.checkpoint.api.entities.User;
+import com.checkpoint.api.entities.UserGamePlay;
 import com.checkpoint.api.entities.VideoGame;
 import com.checkpoint.api.entities.Wish;
 import com.checkpoint.api.repositories.BadgeRepository;
+import com.checkpoint.api.repositories.LikeRepository;
+import com.checkpoint.api.repositories.PlatformRepository;
 import com.checkpoint.api.repositories.ReviewRepository;
+import com.checkpoint.api.repositories.UserGamePlayRepository;
 import com.checkpoint.api.repositories.UserRepository;
 import com.checkpoint.api.repositories.VideoGameRepository;
 import com.checkpoint.api.repositories.WishRepository;
@@ -64,16 +74,31 @@ class ProfileIntegrationTest {
     private BadgeRepository badgeRepository;
 
     @Autowired
+    private PlatformRepository platformRepository;
+
+    @Autowired
+    private UserGamePlayRepository userGamePlayRepository;
+
+    @Autowired
+    private LikeRepository likeRepository;
+
+    @Autowired
     private EntityManager entityManager;
 
     private User testUser;
     private User otherUser;
+    private VideoGame likedGame;
+    private VideoGame reviewedGame;
+    private VideoGame replayGame;
 
     @BeforeEach
     void setUp() {
+        likeRepository.deleteAll();
+        userGamePlayRepository.deleteAll();
         reviewRepository.deleteAll();
         wishRepository.deleteAll();
         videoGameRepository.deleteAll();
+        platformRepository.deleteAll();
         // Clear join tables and users before badges
         userRepository.deleteAll();
         badgeRepository.deleteAll();
@@ -127,6 +152,63 @@ class ProfileIntegrationTest {
         otherUser = userRepository.findById(otherUser.getId()).orElseThrow();
     }
 
+    private VideoGame makeGame(String title, String coverUrl) {
+        VideoGame g = new VideoGame();
+        g.setTitle(title);
+        g.setCoverUrl(coverUrl);
+        return g;
+    }
+
+    /**
+     * Seeds three plays + one VideoGame like used by the recent-activity tests.
+     * {@code created_at} is overridden via native SQL because {@code @PrePersist}
+     * on {@link UserGamePlay} reassigns the column on save.
+     */
+    private void seedRecentActivity() {
+        Platform platform = platformRepository.save(new Platform("PC"));
+
+        likedGame = videoGameRepository.save(makeGame("Hades II", "/covers/hades.png"));
+        reviewedGame = videoGameRepository.save(makeGame("Outer Wilds", "/covers/outer.png"));
+        replayGame = videoGameRepository.save(makeGame("Hollow Knight", "/covers/hk.png"));
+
+        LocalDateTime now = LocalDateTime.now();
+
+        UserGamePlay playLiked = new UserGamePlay(testUser, likedGame, platform);
+        playLiked.setScore(9);
+        playLiked.setIsReplay(false);
+        playLiked = userGamePlayRepository.save(playLiked);
+        overrideCreatedAt(playLiked.getId(), now);
+
+        UserGamePlay playReviewed = new UserGamePlay(testUser, reviewedGame, platform);
+        playReviewed.setScore(null);
+        playReviewed.setIsReplay(false);
+        playReviewed = userGamePlayRepository.save(playReviewed);
+        overrideCreatedAt(playReviewed.getId(), now.minusHours(1));
+
+        Review review = new Review("A masterpiece", false, testUser, reviewedGame, playReviewed);
+        playReviewed.setReview(review);
+        userGamePlayRepository.save(playReviewed);
+
+        UserGamePlay playReplay = new UserGamePlay(testUser, replayGame, platform);
+        playReplay.setScore(7);
+        playReplay.setIsReplay(true);
+        playReplay = userGamePlayRepository.save(playReplay);
+        overrideCreatedAt(playReplay.getId(), now.minusHours(2));
+
+        likeRepository.save(Like.forVideoGame(testUser, likedGame));
+
+        entityManager.flush();
+        entityManager.clear();
+    }
+
+    private void overrideCreatedAt(java.util.UUID playId, LocalDateTime ts) {
+        entityManager.createNativeQuery(
+                        "UPDATE user_game_plays SET created_at = :ts WHERE id = :id")
+                .setParameter("ts", ts)
+                .setParameter("id", playId)
+                .executeUpdate();
+    }
+
     @Nested
     @DisplayName("GET /api/users/{username}")
     class GetUserProfile {
@@ -173,6 +255,62 @@ class ProfileIntegrationTest {
         void shouldReturn404ForNonExistingUser() throws Exception {
             mockMvc.perform(get("/api/users/{username}", "nobody"))
                     .andExpect(status().isNotFound());
+        }
+
+        @Test
+        @DisplayName("should return recentPlays sorted by createdAt desc with correct flags")
+        void shouldReturnRecentPlaysWithFlags() throws Exception {
+            seedRecentActivity();
+
+            mockMvc.perform(get("/api/users/{username}", "gamer123"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.recentPlays.length()").value(3))
+                    // Order: liked (newest), reviewed, replay (oldest).
+                    .andExpect(jsonPath("$.recentPlays[0].title").value("Hades II"))
+                    .andExpect(jsonPath("$.recentPlays[0].score").value(9))
+                    .andExpect(jsonPath("$.recentPlays[0].hasReview").value(false))
+                    .andExpect(jsonPath("$.recentPlays[0].isReplay").value(false))
+                    .andExpect(jsonPath("$.recentPlays[0].isLiked").value(true))
+                    .andExpect(jsonPath("$.recentPlays[1].title").value("Outer Wilds"))
+                    .andExpect(jsonPath("$.recentPlays[1].score").doesNotExist())
+                    .andExpect(jsonPath("$.recentPlays[1].hasReview").value(true))
+                    .andExpect(jsonPath("$.recentPlays[1].isReplay").value(false))
+                    .andExpect(jsonPath("$.recentPlays[1].isLiked").value(false))
+                    .andExpect(jsonPath("$.recentPlays[2].title").value("Hollow Knight"))
+                    .andExpect(jsonPath("$.recentPlays[2].score").value(7))
+                    .andExpect(jsonPath("$.recentPlays[2].hasReview").value(false))
+                    .andExpect(jsonPath("$.recentPlays[2].isReplay").value(true))
+                    .andExpect(jsonPath("$.recentPlays[2].isLiked").value(false))
+                    // All three games are present in the response (sanity check on batched mapping).
+                    .andExpect(jsonPath("$.recentPlays[*].title",
+                            containsInAnyOrder("Hades II", "Outer Wilds", "Hollow Knight")));
+        }
+
+        @Test
+        @DisplayName("should hide recentPlays from non-owner when profile is private")
+        void shouldMaskRecentPlaysForPrivateProfile() throws Exception {
+            seedRecentActivity();
+            testUser.setIsPrivate(true);
+            userRepository.save(testUser);
+
+            mockMvc.perform(get("/api/users/{username}", "gamer123"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.isPrivate").value(true))
+                    .andExpect(jsonPath("$.recentPlays.length()").value(0));
+        }
+
+        @Test
+        @DisplayName("should include recentPlays for owner viewing own private profile")
+        @WithMockUser(username = "gamer@example.com")
+        void shouldReturnRecentPlaysForOwnerOnPrivateProfile() throws Exception {
+            seedRecentActivity();
+            testUser.setIsPrivate(true);
+            userRepository.save(testUser);
+
+            mockMvc.perform(get("/api/users/{username}", "gamer123"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.isOwner").value(true))
+                    .andExpect(jsonPath("$.recentPlays.length()").value(3));
         }
     }
 

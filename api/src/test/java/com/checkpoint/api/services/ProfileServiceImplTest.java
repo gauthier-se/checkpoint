@@ -28,7 +28,9 @@ import com.checkpoint.api.exceptions.UserNotFoundException;
 import com.checkpoint.api.mapper.ProfileMapper;
 import com.checkpoint.api.mapper.ReviewMapper;
 import com.checkpoint.api.mapper.WishMapper;
+import com.checkpoint.api.repositories.LikeRepository;
 import com.checkpoint.api.repositories.ReviewRepository;
+import com.checkpoint.api.repositories.UserGamePlayRepository;
 import com.checkpoint.api.repositories.UserRepository;
 import com.checkpoint.api.repositories.WishRepository;
 import com.checkpoint.api.services.impl.ProfileServiceImpl;
@@ -47,6 +49,12 @@ class ProfileServiceImplTest {
 
     @Mock
     private WishRepository wishRepository;
+
+    @Mock
+    private UserGamePlayRepository userGamePlayRepository;
+
+    @Mock
+    private LikeRepository likeRepository;
 
     @Mock
     private GameListService gameListService;
@@ -69,6 +77,7 @@ class ProfileServiceImplTest {
     void setUp() {
         profileService = new ProfileServiceImpl(
                 userRepository, reviewRepository, wishRepository,
+                userGamePlayRepository, likeRepository,
                 gameListService, storageService,
                 profileMapper, reviewMapper, wishMapper);
     }

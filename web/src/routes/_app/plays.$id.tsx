@@ -11,7 +11,6 @@ import {
   MessageSquare,
   Pencil,
   RefreshCw,
-  Star,
   Tag as TagIcon,
   Trash2,
 } from 'lucide-react'
@@ -23,6 +22,7 @@ import { deletePlayLog, playLogDetailQueryOptions } from '@/queries/plays'
 import { gameDetailQueryOptions } from '@/queries/catalog'
 import { CommentSection } from '@/components/comments/comment-section'
 import { PlayLogDialog } from '@/components/games/play-log-dialog'
+import { ScoreStars } from '@/components/games/score-stars'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -83,34 +83,6 @@ function formatDate(dateStr: string): string {
     month: 'short',
     day: 'numeric',
   })
-}
-
-function ScoreStars({ score }: { score: number }) {
-  return (
-    <div className="flex gap-0.5">
-      {[1, 2, 3, 4, 5].map((star) => {
-        const leftScore = star * 2 - 1
-        const rightScore = star * 2
-        const isFull = score >= rightScore
-        const isHalf = score === leftScore
-        return (
-          <div key={star} className="relative h-5 w-5">
-            <Star
-              aria-hidden
-              className="absolute inset-0 h-5 w-5 text-muted-foreground/30"
-            />
-            {(isFull || isHalf) && (
-              <Star
-                aria-hidden
-                className="absolute inset-0 h-5 w-5 fill-yellow-400 text-yellow-500"
-                style={isHalf ? { clipPath: 'inset(0 50% 0 0)' } : undefined}
-              />
-            )}
-          </div>
-        )
-      })}
-    </div>
-  )
 }
 
 function PlayLogDetailPage() {
