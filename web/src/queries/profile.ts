@@ -1,5 +1,5 @@
 import { queryOptions } from '@tanstack/react-query'
-import type { UserProfile } from '@/types/profile'
+import type { FavoriteGame, UserProfile } from '@/types/profile'
 import type { ReviewsResponse } from '@/types/review'
 import type { Priority } from '@/types/collection'
 import type { PaginationMetadata } from '@/types/game'
@@ -148,4 +148,15 @@ export async function deleteAccount(): Promise<void> {
 export async function exportData(): Promise<Blob> {
   const res = await apiFetch('/api/me/export')
   return res.blob()
+}
+
+export async function updateFavorites(
+  gameIds: Array<string>,
+): Promise<Array<FavoriteGame>> {
+  const res = await apiFetch('/api/me/favorites', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ gameIds }),
+  })
+  return res.json()
 }

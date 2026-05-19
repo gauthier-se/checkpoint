@@ -1,0 +1,66 @@
+meta {
+  name: Update My Favorites
+  type: http
+  seq: 6
+}
+
+put {
+  url: {{baseUrl}}/api/me/favorites
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "gameIds": [
+      "00000000-0000-0000-0000-000000000001",
+      "00000000-0000-0000-0000-000000000002",
+      "00000000-0000-0000-0000-000000000003"
+    ]
+  }
+}
+
+docs {
+  # Update My Favorite Games
+
+  Replaces the authenticated user's favorite games with the provided ordered list. The order of `gameIds` becomes the resulting `displayOrder` (0-based).
+
+  ## Authentication
+
+  Requires a valid JWT token in the `Authorization: Bearer` header.
+
+  ## Request Body
+
+  ```json
+  {
+    "gameIds": ["<uuid>", "<uuid>", ...]
+  }
+  ```
+
+  - 0 to 5 entries (an empty array clears all favorites).
+  - IDs must be unique and reference existing games.
+
+  ## Response (200 OK)
+
+  Returns the resulting favorites in `displayOrder` ascending:
+
+  ```json
+  [
+    {
+      "gameId": "<uuid>",
+      "title": "Game Title",
+      "coverUrl": "/covers/...",
+      "displayOrder": 0
+    }
+  ]
+  ```
+
+  ## Error Responses
+
+  - **400 Bad Request**: more than 5 ids, duplicate ids, or unknown game id
+  - **401 Unauthorized**: not authenticated
+}

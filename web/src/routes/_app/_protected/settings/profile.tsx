@@ -3,6 +3,7 @@ import { useSuspenseQuery } from '@tanstack/react-query'
 import { DeleteAccountCard } from '@/components/settings/delete-account-card'
 import { EditProfileForm } from '@/components/settings/edit-profile-form'
 import { ExportDataCard } from '@/components/settings/export-data-card'
+import { FavoriteGamesEditor } from '@/components/settings/favorite-games-editor'
 import { useAuth } from '@/hooks/use-auth'
 import { userProfileQueryOptions } from '@/queries/profile'
 
@@ -48,6 +49,10 @@ function SettingsProfilePage() {
         bio={profile.bio}
         picture={profile.picture}
         isPrivate={profile.isPrivate}
+      />
+      <FavoriteGamesEditor
+        username={profile.username}
+        initialFavorites={profile.favorites}
       />
       <ExportDataCard />
       <DeleteAccountCard username={profile.username} />

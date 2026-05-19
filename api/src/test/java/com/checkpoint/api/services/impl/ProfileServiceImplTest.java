@@ -105,7 +105,7 @@ class ProfileServiceImplTest {
         @DisplayName("should return profile for public user without authentication")
         void getUserProfile_shouldReturnProfileForAnonymousViewer() {
             // Given
-            when(userRepository.findByPseudoWithBadges("gamer123"))
+            when(userRepository.findByPseudoWithBadgesAndFavorites("gamer123"))
                     .thenReturn(Optional.of(profileUser));
             when(userRepository.countFollowersByUserId(profileUser.getId())).thenReturn(10L);
             when(userRepository.countFollowingByUserId(profileUser.getId())).thenReturn(5L);
@@ -133,7 +133,7 @@ class ProfileServiceImplTest {
         @DisplayName("should compute isFollowing and isOwner when authenticated")
         void getUserProfile_shouldComputeFollowingAndOwnerWhenAuthenticated() {
             // Given
-            when(userRepository.findByPseudoWithBadges("gamer123"))
+            when(userRepository.findByPseudoWithBadgesAndFavorites("gamer123"))
                     .thenReturn(Optional.of(profileUser));
             when(userRepository.countFollowersByUserId(profileUser.getId())).thenReturn(0L);
             when(userRepository.countFollowingByUserId(profileUser.getId())).thenReturn(0L);
@@ -156,7 +156,7 @@ class ProfileServiceImplTest {
         @DisplayName("should set isOwner to true when viewer is profile owner")
         void getUserProfile_shouldSetIsOwnerWhenViewerIsOwner() {
             // Given
-            when(userRepository.findByPseudoWithBadges("gamer123"))
+            when(userRepository.findByPseudoWithBadgesAndFavorites("gamer123"))
                     .thenReturn(Optional.of(profileUser));
             when(userRepository.countFollowersByUserId(profileUser.getId())).thenReturn(0L);
             when(userRepository.countFollowingByUserId(profileUser.getId())).thenReturn(0L);
@@ -178,7 +178,7 @@ class ProfileServiceImplTest {
         @DisplayName("should throw UserNotFoundException for unknown username")
         void getUserProfile_shouldThrowForUnknownUser() {
             // Given
-            when(userRepository.findByPseudoWithBadges("unknown"))
+            when(userRepository.findByPseudoWithBadgesAndFavorites("unknown"))
                     .thenReturn(Optional.empty());
 
             // When / Then

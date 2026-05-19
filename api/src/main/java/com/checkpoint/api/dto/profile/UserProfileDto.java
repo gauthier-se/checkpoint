@@ -16,6 +16,7 @@ import java.util.UUID;
  * @param xpThreshold    the XP required for the next level
  * @param isPrivate      whether the profile is private
  * @param badges         the list of earned badges
+ * @param favorites      the user's favorite games (max 5, ordered by displayOrder)
  * @param followerCount  the number of followers
  * @param followingCount the number of users being followed
  * @param reviewCount    the number of reviews written
@@ -34,6 +35,7 @@ public record UserProfileDto(
         Integer xpThreshold,
         Boolean isPrivate,
         List<BadgeDto> badges,
+        List<FavoriteDto> favorites,
         Long followerCount,
         Long followingCount,
         Long reviewCount,

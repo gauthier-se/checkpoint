@@ -1,13 +1,16 @@
 package com.checkpoint.api.mapper.impl;
 
+import java.util.Comparator;
 import java.util.List;
 
 import org.springframework.stereotype.Component;
 
 import com.checkpoint.api.dto.profile.BadgeDto;
+import com.checkpoint.api.dto.profile.FavoriteDto;
 import com.checkpoint.api.dto.profile.ProfileUpdatedDto;
 import com.checkpoint.api.dto.profile.UserProfileDto;
 import com.checkpoint.api.entities.Badge;
+import com.checkpoint.api.entities.Favorite;
 import com.checkpoint.api.entities.User;
 import com.checkpoint.api.mapper.ProfileMapper;
 
@@ -28,6 +31,11 @@ public class ProfileMapperImpl implements ProfileMapper {
                 .map(this::toBadgeDto)
                 .toList();
 
+        List<FavoriteDto> favoriteDtos = user.getFavorites().stream()
+                .sorted(Comparator.comparing(Favorite::getDisplayOrder))
+                .map(this::toFavoriteDto)
+                .toList();
+
         Integer xpThreshold = user.getLevel() * 1000;
 
         return new UserProfileDto(
@@ -40,6 +48,7 @@ public class ProfileMapperImpl implements ProfileMapper {
                 xpThreshold,
                 user.getIsPrivate(),
                 badgeDtos,
+                favoriteDtos,
                 followerCount,
                 followingCount,
                 reviewCount,
@@ -60,6 +69,19 @@ public class ProfileMapperImpl implements ProfileMapper {
                 badge.getName(),
                 badge.getPicture(),
                 badge.getDescription()
+        );
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public FavoriteDto toFavoriteDto(Favorite favorite) {
+        return new FavoriteDto(
+                favorite.getVideoGame().getId(),
+                favorite.getVideoGame().getTitle(),
+                favorite.getVideoGame().getCoverUrl(),
+                favorite.getDisplayOrder()
         );
     }
 

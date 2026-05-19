@@ -5,6 +5,13 @@ export interface BadgeDto {
   description: string | null
 }
 
+export interface FavoriteGame {
+  gameId: string
+  title: string
+  coverUrl: string | null
+  displayOrder: number
+}
+
 export interface UserProfile {
   id: string
   username: string
@@ -15,6 +22,7 @@ export interface UserProfile {
   xpThreshold: number
   isPrivate: boolean
   badges: Array<BadgeDto>
+  favorites: Array<FavoriteGame>
   followerCount: number
   followingCount: number
   reviewCount: number

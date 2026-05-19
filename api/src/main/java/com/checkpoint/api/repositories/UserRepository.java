@@ -114,6 +114,21 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     Optional<User> findByPseudoWithBadges(@Param("pseudo") String pseudo);
 
     /**
+     * Finds a user by their pseudo, eagerly fetching badges and favorites
+     * (with their video games). Used to build the public profile DTO without
+     * triggering N+1 lazy loads when assembling the response.
+     *
+     * @param pseudo the pseudo
+     * @return an optional containing the user with badges and favorites loaded
+     */
+    @Query("SELECT DISTINCT u FROM User u "
+            + "LEFT JOIN FETCH u.badges "
+            + "LEFT JOIN FETCH u.favorites f "
+            + "LEFT JOIN FETCH f.videoGame "
+            + "WHERE u.pseudo = :pseudo")
+    Optional<User> findByPseudoWithBadgesAndFavorites(@Param("pseudo") String pseudo);
+
+    /**
      * Counts the number of followers for a given user.
      *
      * @param userId the user's ID

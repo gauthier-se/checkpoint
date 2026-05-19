@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.checkpoint.api.exceptions.CommentNotFoundException;
+import com.checkpoint.api.exceptions.InvalidFavoritesException;
 import com.checkpoint.api.exceptions.InvalidFileException;
 import com.checkpoint.api.exceptions.GameAlreadyInListException;
 import com.checkpoint.api.exceptions.GameListNotFoundException;
@@ -990,6 +991,27 @@ public class GlobalExceptionHandler {
         );
 
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    /**
+     * Handles InvalidFavoritesException when a favorites update request is rejected
+     * (duplicate gameIds, unknown game, etc.).
+     *
+     * @param ex the exception
+     * @return error response with 400 status
+     */
+    @ExceptionHandler(InvalidFavoritesException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidFavorites(InvalidFavoritesException ex) {
+        log.warn("Invalid favorites: {}", ex.getMessage());
+
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                "Bad Request",
+                ex.getMessage(),
+                LocalDateTime.now()
+        );
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
     /**

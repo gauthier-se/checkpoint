@@ -86,7 +86,7 @@ public class ProfileServiceImpl implements ProfileService {
     public UserProfileDto getUserProfile(String username, String viewerEmail) {
         log.info("Fetching profile for user: {}", username);
 
-        User user = userRepository.findByPseudoWithBadges(username)
+        User user = userRepository.findByPseudoWithBadgesAndFavorites(username)
                 .orElseThrow(() -> new UserNotFoundException(username));
 
         Long followerCount = userRepository.countFollowersByUserId(user.getId());

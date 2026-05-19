@@ -1,9 +1,11 @@
 package com.checkpoint.api.mapper;
 
 import com.checkpoint.api.dto.profile.BadgeDto;
+import com.checkpoint.api.dto.profile.FavoriteDto;
 import com.checkpoint.api.dto.profile.ProfileUpdatedDto;
 import com.checkpoint.api.dto.profile.UserProfileDto;
 import com.checkpoint.api.entities.Badge;
+import com.checkpoint.api.entities.Favorite;
 import com.checkpoint.api.entities.User;
 
 /**
@@ -34,6 +36,14 @@ public interface ProfileMapper {
      * @return the badge DTO
      */
     BadgeDto toBadgeDto(Badge badge);
+
+    /**
+     * Maps a Favorite entity (with its video game) to a FavoriteDto.
+     *
+     * @param favorite the favorite entity
+     * @return the favorite DTO
+     */
+    FavoriteDto toFavoriteDto(Favorite favorite);
 
     /**
      * Maps a User entity to a ProfileUpdatedDto after a profile update.

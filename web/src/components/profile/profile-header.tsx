@@ -3,10 +3,10 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { XpProgressBar } from './xp-progress-bar'
 import { BadgeGrid } from './badge-grid'
+import { FavoriteGamesSection } from './favorite-games-section'
 import type { UserProfile } from '@/types/profile'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Separator } from '@/components/ui/separator'
 import { toggleFollowMutation } from '@/queries/profile'
 import { useAuth } from '@/hooks/use-auth'
 
@@ -129,7 +129,11 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
         <BadgeGrid badges={profile.badges} />
       </div>
 
-      <Separator />
+      {/* Favorites */}
+      <FavoriteGamesSection
+        favorites={profile.favorites}
+        isOwner={profile.isOwner}
+      />
     </div>
   )
 }
