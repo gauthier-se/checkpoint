@@ -1,5 +1,6 @@
 package com.checkpoint.api.controllers;
 
+import java.util.Map;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -26,6 +27,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.checkpoint.api.dto.catalog.NewsRequestDto;
 import com.checkpoint.api.dto.catalog.NewsResponseDto;
 import com.checkpoint.api.dto.catalog.PagedResponseDto;
+import com.checkpoint.api.entities.NewsSource;
+import com.checkpoint.api.services.NewsImportService;
 import com.checkpoint.api.services.NewsService;
 
 /**
@@ -45,14 +48,17 @@ public class AdminNewsController {
     private static final String DEFAULT_SORT = "createdAt,desc";
 
     private final NewsService newsService;
+    private final NewsImportService newsImportService;
 
     /**
      * Constructs a new AdminNewsController.
      *
-     * @param newsService the news service
+     * @param newsService       the news service
+     * @param newsImportService the news import orchestrator (Steam / RSS)
      */
-    public AdminNewsController(NewsService newsService) {
+    public AdminNewsController(NewsService newsService, NewsImportService newsImportService) {
         this.newsService = newsService;
+        this.newsImportService = newsImportService;
     }
 
     /**
@@ -176,6 +182,21 @@ public class AdminNewsController {
         NewsResponseDto news = newsService.unpublishNews(newsId);
 
         return ResponseEntity.ok(news);
+    }
+
+    /**
+     * Triggers a news import pass for the given external source on demand. Used by
+     * admins to top up the news section without waiting for the scheduled task, and by
+     * QA when validating the import path.
+     *
+     * @param source the source to import from (STEAM or RSS — MANUAL is rejected)
+     * @return a JSON object {@code {"imported": <count>}}
+     */
+    @PostMapping("/import/{source}")
+    public ResponseEntity<Map<String, Integer>> triggerImport(@PathVariable NewsSource source) {
+        log.info("Admin request: triggering news import from {}", source);
+        int imported = newsImportService.importFromSource(source);
+        return ResponseEntity.ok(Map.of("imported", imported));
     }
 
     /**

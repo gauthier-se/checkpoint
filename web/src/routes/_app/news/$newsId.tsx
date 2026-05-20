@@ -1,9 +1,11 @@
 import { useEffect } from 'react'
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { useSuspenseQuery } from '@tanstack/react-query'
-import { ArrowLeft, Newspaper } from 'lucide-react'
+import { ArrowLeft, ExternalLink, Newspaper } from 'lucide-react'
 import { newsDetailQueryOptions } from '@/queries/news'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 
 export const Route = createFileRoute('/_app/news/$newsId')({
@@ -17,7 +19,6 @@ function RouteComponent() {
   const { newsId } = Route.useParams()
   const { data: article } = useSuspenseQuery(newsDetailQueryOptions(newsId))
 
-  const initials = article.author.pseudo.slice(0, 2).toUpperCase()
   const publishedDate = new Date(article.publishedAt).toLocaleDateString(
     'en-US',
     {
@@ -26,6 +27,8 @@ function RouteComponent() {
       day: 'numeric',
     },
   )
+  const isImported = article.source !== 'MANUAL'
+  const sourceLabel = article.feedName ?? article.source
 
   useEffect(() => {
     document.title = `${article.title} — Checkpoint`
@@ -57,20 +60,55 @@ function RouteComponent() {
       <h1 className="text-3xl font-bold">{article.title}</h1>
 
       <div className="mt-4 flex items-center gap-3">
-        <Avatar className="size-8">
-          <AvatarImage
-            src={article.author.picture ?? undefined}
-            alt={article.author.pseudo}
-          />
-          <AvatarFallback className="text-xs">{initials}</AvatarFallback>
-        </Avatar>
-        <div className="flex flex-col">
-          <span className="text-sm font-medium">{article.author.pseudo}</span>
-          <span className="text-xs text-muted-foreground">{publishedDate}</span>
-        </div>
+        {article.author ? (
+          <>
+            <Avatar className="size-8">
+              <AvatarImage
+                src={article.author.picture ?? undefined}
+                alt={article.author.pseudo}
+              />
+              <AvatarFallback className="text-xs">
+                {article.author.pseudo.slice(0, 2).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex flex-col">
+              <span className="text-sm font-medium">
+                {article.author.pseudo}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                {publishedDate}
+              </span>
+            </div>
+          </>
+        ) : (
+          <div className="flex flex-col">
+            <span className="text-sm font-medium">{sourceLabel}</span>
+            <span className="text-xs text-muted-foreground">
+              {publishedDate}
+            </span>
+          </div>
+        )}
+        {isImported ? (
+          <Badge variant="secondary" className="ml-auto">
+            {sourceLabel}
+          </Badge>
+        ) : null}
       </div>
 
       <Separator className="my-6" />
+
+      {article.externalUrl ? (
+        <Button asChild variant="outline" size="sm" className="mb-6">
+          <a
+            href={article.externalUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Read original
+            <ExternalLink className="ml-1 size-3.5" />
+          </a>
+        </Button>
+      ) : null}
 
       <div className="prose prose-neutral dark:prose-invert max-w-none whitespace-pre-wrap">
         {article.description}

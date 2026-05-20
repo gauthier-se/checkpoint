@@ -15,6 +15,10 @@ public class NewsResult {
     private String createdAt;
     private String updatedAt;
     private NewsAuthorResult author;
+    private String source;
+    private String externalUrl;
+    private String feedName;
+    private String videoGameId;
 
     public NewsResult() {}
 
@@ -41,6 +45,18 @@ public class NewsResult {
 
     public NewsAuthorResult getAuthor() { return author; }
     public void setAuthor(NewsAuthorResult author) { this.author = author; }
+
+    public String getSource() { return source; }
+    public void setSource(String source) { this.source = source; }
+
+    public String getExternalUrl() { return externalUrl; }
+    public void setExternalUrl(String externalUrl) { this.externalUrl = externalUrl; }
+
+    public String getFeedName() { return feedName; }
+    public void setFeedName(String feedName) { this.feedName = feedName; }
+
+    public String getVideoGameId() { return videoGameId; }
+    public void setVideoGameId(String videoGameId) { this.videoGameId = videoGameId; }
 
     public boolean isPublished() {
         return publishedAt != null && !publishedAt.isBlank();

@@ -2,13 +2,13 @@ import { Link } from '@tanstack/react-router'
 import { Newspaper } from 'lucide-react'
 import type { NewsArticle } from '@/types/news'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
 
 interface NewsCardProps {
   article: NewsArticle
 }
 
 export function NewsCard({ article }: NewsCardProps) {
-  const initials = article.author.pseudo.slice(0, 2).toUpperCase()
   const publishedDate = new Date(article.publishedAt).toLocaleDateString(
     'en-US',
     {
@@ -17,6 +17,8 @@ export function NewsCard({ article }: NewsCardProps) {
       day: 'numeric',
     },
   )
+  const isImported = article.source !== 'MANUAL'
+  const sourceLabel = article.feedName ?? article.source
 
   return (
     <Link
@@ -48,18 +50,29 @@ export function NewsCard({ article }: NewsCardProps) {
       </div>
 
       <div className="flex items-center gap-2">
-        <Avatar className="size-5">
-          <AvatarImage
-            src={article.author.picture ?? undefined}
-            alt={article.author.pseudo}
-          />
-          <AvatarFallback className="text-[10px]">{initials}</AvatarFallback>
-        </Avatar>
-        <span className="text-sm text-muted-foreground">
-          {article.author.pseudo}
-        </span>
-        <span className="text-sm text-muted-foreground">·</span>
+        {article.author ? (
+          <>
+            <Avatar className="size-5">
+              <AvatarImage
+                src={article.author.picture ?? undefined}
+                alt={article.author.pseudo}
+              />
+              <AvatarFallback className="text-[10px]">
+                {article.author.pseudo.slice(0, 2).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <span className="text-sm text-muted-foreground">
+              {article.author.pseudo}
+            </span>
+            <span className="text-sm text-muted-foreground">·</span>
+          </>
+        ) : null}
         <span className="text-sm text-muted-foreground">{publishedDate}</span>
+        {isImported ? (
+          <Badge variant="secondary" className="ml-auto">
+            {sourceLabel}
+          </Badge>
+        ) : null}
       </div>
     </Link>
   )

@@ -27,6 +27,7 @@ import com.checkpoint.api.dto.catalog.NewsAuthorDto;
 import com.checkpoint.api.dto.catalog.NewsRequestDto;
 import com.checkpoint.api.dto.catalog.NewsResponseDto;
 import com.checkpoint.api.entities.News;
+import com.checkpoint.api.entities.NewsSource;
 import com.checkpoint.api.entities.User;
 import com.checkpoint.api.exceptions.NewsNotFoundException;
 import com.checkpoint.api.mapper.NewsMapper;
@@ -71,7 +72,8 @@ class NewsServiceImplTest {
         NewsAuthorDto authorDto = new NewsAuthorDto(testUser.getId(), "admin", "admin.jpg");
         testResponseDto = new NewsResponseDto(
                 testNews.getId(), "Test News", "Description", "pic.jpg",
-                null, LocalDateTime.now(), LocalDateTime.now(), authorDto
+                null, LocalDateTime.now(), LocalDateTime.now(), authorDto,
+                NewsSource.MANUAL, null, null, null
         );
     }
 

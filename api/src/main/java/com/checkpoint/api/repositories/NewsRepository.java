@@ -8,11 +8,23 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.checkpoint.api.entities.News;
+import com.checkpoint.api.entities.NewsSource;
 
 /**
  * Repository for {@link News} entities.
  */
 public interface NewsRepository extends JpaRepository<News, UUID> {
+
+    /**
+     * Returns true when a news entry already exists with the given source/external-id
+     * pair. Used by the news import task to skip duplicates without re-saving them.
+     *
+     * @param source     the news origin
+     * @param externalId the feed item GUID / Steam {@code gid}
+     * @return true when a row matches
+     */
+    boolean existsBySourceAndExternalId(NewsSource source, String externalId);
+
 
     /**
      * Finds all published news ordered by publication date descending.

@@ -32,8 +32,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import com.checkpoint.api.dto.catalog.NewsAuthorDto;
 import com.checkpoint.api.dto.catalog.NewsRequestDto;
 import com.checkpoint.api.dto.catalog.NewsResponseDto;
+import com.checkpoint.api.entities.NewsSource;
 import com.checkpoint.api.security.ApiAuthenticationEntryPoint;
 import com.checkpoint.api.security.JwtAuthenticationFilter;
+import com.checkpoint.api.services.NewsImportService;
 import com.checkpoint.api.services.NewsService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -51,6 +53,9 @@ class AdminNewsControllerTest {
     private NewsService newsService;
 
     @MockitoBean
+    private NewsImportService newsImportService;
+
+    @MockitoBean
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @MockitoBean
@@ -61,7 +66,8 @@ class AdminNewsControllerTest {
         NewsAuthorDto author = new NewsAuthorDto(authorId, "admin", "admin.jpg");
         return new NewsResponseDto(
                 newsId, "Test News", "Description", "pic.jpg",
-                publishedAt, LocalDateTime.now(), LocalDateTime.now(), author
+                publishedAt, LocalDateTime.now(), LocalDateTime.now(), author,
+                NewsSource.MANUAL, null, null, null
         );
     }
 
@@ -193,5 +199,31 @@ class AdminNewsControllerTest {
                 .andExpect(jsonPath("$.id").value(newsId.toString()));
 
         verify(newsService).unpublishNews(newsId);
+    }
+
+    @Test
+    @DisplayName("POST /api/admin/news/import/STEAM should run the Steam pass and return count")
+    @WithMockUser(username = "admin@test.com", roles = "ADMIN")
+    void triggerImport_steam_shouldReturnCount() throws Exception {
+        when(newsImportService.importFromSource(NewsSource.STEAM)).thenReturn(4);
+
+        mockMvc.perform(post("/api/admin/news/import/{source}", "STEAM"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.imported").value(4));
+
+        verify(newsImportService).importFromSource(NewsSource.STEAM);
+    }
+
+    @Test
+    @DisplayName("POST /api/admin/news/import/RSS should run the RSS pass and return count")
+    @WithMockUser(username = "admin@test.com", roles = "ADMIN")
+    void triggerImport_rss_shouldReturnCount() throws Exception {
+        when(newsImportService.importFromSource(NewsSource.RSS)).thenReturn(0);
+
+        mockMvc.perform(post("/api/admin/news/import/{source}", "RSS"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.imported").value(0));
+
+        verify(newsImportService).importFromSource(NewsSource.RSS);
     }
 }

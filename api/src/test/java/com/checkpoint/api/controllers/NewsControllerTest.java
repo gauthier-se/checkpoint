@@ -24,6 +24,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import com.checkpoint.api.dto.catalog.NewsAuthorDto;
 import com.checkpoint.api.dto.catalog.NewsResponseDto;
+import com.checkpoint.api.entities.NewsSource;
 import com.checkpoint.api.exceptions.NewsNotFoundException;
 import com.checkpoint.api.security.ApiAuthenticationEntryPoint;
 import com.checkpoint.api.security.JwtAuthenticationFilter;
@@ -54,7 +55,8 @@ class NewsControllerTest {
         NewsAuthorDto author = new NewsAuthorDto(authorId, "admin", "admin.jpg");
         NewsResponseDto dto = new NewsResponseDto(
                 newsId, "Test News", "Description", "pic.jpg",
-                LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), author
+                LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), author,
+                NewsSource.MANUAL, null, null, null
         );
         Page<NewsResponseDto> page = new PageImpl<>(List.of(dto));
 
@@ -82,7 +84,8 @@ class NewsControllerTest {
         NewsAuthorDto author = new NewsAuthorDto(authorId, "admin", "admin.jpg");
         NewsResponseDto dto = new NewsResponseDto(
                 newsId, "Test News", "Description", "pic.jpg",
-                LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), author
+                LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), author,
+                NewsSource.MANUAL, null, null, null
         );
 
         when(newsService.getNewsById(newsId)).thenReturn(dto);

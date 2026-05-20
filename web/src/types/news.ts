@@ -6,6 +6,8 @@ export interface NewsAuthor {
   picture: string | null
 }
 
+export type NewsSource = 'MANUAL' | 'STEAM' | 'RSS'
+
 export interface NewsArticle {
   id: string
   title: string
@@ -14,7 +16,12 @@ export interface NewsArticle {
   publishedAt: string
   createdAt: string
   updatedAt: string
-  author: NewsAuthor
+  // Null for imported news (STEAM/RSS) — attribution lives in feedName / externalUrl.
+  author: NewsAuthor | null
+  source: NewsSource
+  externalUrl?: string
+  feedName?: string
+  videoGameId?: string
 }
 
 export interface NewsResponse {

@@ -45,6 +45,7 @@
             <TableColumn fx:id="titleColumn" text="Titre" prefWidth="260"/>
             <TableColumn fx:id="statusColumn" text="Statut" prefWidth="100"/>
             <TableColumn fx:id="authorColumn" text="Auteur" prefWidth="140"/>
+            <TableColumn fx:id="sourceColumn" text="Source" prefWidth="120"/>
             <TableColumn fx:id="publishedAtColumn" text="Publié le" prefWidth="160"/>
             <TableColumn fx:id="updatedAtColumn" text="Mis à jour" prefWidth="160"/>
             <TableColumn fx:id="actionColumn" text="Actions" prefWidth="320"/>

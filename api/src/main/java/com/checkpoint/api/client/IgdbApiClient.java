@@ -1,6 +1,8 @@
 package com.checkpoint.api.client;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import com.checkpoint.api.dto.igdb.IgdbExternalGameDto;
 import com.checkpoint.api.dto.igdb.IgdbGameDto;
@@ -66,4 +68,16 @@ public interface IgdbApiClient {
      * @return one DTO per matched row; appIds without an IGDB match are simply absent
      */
     List<IgdbExternalGameDto> findIgdbIdsForSteamAppIds(List<Long> steamAppIds);
+
+    /**
+     * Resolves a collection of IGDB game IDs to their Steam application IDs via the
+     * same {@code /external_games} endpoint. The IGDB-to-Steam direction is used by
+     * the news import task to populate {@code VideoGame.steamAppId} lazily.
+     *
+     * <p>Games without a Steam release are simply absent from the returned map.</p>
+     *
+     * @param igdbIds the IGDB game IDs to look up
+     * @return an IGDB game ID → Steam appId map
+     */
+    Map<Long, Long> findSteamAppIdsForIgdbIds(Collection<Long> igdbIds);
 }

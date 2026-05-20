@@ -1,0 +1,48 @@
+meta {
+  name: Trigger News Import
+  type: http
+  seq: 27
+}
+
+post {
+  url: {{baseUrl}}/api/admin/news/import/:source
+  body: none
+  auth: bearer
+}
+
+params:path {
+  source: STEAM
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  # Trigger News Import
+
+  Runs a news import pass on demand for the given source. Useful for admins who
+  want to top up the news section without waiting for the scheduled task, and for
+  QA when validating the import path. Requires admin authentication.
+
+  ## Path parameters
+
+  - `source`: `STEAM` or `RSS`. `MANUAL` is rejected with 400.
+
+  ## Authentication
+
+  - **Bearer Token**: JWT token obtained from `/api/auth/token`
+  - **Required Role**: `ROLE_ADMIN`
+
+  ## Response (200 OK)
+
+  ```json
+  { "imported": 4 }
+  ```
+
+  ## Error Responses
+
+  - **400 Bad Request**: `source` is `MANUAL`
+  - **401 Unauthorized**: Missing or invalid JWT token
+  - **403 Forbidden**: User does not have `ROLE_ADMIN`
+}

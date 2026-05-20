@@ -6,6 +6,7 @@ import com.checkpoint.api.dto.catalog.NewsAuthorDto;
 import com.checkpoint.api.dto.catalog.NewsResponseDto;
 import com.checkpoint.api.entities.News;
 import com.checkpoint.api.entities.User;
+import com.checkpoint.api.entities.VideoGame;
 import com.checkpoint.api.mapper.NewsMapper;
 
 /**
@@ -33,6 +34,8 @@ public class NewsMapperImpl implements NewsMapper {
             );
         }
 
+        VideoGame videoGame = news.getVideoGame();
+
         return new NewsResponseDto(
                 news.getId(),
                 news.getTitle(),
@@ -41,7 +44,11 @@ public class NewsMapperImpl implements NewsMapper {
                 news.getPublishedAt(),
                 news.getCreatedAt(),
                 news.getUpdatedAt(),
-                authorDto
+                authorDto,
+                news.getSource(),
+                news.getExternalUrl(),
+                news.getFeedName(),
+                videoGame != null ? videoGame.getId() : null
         );
     }
 }

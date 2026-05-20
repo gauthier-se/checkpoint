@@ -41,6 +41,14 @@ public class VideoGame {
     @Column(name = "igdb_id", unique = true)
     private Long igdbId;
 
+    /**
+     * Steam application ID, resolved lazily via IGDB external_games during the
+     * news import task and cached here. Null when the game has no Steam release
+     * or hasn't been processed yet.
+     */
+    @Column(name = "steam_app_id", unique = true)
+    private Long steamAppId;
+
     @FullTextField
     @Column(nullable = false)
     private String title;
@@ -245,6 +253,14 @@ public class VideoGame {
 
     public void setIgdbId(Long igdbId) {
         this.igdbId = igdbId;
+    }
+
+    public Long getSteamAppId() {
+        return steamAppId;
+    }
+
+    public void setSteamAppId(Long steamAppId) {
+        this.steamAppId = steamAppId;
     }
 
     public String getTitle() {

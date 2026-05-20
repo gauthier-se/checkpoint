@@ -55,6 +55,7 @@ public class NewsManagementController {
     @FXML private TableColumn<NewsResult, String> titleColumn;
     @FXML private TableColumn<NewsResult, String> statusColumn;
     @FXML private TableColumn<NewsResult, String> authorColumn;
+    @FXML private TableColumn<NewsResult, String> sourceColumn;
     @FXML private TableColumn<NewsResult, String> publishedAtColumn;
     @FXML private TableColumn<NewsResult, String> updatedAtColumn;
     @FXML private TableColumn<NewsResult, Void> actionColumn;
@@ -96,6 +97,14 @@ public class NewsManagementController {
             NewsResult news = cellData.getValue();
             String author = news.getAuthor() != null ? news.getAuthor().getPseudo() : "";
             return new SimpleStringProperty(author == null ? "" : author);
+        });
+        sourceColumn.setCellValueFactory(cellData -> {
+            NewsResult news = cellData.getValue();
+            String label = news.getSource() == null ? "MANUAL" : news.getSource();
+            if (!"MANUAL".equals(label) && news.getFeedName() != null && !news.getFeedName().isBlank()) {
+                label = news.getFeedName();
+            }
+            return new SimpleStringProperty(label);
         });
         publishedAtColumn.setCellValueFactory(cellData ->
                 new SimpleStringProperty(formatDateTime(cellData.getValue().getPublishedAt())));

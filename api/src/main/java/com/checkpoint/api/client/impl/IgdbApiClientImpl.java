@@ -3,8 +3,11 @@ package com.checkpoint.api.client.impl;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -169,6 +172,64 @@ public class IgdbApiClientImpl implements IgdbApiClient {
         return aggregated.stream()
                 .filter(row -> row.game() != null)
                 .toList();
+    }
+
+    @Override
+    public Map<Long, Long> findSteamAppIdsForIgdbIds(Collection<Long> igdbIds) {
+        if (igdbIds == null || igdbIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        List<Long> ordered = new ArrayList<>(igdbIds);
+        log.info("Resolving {} IGDB IDs to Steam appIds via external_games", ordered.size());
+
+        Map<Long, Long> result = new HashMap<>();
+        for (int i = 0; i < ordered.size(); i += EXTERNAL_GAMES_BATCH_SIZE) {
+            List<Long> batch = ordered.subList(
+                    i, Math.min(i + EXTERNAL_GAMES_BATCH_SIZE, ordered.size()));
+            for (IgdbExternalGameDto row : fetchExternalGamesByGameIds(batch)) {
+                if (row.game() == null || row.uid() == null) {
+                    continue;
+                }
+                try {
+                    result.put(row.game(), Long.parseLong(row.uid()));
+                } catch (NumberFormatException e) {
+                    log.debug("Skipping non-numeric Steam uid '{}' for IGDB game {}",
+                            row.uid(), row.game());
+                }
+            }
+        }
+        return result;
+    }
+
+    private List<IgdbExternalGameDto> fetchExternalGamesByGameIds(List<Long> batch) {
+        RateLimiter.waitForPermission(rateLimiter);
+
+        String ids = batch.stream()
+                .map(String::valueOf)
+                .collect(Collectors.joining(","));
+
+        String query = String.format("""
+                fields uid,game;
+                where external_game_source = %d & game = (%s);
+                limit %d;
+                """, STEAM_EXTERNAL_GAME_SOURCE, ids, EXTERNAL_GAMES_BATCH_SIZE);
+
+        log.debug("Executing IGDB external_games query for {} IGDB IDs", batch.size());
+
+        try {
+            List<IgdbExternalGameDto> result = igdbClient.post()
+                    .uri("/external_games")
+                    .contentType(MediaType.TEXT_PLAIN)
+                    .body(query)
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<List<IgdbExternalGameDto>>() {});
+
+            return result != null ? result : Collections.emptyList();
+        } catch (Exception e) {
+            log.error("Error executing IGDB external_games query: {}", e.getMessage(), e);
+            throw new IgdbApiException("Failed to fetch external games from IGDB", e);
+        }
     }
 
     private List<IgdbExternalGameDto> fetchExternalGamesBatch(List<Long> batch) {

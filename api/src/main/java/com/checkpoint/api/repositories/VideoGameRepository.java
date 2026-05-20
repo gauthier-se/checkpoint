@@ -49,6 +49,18 @@ public interface VideoGameRepository extends JpaRepository<VideoGame, UUID>, Vid
     List<VideoGame> findAllByIgdbIdIn(Collection<Long> igdbIds);
 
     /**
+     * Returns distinct video games that are in at least one user library. Used by the
+     * news import task to limit the Steam news pass to games that someone actually
+     * cares about.
+     *
+     * @return the matching video games (may be empty)
+     */
+    @Query("""
+            SELECT DISTINCT ug.videoGame FROM UserGame ug
+            """)
+    List<VideoGame> findGamesWithAtLeastOneUserLink();
+
+    /**
      * Fetches a paginated list of games as GameCardDto projections.
      * Uses a single query with aggregated rating calculation to avoid N+1 issues.
      *
