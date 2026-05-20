@@ -1,0 +1,42 @@
+meta {
+  name: Get Most Backlogged Games
+  type: http
+  seq: 10
+}
+
+get {
+  url: {{baseUrl}}/api/games/most-backlogged
+  body: none
+  auth: none
+}
+
+params:query {
+  ~size: 7
+}
+
+docs {
+  # Get Most Backlogged Games
+
+  Returns the games appearing in the most users' backlogs, ranked by descending count.
+
+  ## Query Parameters
+
+  | Parameter | Required | Default | Description |
+  |-----------|----------|---------|-------------|
+  | size | No | 7 | Number of games to return (max 20) |
+
+  ## Response (200 OK)
+
+  ```json
+  [
+    {
+      "id": "uuid",
+      "title": "Persona 5",
+      "coverUrl": "https://images.igdb.com/...",
+      "releaseDate": "2016-09-15",
+      "averageRating": 4.7,
+      "ratingCount": 800
+    }
+  ]
+  ```
+}

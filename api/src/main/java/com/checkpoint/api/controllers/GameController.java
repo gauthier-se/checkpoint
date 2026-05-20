@@ -38,6 +38,8 @@ public class GameController {
     private static final int MAX_SIZE = 100;
     private static final int DEFAULT_TRENDING_SIZE = 7;
     private static final int MAX_TRENDING_SIZE = 20;
+    private static final int DEFAULT_DISCOVERY_SIZE = 7;
+    private static final int MAX_DISCOVERY_SIZE = 20;
     private static final String DEFAULT_SORT = "releaseDate,desc";
 
     private final GameCatalogService gameCatalogService;
@@ -131,6 +133,38 @@ public class GameController {
 
         List<GameCardDto> trending = gameTrendingService.getTrendingGames(validatedSize);
         return ResponseEntity.ok(trending);
+    }
+
+    /**
+     * Returns the games appearing in the most users' backlogs, ranked by descending count.
+     *
+     * @param size the number of games to return (default 7, max 20)
+     * @return a list of game cards ordered by backlog count (descending)
+     */
+    @GetMapping("/most-backlogged")
+    public ResponseEntity<List<GameCardDto>> getMostBackloggedGames(
+            @RequestParam(defaultValue = "" + DEFAULT_DISCOVERY_SIZE) int size) {
+
+        int validatedSize = Math.min(Math.max(1, size), MAX_DISCOVERY_SIZE);
+        log.info("GET /api/games/most-backlogged - size: {}", validatedSize);
+
+        return ResponseEntity.ok(gameCatalogService.getMostBackloggedGames(validatedSize));
+    }
+
+    /**
+     * Returns the games appearing in the most users' wishlists, ranked by descending count.
+     *
+     * @param size the number of games to return (default 7, max 20)
+     * @return a list of game cards ordered by wishlist count (descending)
+     */
+    @GetMapping("/most-wishlisted")
+    public ResponseEntity<List<GameCardDto>> getMostWishlistedGames(
+            @RequestParam(defaultValue = "" + DEFAULT_DISCOVERY_SIZE) int size) {
+
+        int validatedSize = Math.min(Math.max(1, size), MAX_DISCOVERY_SIZE);
+        log.info("GET /api/games/most-wishlisted - size: {}", validatedSize);
+
+        return ResponseEntity.ok(gameCatalogService.getMostWishlistedGames(validatedSize));
     }
 
     /**

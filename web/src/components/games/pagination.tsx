@@ -24,7 +24,7 @@ export function GamesPagination({
   return (
     <div className="flex items-center justify-between mt-6 mb-10">
       <Link
-        to="/games"
+        to="/games/filtered"
         search={{ ...search, page: page - 1 }}
         hash={CATALOG_HASH}
         disabled={!hasPrevious}
@@ -43,7 +43,7 @@ export function GamesPagination({
           ) : (
             <Link
               key={p}
-              to="/games"
+              to="/games/filtered"
               search={{ ...search, page: p }}
               hash={CATALOG_HASH}
             >
@@ -53,7 +53,7 @@ export function GamesPagination({
         )}
       </ButtonGroup>
       <Link
-        to="/games"
+        to="/games/filtered"
         search={{ ...search, page: page + 1 }}
         hash={CATALOG_HASH}
         disabled={!hasNext}

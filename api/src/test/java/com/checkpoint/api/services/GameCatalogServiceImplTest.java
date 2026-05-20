@@ -30,7 +30,9 @@ import com.checkpoint.api.entities.Genre;
 import com.checkpoint.api.entities.Platform;
 import com.checkpoint.api.entities.VideoGame;
 import com.checkpoint.api.exceptions.GameNotFoundException;
+import com.checkpoint.api.repositories.BacklogRepository;
 import com.checkpoint.api.repositories.VideoGameRepository;
+import com.checkpoint.api.repositories.WishRepository;
 import com.checkpoint.api.services.impl.GameCatalogServiceImpl;
 
 /**
@@ -42,11 +44,17 @@ class GameCatalogServiceImplTest {
     @Mock
     private VideoGameRepository videoGameRepository;
 
+    @Mock
+    private BacklogRepository backlogRepository;
+
+    @Mock
+    private WishRepository wishRepository;
+
     private GameCatalogServiceImpl gameCatalogService;
 
     @BeforeEach
     void setUp() {
-        gameCatalogService = new GameCatalogServiceImpl(videoGameRepository);
+        gameCatalogService = new GameCatalogServiceImpl(videoGameRepository, backlogRepository, wishRepository);
     }
 
     @Test

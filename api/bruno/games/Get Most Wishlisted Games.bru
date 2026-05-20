@@ -1,0 +1,42 @@
+meta {
+  name: Get Most Wishlisted Games
+  type: http
+  seq: 11
+}
+
+get {
+  url: {{baseUrl}}/api/games/most-wishlisted
+  body: none
+  auth: none
+}
+
+params:query {
+  ~size: 7
+}
+
+docs {
+  # Get Most Wishlisted Games
+
+  Returns the games appearing in the most users' wishlists, ranked by descending count.
+
+  ## Query Parameters
+
+  | Parameter | Required | Default | Description |
+  |-----------|----------|---------|-------------|
+  | size | No | 7 | Number of games to return (max 20) |
+
+  ## Response (200 OK)
+
+  ```json
+  [
+    {
+      "id": "uuid",
+      "title": "Silksong",
+      "coverUrl": "https://images.igdb.com/...",
+      "releaseDate": "2026-01-01",
+      "averageRating": null,
+      "ratingCount": 0
+    }
+  ]
+  ```
+}

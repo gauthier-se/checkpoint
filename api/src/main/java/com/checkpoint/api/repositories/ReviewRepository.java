@@ -134,4 +134,32 @@ public interface ReviewRepository extends JpaRepository<Review, UUID> {
             """)
     boolean existsLongReviewByUserId(@Param("userId") UUID userId);
 
+    /**
+     * Finds the top reviews ranked by a "hot" score combining likes count and recency.
+     * Uses a Reddit-style gravity-1.5 decay over days since creation:
+     * {@code likes_count / POWER(EXTRACT(EPOCH FROM (NOW() - created_at)) / 86400.0 + 2, 1.5)}.
+     *
+     * @param limit the maximum number of reviews to return
+     * @return the top reviews ordered by hot score (descending)
+     */
+    @Query(value = """
+            SELECT r.*
+            FROM reviews r
+            LEFT JOIN likes l ON l.review_id = r.id
+            GROUP BY r.id
+            ORDER BY (COUNT(l.id)::float
+                      / POWER(EXTRACT(EPOCH FROM (NOW() - r.created_at)) / 86400.0 + 2, 1.5)) DESC,
+                     r.created_at DESC
+            LIMIT :limit
+            """, nativeQuery = true)
+    List<Review> findPopularReviews(@Param("limit") int limit);
+
+    /**
+     * Finds the most recently created reviews across all games and users.
+     *
+     * @param pageable pagination parameters (used to cap the result size; sort is ignored)
+     * @return a page of reviews ordered by creation time (descending)
+     */
+    Page<Review> findAllByOrderByCreatedAtDesc(Pageable pageable);
+
 }

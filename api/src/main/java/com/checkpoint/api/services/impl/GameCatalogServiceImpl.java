@@ -6,6 +6,7 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,7 +18,9 @@ import com.checkpoint.api.dto.catalog.GameDetailDto.GenreDto;
 import com.checkpoint.api.dto.catalog.GameDetailDto.PlatformDto;
 import com.checkpoint.api.entities.VideoGame;
 import com.checkpoint.api.exceptions.GameNotFoundException;
+import com.checkpoint.api.repositories.BacklogRepository;
 import com.checkpoint.api.repositories.VideoGameRepository;
+import com.checkpoint.api.repositories.WishRepository;
 import com.checkpoint.api.services.GameCatalogService;
 
 /**
@@ -31,9 +34,15 @@ public class GameCatalogServiceImpl implements GameCatalogService {
     private static final Logger log = LoggerFactory.getLogger(GameCatalogServiceImpl.class);
 
     private final VideoGameRepository videoGameRepository;
+    private final BacklogRepository backlogRepository;
+    private final WishRepository wishRepository;
 
-    public GameCatalogServiceImpl(VideoGameRepository videoGameRepository) {
+    public GameCatalogServiceImpl(VideoGameRepository videoGameRepository,
+                                  BacklogRepository backlogRepository,
+                                  WishRepository wishRepository) {
         this.videoGameRepository = videoGameRepository;
+        this.backlogRepository = backlogRepository;
+        this.wishRepository = wishRepository;
     }
 
     @Override
@@ -51,6 +60,18 @@ public class GameCatalogServiceImpl implements GameCatalogService {
 
         return videoGameRepository.findAllAsGameCardsWithFilters(
                 pageable, genre, platform, yearMin, yearMax, ratingMin, ratingMax);
+    }
+
+    @Override
+    public List<GameCardDto> getMostBackloggedGames(int size) {
+        log.debug("Fetching most-backlogged games - size: {}", size);
+        return backlogRepository.findMostBackloggedGames(PageRequest.of(0, size)).getContent();
+    }
+
+    @Override
+    public List<GameCardDto> getMostWishlistedGames(int size) {
+        log.debug("Fetching most-wishlisted games - size: {}", size);
+        return wishRepository.findMostWishlistedGames(PageRequest.of(0, size)).getContent();
     }
 
     @Override

@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from '@tanstack/react-router'
+import { useNavigate, useRouterState } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { X } from 'lucide-react'
 import type { KeyboardEvent } from 'react'
 import { genresQueryOptions, platformsQueryOptions } from '@/queries/catalog'
-import { Route } from '@/routes/_app/games/index'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -15,6 +14,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+
+type CatalogFiltersSearch = {
+  page?: number
+  q?: string
+  genre?: string
+  platform?: string
+  yearMin?: number
+  yearMax?: number
+  ratingMin?: number
+  ratingMax?: number
+  sort?: string
+}
 
 const SORT_OPTIONS = [
   { value: 'releaseDate,desc', label: 'Release Date (newest)' },
@@ -27,9 +38,14 @@ const SORT_OPTIONS = [
 
 const ALL_VALUE = '__all__'
 
-export function CatalogFilters() {
-  const search = Route.useSearch()
-  const navigate = useNavigate({ from: '/games' })
+interface CatalogFiltersProps {
+  search: CatalogFiltersSearch
+}
+
+export function CatalogFilters({ search }: CatalogFiltersProps) {
+  const navigate = useNavigate()
+  const pathname = useRouterState({ select: (s) => s.location.pathname })
+  const isOnFiltered = pathname.startsWith('/games/filtered')
 
   const { data: genres } = useQuery(genresQueryOptions())
   const { data: platforms } = useQuery(platformsQueryOptions())
@@ -48,9 +64,17 @@ export function CatalogFilters() {
   }, [search.yearMin, search.yearMax, search.ratingMin, search.ratingMax])
 
   function updateFilter(updates: Record<string, unknown>) {
-    navigate({
-      search: (prev) => ({ ...prev, ...updates, page: 1 }),
-    })
+    if (isOnFiltered) {
+      navigate({
+        to: '/games/filtered',
+        search: (prev) => ({ ...prev, ...updates, page: 1 }),
+      })
+    } else {
+      navigate({
+        to: '/games/filtered',
+        search: { ...search, ...updates, page: 1 },
+      })
+    }
   }
 
   function applyNumberFilter(
@@ -96,12 +120,7 @@ export function CatalogFilters() {
     setYearMax('')
     setRatingMin('')
     setRatingMax('')
-    navigate({
-      search: (prev) => ({
-        page: 1,
-        q: prev.q,
-      }),
-    })
+    navigate({ to: '/games', search: { page: 1 } })
   }
 
   const activeFilterBadges: Array<{ label: string; key: string }> = []

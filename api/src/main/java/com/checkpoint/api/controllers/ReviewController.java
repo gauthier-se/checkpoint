@@ -1,5 +1,6 @@
 package com.checkpoint.api.controllers;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -18,18 +19,24 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.checkpoint.api.dto.catalog.PagedResponseDto;
+import com.checkpoint.api.dto.catalog.ReviewCardDto;
 import com.checkpoint.api.dto.catalog.ReviewResponseDto;
 import com.checkpoint.api.services.ReviewService;
 
 /**
- * REST controller for public game reviews endpoints.
+ * REST controller for public review endpoints.
  *
- * <p>Provides read-only access to reviews for a specific game.
- * Reviews are now created, updated, and deleted via play log endpoints
+ * <p>Provides:
+ * <ul>
+ *   <li>Paginated reviews for a specific game ({@code /api/games/{gameId}/reviews})</li>
+ *   <li>Cross-game discovery feeds: popular and recent reviews
+ *       ({@code /api/reviews/popular}, {@code /api/reviews/recent})</li>
+ * </ul>
+ * Reviews are created, updated, and deleted via play log endpoints
  * ({@link PlayLogReviewController}).</p>
  */
 @RestController
-@RequestMapping("/api/games/{gameId}/reviews")
+@RequestMapping("/api")
 public class ReviewController {
 
     private static final Logger log = LoggerFactory.getLogger(ReviewController.class);
@@ -38,6 +45,9 @@ public class ReviewController {
     private static final int DEFAULT_SIZE = 20;
     private static final int MAX_SIZE = 100;
     private static final String DEFAULT_SORT = "createdAt,desc";
+
+    private static final int DEFAULT_DISCOVERY_SIZE = 7;
+    private static final int MAX_DISCOVERY_SIZE = 20;
 
     private final ReviewService reviewService;
 
@@ -63,7 +73,7 @@ public class ReviewController {
      * @param sort        the sorting parameters
      * @return the paginated reviews with play context
      */
-    @GetMapping
+    @GetMapping("/games/{gameId}/reviews")
     public ResponseEntity<PagedResponseDto<ReviewResponseDto>> getReviews(
             @PathVariable UUID gameId,
             @AuthenticationPrincipal UserDetails userDetails,
@@ -83,6 +93,46 @@ public class ReviewController {
         Page<ReviewResponseDto> reviewPage = reviewService.getGameReviews(gameId, viewerEmail, pageable);
 
         return ResponseEntity.ok(PagedResponseDto.from(reviewPage));
+    }
+
+    /**
+     * Returns the top reviews ranked by a "hot" score combining likes and recency.
+     *
+     * @param userDetails the authenticated user, or null if anonymous
+     * @param size        the number of reviews to return (default 7, max 20)
+     * @return the popular reviews with game and play context
+     */
+    @GetMapping("/reviews/popular")
+    public ResponseEntity<List<ReviewCardDto>> getPopularReviews(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(defaultValue = "" + DEFAULT_DISCOVERY_SIZE) int size) {
+
+        int validatedSize = Math.min(Math.max(1, size), MAX_DISCOVERY_SIZE);
+        log.info("GET /api/reviews/popular - size: {}, viewer: {}",
+                validatedSize, userDetails != null ? userDetails.getUsername() : "anonymous");
+
+        String viewerEmail = userDetails != null ? userDetails.getUsername() : null;
+        return ResponseEntity.ok(reviewService.getPopularReviews(validatedSize, viewerEmail));
+    }
+
+    /**
+     * Returns the most recently created reviews across all games and users.
+     *
+     * @param userDetails the authenticated user, or null if anonymous
+     * @param size        the number of reviews to return (default 7, max 20)
+     * @return the recent reviews with game and play context
+     */
+    @GetMapping("/reviews/recent")
+    public ResponseEntity<List<ReviewCardDto>> getRecentReviews(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(defaultValue = "" + DEFAULT_DISCOVERY_SIZE) int size) {
+
+        int validatedSize = Math.min(Math.max(1, size), MAX_DISCOVERY_SIZE);
+        log.info("GET /api/reviews/recent - size: {}, viewer: {}",
+                validatedSize, userDetails != null ? userDetails.getUsername() : "anonymous");
+
+        String viewerEmail = userDetails != null ? userDetails.getUsername() : null;
+        return ResponseEntity.ok(reviewService.getRecentReviews(validatedSize, viewerEmail));
     }
 
     /**

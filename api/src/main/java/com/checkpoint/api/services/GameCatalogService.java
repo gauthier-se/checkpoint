@@ -1,5 +1,6 @@
 package com.checkpoint.api.services;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -42,4 +43,20 @@ public interface GameCatalogService {
      * @throws GameNotFoundException if the game is not found
      */
     GameDetailDto getGameDetails(UUID id);
+
+    /**
+     * Returns the games appearing in the most users' backlogs, ranked by descending count.
+     *
+     * @param size the maximum number of games to return
+     * @return the most-backlogged games as game cards
+     */
+    List<GameCardDto> getMostBackloggedGames(int size);
+
+    /**
+     * Returns the games appearing in the most users' wishlists, ranked by descending count.
+     *
+     * @param size the maximum number of games to return
+     * @return the most-wishlisted games as game cards
+     */
+    List<GameCardDto> getMostWishlistedGames(int size);
 }

@@ -381,4 +381,101 @@ class GameControllerTest {
 
         verify(gameTrendingService).getTrendingGames(3);
     }
+
+    @Test
+    @DisplayName("GET /api/games/most-backlogged should return games ordered by backlog count")
+    void getMostBackloggedGames_shouldReturnGames() throws Exception {
+        UUID gameId = UUID.randomUUID();
+        List<GameCardDto> games = List.of(
+                new GameCardDto(gameId, "Persona 5", "cover.jpg", LocalDate.of(2016, 9, 15), 4.7, 800L)
+        );
+        when(gameCatalogService.getMostBackloggedGames(7)).thenReturn(games);
+
+        mockMvc.perform(get("/api/games/most-backlogged"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$[0].title").value("Persona 5"))
+                .andExpect(jsonPath("$[0].averageRating").value(4.7));
+    }
+
+    @Test
+    @DisplayName("GET /api/games/most-backlogged should return empty list when no games")
+    void getMostBackloggedGames_shouldReturnEmptyListWhenNone() throws Exception {
+        when(gameCatalogService.getMostBackloggedGames(anyInt())).thenReturn(List.of());
+
+        mockMvc.perform(get("/api/games/most-backlogged"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$").isEmpty());
+    }
+
+    @Test
+    @DisplayName("GET /api/games/most-backlogged should accept custom size parameter")
+    void getMostBackloggedGames_shouldAcceptCustomSize() throws Exception {
+        when(gameCatalogService.getMostBackloggedGames(anyInt())).thenReturn(List.of());
+
+        mockMvc.perform(get("/api/games/most-backlogged").param("size", "5"))
+                .andExpect(status().isOk());
+
+        verify(gameCatalogService).getMostBackloggedGames(5);
+    }
+
+    @Test
+    @DisplayName("GET /api/games/most-backlogged should cap size to maximum 20")
+    void getMostBackloggedGames_shouldCapSizeToMaximum() throws Exception {
+        when(gameCatalogService.getMostBackloggedGames(anyInt())).thenReturn(List.of());
+
+        mockMvc.perform(get("/api/games/most-backlogged").param("size", "100"))
+                .andExpect(status().isOk());
+
+        verify(gameCatalogService).getMostBackloggedGames(20);
+    }
+
+    @Test
+    @DisplayName("GET /api/games/most-wishlisted should return games ordered by wishlist count")
+    void getMostWishlistedGames_shouldReturnGames() throws Exception {
+        UUID gameId = UUID.randomUUID();
+        List<GameCardDto> games = List.of(
+                new GameCardDto(gameId, "Silksong", "cover.jpg", LocalDate.of(2026, 1, 1), null, 0L)
+        );
+        when(gameCatalogService.getMostWishlistedGames(7)).thenReturn(games);
+
+        mockMvc.perform(get("/api/games/most-wishlisted"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$[0].title").value("Silksong"));
+    }
+
+    @Test
+    @DisplayName("GET /api/games/most-wishlisted should return empty list when no games")
+    void getMostWishlistedGames_shouldReturnEmptyListWhenNone() throws Exception {
+        when(gameCatalogService.getMostWishlistedGames(anyInt())).thenReturn(List.of());
+
+        mockMvc.perform(get("/api/games/most-wishlisted"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$").isEmpty());
+    }
+
+    @Test
+    @DisplayName("GET /api/games/most-wishlisted should accept custom size parameter")
+    void getMostWishlistedGames_shouldAcceptCustomSize() throws Exception {
+        when(gameCatalogService.getMostWishlistedGames(anyInt())).thenReturn(List.of());
+
+        mockMvc.perform(get("/api/games/most-wishlisted").param("size", "10"))
+                .andExpect(status().isOk());
+
+        verify(gameCatalogService).getMostWishlistedGames(10);
+    }
+
+    @Test
+    @DisplayName("GET /api/games/most-wishlisted should cap size to maximum 20")
+    void getMostWishlistedGames_shouldCapSizeToMaximum() throws Exception {
+        when(gameCatalogService.getMostWishlistedGames(anyInt())).thenReturn(List.of());
+
+        mockMvc.perform(get("/api/games/most-wishlisted").param("size", "50"))
+                .andExpect(status().isOk());
+
+        verify(gameCatalogService).getMostWishlistedGames(20);
+    }
 }

@@ -1,0 +1,51 @@
+meta {
+  name: Get Recent Reviews
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{baseUrl}}/api/reviews/recent
+  body: none
+  auth: none
+}
+
+params:query {
+  ~size: 7
+}
+
+docs {
+  # Get Recent Reviews
+
+  Returns the most recently created reviews across all games and users.
+
+  ## Query Parameters
+
+  | Parameter | Required | Default | Description |
+  |-----------|----------|---------|-------------|
+  | size | No | 7 | Number of reviews to return (max 20) |
+
+  ## Response (200 OK)
+
+  ```json
+  [
+    {
+      "id": "uuid",
+      "content": "Just finished it!",
+      "haveSpoilers": false,
+      "createdAt": "2026-05-20T08:15:00",
+      "user": { "id": "uuid", "pseudo": "bob", "picture": null },
+      "playLogId": "uuid",
+      "platformName": "PC",
+      "playStatus": "COMPLETED",
+      "isReplay": false,
+      "likesCount": 1,
+      "hasLiked": false,
+      "commentsCount": 0,
+      "gameId": "uuid",
+      "gameTitle": "Hollow Knight",
+      "gameCoverUrl": "https://images.igdb.com/..."
+    }
+  ]
+  ```
+}

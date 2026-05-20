@@ -1,5 +1,10 @@
 import { queryOptions } from '@tanstack/react-query'
-import type { LikeResponse, Review, ReviewsResponse } from '@/types/review'
+import type {
+  LikeResponse,
+  Review,
+  ReviewCard,
+  ReviewsResponse,
+} from '@/types/review'
 import { apiFetch } from '@/services/api'
 
 export const gameReviewsQueryOptions = (
@@ -13,6 +18,28 @@ export const gameReviewsQueryOptions = (
       const res = await apiFetch(
         `/api/games/${gameId}/reviews?page=${page}&size=${size}`,
       )
+      return res.json()
+    },
+    staleTime: 60 * 1000,
+  })
+}
+
+export const popularReviewsQueryOptions = (size: number = 7) => {
+  return queryOptions({
+    queryKey: ['reviews', 'popular', size],
+    queryFn: async (): Promise<Array<ReviewCard>> => {
+      const res = await apiFetch(`/api/reviews/popular?size=${size}`)
+      return res.json()
+    },
+    staleTime: 5 * 60 * 1000,
+  })
+}
+
+export const recentReviewsQueryOptions = (size: number = 7) => {
+  return queryOptions({
+    queryKey: ['reviews', 'recent', size],
+    queryFn: async (): Promise<Array<ReviewCard>> => {
+      const res = await apiFetch(`/api/reviews/recent?size=${size}`)
       return res.json()
     },
     staleTime: 60 * 1000,

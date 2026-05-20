@@ -32,3 +32,21 @@ export interface ReviewsResponse {
   content: Array<Review>
   metadata: PaginationMetadata
 }
+
+export interface ReviewCard {
+  id: string
+  content: string
+  haveSpoilers: boolean
+  createdAt: string
+  user: ReviewUser
+  playLogId: string | null
+  platformName: string | null
+  playStatus: PlayStatus | null
+  isReplay: boolean | null
+  likesCount: number
+  hasLiked: boolean
+  commentsCount: number
+  gameId: string
+  gameTitle: string
+  gameCoverUrl: string
+}

@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.checkpoint.api.dto.catalog.GameCardDto;
 import com.checkpoint.api.entities.Wish;
 
 /**
@@ -103,4 +104,29 @@ public interface WishRepository extends JpaRepository<Wish, UUID> {
      * Counts the number of users who have wishlisted a specific game.
      */
     long countByVideoGameId(UUID videoGameId);
+
+    /**
+     * Returns the games appearing in the most users' wishlists, ranked by descending count.
+     * Joins through to the rates table so the {@link GameCardDto} projection includes
+     * the average rating and rating count in a single query (avoids N+1).
+     *
+     * @param pageable pagination parameters (used to cap the result size; sort is ignored)
+     * @return a page of game cards ordered by wishlist count (descending)
+     */
+    @Query("""
+            SELECT new com.checkpoint.api.dto.catalog.GameCardDto(
+                vg.id,
+                vg.title,
+                vg.coverUrl,
+                vg.releaseDate,
+                vg.averageRating,
+                COUNT(DISTINCT r.id)
+            )
+            FROM Wish w
+            JOIN w.videoGame vg
+            LEFT JOIN vg.rates r
+            GROUP BY vg.id, vg.title, vg.coverUrl, vg.releaseDate, vg.averageRating
+            ORDER BY COUNT(DISTINCT w.id) DESC
+            """)
+    Page<GameCardDto> findMostWishlistedGames(Pageable pageable);
 }

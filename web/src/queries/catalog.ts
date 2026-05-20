@@ -59,3 +59,25 @@ export function platformsQueryOptions() {
     staleTime: 5 * 60 * 1000,
   })
 }
+
+export function mostBackloggedGamesQueryOptions(size: number = 7) {
+  return queryOptions({
+    queryKey: ['games', 'most-backlogged', size],
+    queryFn: async (): Promise<Array<Game>> => {
+      const res = await apiFetch(`/api/games/most-backlogged?size=${size}`)
+      return res.json()
+    },
+    staleTime: 5 * 60 * 1000,
+  })
+}
+
+export function mostWishlistedGamesQueryOptions(size: number = 7) {
+  return queryOptions({
+    queryKey: ['games', 'most-wishlisted', size],
+    queryFn: async (): Promise<Array<Game>> => {
+      const res = await apiFetch(`/api/games/most-wishlisted?size=${size}`)
+      return res.json()
+    },
+    staleTime: 5 * 60 * 1000,
+  })
+}

@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.checkpoint.api.dto.catalog.GameCardDto;
 import com.checkpoint.api.entities.Backlog;
 
 /**
@@ -81,4 +82,29 @@ public interface BacklogRepository extends JpaRepository<Backlog, UUID> {
      * Counts the number of users who have a specific game in their backlog.
      */
     long countByVideoGameId(UUID videoGameId);
+
+    /**
+     * Returns the games appearing in the most users' backlogs, ranked by descending count.
+     * Joins through to the rates table so the {@link GameCardDto} projection includes
+     * the average rating and rating count in a single query (avoids N+1).
+     *
+     * @param pageable pagination parameters (used to cap the result size; sort is ignored)
+     * @return a page of game cards ordered by backlog count (descending)
+     */
+    @Query("""
+            SELECT new com.checkpoint.api.dto.catalog.GameCardDto(
+                vg.id,
+                vg.title,
+                vg.coverUrl,
+                vg.releaseDate,
+                vg.averageRating,
+                COUNT(DISTINCT r.id)
+            )
+            FROM Backlog b
+            JOIN b.videoGame vg
+            LEFT JOIN vg.rates r
+            GROUP BY vg.id, vg.title, vg.coverUrl, vg.releaseDate, vg.averageRating
+            ORDER BY COUNT(DISTINCT b.id) DESC
+            """)
+    Page<GameCardDto> findMostBackloggedGames(Pageable pageable);
 }

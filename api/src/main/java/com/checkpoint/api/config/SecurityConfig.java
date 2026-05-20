@@ -120,6 +120,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/platforms").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/members/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/users/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/reviews/popular").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/reviews/recent").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/reviews/*/comments").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/comments/*/replies").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/lists/**").permitAll()

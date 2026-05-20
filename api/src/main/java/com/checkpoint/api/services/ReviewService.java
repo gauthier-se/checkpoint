@@ -1,10 +1,12 @@
 package com.checkpoint.api.services;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import com.checkpoint.api.dto.catalog.ReviewCardDto;
 import com.checkpoint.api.dto.catalog.ReviewRequestDto;
 import com.checkpoint.api.dto.catalog.ReviewResponseDto;
 
@@ -70,4 +72,24 @@ public interface ReviewService {
      * @throws com.checkpoint.api.exceptions.ReviewNotFoundException   if no review exists for the play log
      */
     ReviewResponseDto getPlayLogReview(String userEmail, UUID playId);
+
+    /**
+     * Returns the top reviews ranked by a "hot" score combining likes count and recency.
+     * When a viewer email is provided, the response includes whether the viewer has liked each review.
+     *
+     * @param size        the maximum number of reviews to return
+     * @param viewerEmail the authenticated viewer's email, or null if anonymous
+     * @return the popular reviews bundled with their game information
+     */
+    List<ReviewCardDto> getPopularReviews(int size, String viewerEmail);
+
+    /**
+     * Returns the most recently created reviews across all games and users.
+     * When a viewer email is provided, the response includes whether the viewer has liked each review.
+     *
+     * @param size        the maximum number of reviews to return
+     * @param viewerEmail the authenticated viewer's email, or null if anonymous
+     * @return the recent reviews bundled with their game information
+     */
+    List<ReviewCardDto> getRecentReviews(int size, String viewerEmail);
 }

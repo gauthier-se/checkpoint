@@ -1,0 +1,52 @@
+meta {
+  name: Get Popular Reviews
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{baseUrl}}/api/reviews/popular
+  body: none
+  auth: none
+}
+
+params:query {
+  ~size: 7
+}
+
+docs {
+  # Get Popular Reviews
+
+  Returns the top reviews ranked by a "hot" score combining likes count and
+  recency (Reddit-style gravity-1.5 decay over days since creation).
+
+  ## Query Parameters
+
+  | Parameter | Required | Default | Description |
+  |-----------|----------|---------|-------------|
+  | size | No | 7 | Number of reviews to return (max 20) |
+
+  ## Response (200 OK)
+
+  ```json
+  [
+    {
+      "id": "uuid",
+      "content": "Best game ever",
+      "haveSpoilers": false,
+      "createdAt": "2026-05-19T12:34:56",
+      "user": { "id": "uuid", "pseudo": "alice", "picture": null },
+      "playLogId": "uuid",
+      "platformName": "PC",
+      "playStatus": "COMPLETED",
+      "isReplay": false,
+      "likesCount": 42,
+      "hasLiked": false,
+      "commentsCount": 7,
+      "gameId": "uuid",
+      "gameTitle": "Elden Ring",
+      "gameCoverUrl": "https://images.igdb.com/..."
+    }
+  ]
+  ```
+}

@@ -1,16 +1,19 @@
 package com.checkpoint.api.services.impl;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.checkpoint.api.dto.catalog.ReviewCardDto;
 import com.checkpoint.api.dto.catalog.ReviewRequestDto;
 import com.checkpoint.api.dto.catalog.ReviewResponseDto;
 import com.checkpoint.api.entities.Review;
@@ -185,6 +188,60 @@ public class ReviewServiceImpl implements ReviewService {
                 .orElseThrow(() -> new ReviewNotFoundException(playId));
 
         return reviewMapper.toDto(review);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<ReviewCardDto> getPopularReviews(int size, String viewerEmail) {
+        User viewer = resolveViewer(viewerEmail);
+        List<Review> reviews = reviewRepository.findPopularReviews(size);
+        return reviews.stream()
+                .map(review -> toCardDto(review, viewer))
+                .toList();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<ReviewCardDto> getRecentReviews(int size, String viewerEmail) {
+        User viewer = resolveViewer(viewerEmail);
+        Page<Review> reviews = reviewRepository.findAllByOrderByCreatedAtDesc(PageRequest.of(0, size));
+        return reviews.getContent().stream()
+                .map(review -> toCardDto(review, viewer))
+                .toList();
+    }
+
+    /**
+     * Resolves a viewer user from an optional email.
+     *
+     * @param viewerEmail the viewer's email, or null
+     * @return the viewer entity, or null if no email or no matching user
+     */
+    private User resolveViewer(String viewerEmail) {
+        if (viewerEmail == null) {
+            return null;
+        }
+        return userRepository.findByEmail(viewerEmail).orElse(null);
+    }
+
+    /**
+     * Maps a review to a card DTO with likes/comments context for the given viewer.
+     *
+     * @param review the review entity
+     * @param viewer the viewer (may be null for anonymous requests)
+     * @return the review card DTO
+     */
+    private ReviewCardDto toCardDto(Review review, User viewer) {
+        long likesCount = likeRepository.countByReviewId(review.getId());
+        boolean hasLiked = viewer != null
+                && likeRepository.existsByUserIdAndReviewId(viewer.getId(), review.getId());
+        long commentsCount = commentRepository.countByReviewId(review.getId());
+        return reviewMapper.toCardDto(review, likesCount, hasLiked, commentsCount);
     }
 
     /**
