@@ -1,0 +1,84 @@
+meta {
+  name: Get Friends Popular Games
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/me/friends/popular-games
+  body: none
+  auth: bearer
+}
+
+params:query {
+  ~page: 0
+  ~size: 32
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  # Get Friends Popular Games
+
+  Paginated variant of `/api/me/friends/trending-games` powering the dedicated
+  "Popular with friends" page. Only includes games with at least one interaction
+  from the follow graph within the trending window (last 7 days).
+
+  ## Authentication
+
+  Requires a valid JWT token in the `Authorization: Bearer` header.
+
+  ## Query Parameters
+
+  | Parameter | Default | Description |
+  |-----------|---------|-------------|
+  | page | 0 | Page number (0-based) |
+  | size | 32 | Number of games per page (max 50) |
+
+  ## Scoring Weights
+
+  Same as `/friends/trending-games`:
+
+  - Library additions: 3 points
+  - Play sessions: 3 points
+  - Ratings: 2 points
+  - Reviews: 2 points
+  - Likes: 1 point
+  - Wishlist additions: 1 point
+
+  ## Response (200 OK)
+
+  ```json
+  {
+    "content": [
+      {
+        "id": "uuid",
+        "title": "Elden Ring",
+        "coverUrl": "https://...",
+        "releaseDate": "2022-02-25",
+        "averageRating": 4.9,
+        "ratingCount": 5000
+      }
+    ],
+    "metadata": {
+      "page": 0,
+      "size": 32,
+      "totalElements": 1,
+      "totalPages": 1,
+      "first": true,
+      "last": true,
+      "hasNext": false,
+      "hasPrevious": false
+    }
+  }
+  ```
+
+  Returns an empty page if the user follows nobody or there is no recent
+  activity among friends.
+
+  ## Error Responses
+
+  - **401 Unauthorized**: Not authenticated
+}

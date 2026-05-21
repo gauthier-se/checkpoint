@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.sql.Timestamp;
@@ -179,5 +181,52 @@ class FeedServiceImplTest {
 
         // Then
         assertThat(result).isEmpty();
+    }
+
+    @Test
+    @DisplayName("getFriendsPopularGames should return paginated trending games among friends")
+    void getFriendsPopularGames_shouldReturnPaginatedGames() {
+        // Given
+        when(userRepository.findByEmail("user@test.com")).thenReturn(Optional.of(currentUser));
+        when(userRepository.findFollowingIdsByUserId(currentUser.getId()))
+                .thenReturn(List.of(friendUser.getId()));
+
+        Object[] row = new Object[]{
+                game.getId(), "Elden Ring", "cover.jpg",
+                java.sql.Date.valueOf("2022-02-25"), 4.9, 5000L
+        };
+        Pageable pageable = PageRequest.of(0, 32);
+        List<Object[]> rows = Collections.singletonList(row);
+        Page<Object[]> rawPage = new PageImpl<>(rows, pageable, 1);
+
+        when(videoGameRepository.findFriendsTrendingGamesPage(anyList(), any(LocalDateTime.class), any(Pageable.class)))
+                .thenReturn(rawPage);
+
+        // When
+        PagedResponseDto<GameCardDto> result = feedService.getFriendsPopularGames("user@test.com", 0, 32);
+
+        // Then
+        assertThat(result.content()).hasSize(1);
+        assertThat(result.content().get(0).title()).isEqualTo("Elden Ring");
+        assertThat(result.content().get(0).ratingCount()).isEqualTo(5000L);
+        assertThat(result.metadata().totalElements()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("getFriendsPopularGames should return empty page when user follows nobody")
+    void getFriendsPopularGames_shouldReturnEmptyWhenNoFollowing() {
+        // Given
+        when(userRepository.findByEmail("user@test.com")).thenReturn(Optional.of(currentUser));
+        when(userRepository.findFollowingIdsByUserId(currentUser.getId()))
+                .thenReturn(Collections.emptyList());
+
+        // When
+        PagedResponseDto<GameCardDto> result = feedService.getFriendsPopularGames("user@test.com", 0, 32);
+
+        // Then
+        assertThat(result.content()).isEmpty();
+        assertThat(result.metadata().totalElements()).isEqualTo(0);
+        verify(videoGameRepository, never())
+                .findFriendsTrendingGamesPage(anyList(), any(LocalDateTime.class), any(Pageable.class));
     }
 }

@@ -35,12 +35,14 @@ import { Route as AppProtectedProfileRouteImport } from './routes/_app/_protecte
 import { Route as AppProtectedNotificationsRouteImport } from './routes/_app/_protected/notifications'
 import { Route as AppProtectedSettingsRouteRouteImport } from './routes/_app/_protected/settings/route'
 import { Route as AppProtectedSettingsIndexRouteImport } from './routes/_app/_protected/settings/index'
+import { Route as AppProtectedFeedIndexRouteImport } from './routes/_app/_protected/feed/index'
 import { Route as AppProtectedSettingsSecurityRouteImport } from './routes/_app/_protected/settings/security'
 import { Route as AppProtectedSettingsProfileRouteImport } from './routes/_app/_protected/settings/profile'
 import { Route as AppProtectedSettingsNotificationsRouteImport } from './routes/_app/_protected/settings/notifications'
 import { Route as AppProtectedSettingsIntegrationsRouteImport } from './routes/_app/_protected/settings/integrations'
 import { Route as AppProtectedSettingsAppearanceRouteImport } from './routes/_app/_protected/settings/appearance'
 import { Route as AppProtectedListsNewRouteImport } from './routes/_app/_protected/lists/new'
+import { Route as AppProtectedGamesPopularWithFriendsRouteImport } from './routes/_app/_protected/games/popular-with-friends'
 import { Route as AppProtectedUsernameTagsIndexRouteImport } from './routes/_app/_protected/$username/tags/index'
 import { Route as AppProtectedUsernameGamesIndexRouteImport } from './routes/_app/_protected/$username/games/index'
 import { Route as AppProfileUsernameTagsTagNameRouteImport } from './routes/_app/profile_.$username.tags.$tagName'
@@ -176,6 +178,11 @@ const AppProtectedSettingsIndexRoute =
     path: '/',
     getParentRoute: () => AppProtectedSettingsRouteRoute,
   } as any)
+const AppProtectedFeedIndexRoute = AppProtectedFeedIndexRouteImport.update({
+  id: '/feed/',
+  path: '/feed/',
+  getParentRoute: () => AppProtectedRoute,
+} as any)
 const AppProtectedSettingsSecurityRoute =
   AppProtectedSettingsSecurityRouteImport.update({
     id: '/security',
@@ -211,6 +218,12 @@ const AppProtectedListsNewRoute = AppProtectedListsNewRouteImport.update({
   path: '/lists/new',
   getParentRoute: () => AppProtectedRoute,
 } as any)
+const AppProtectedGamesPopularWithFriendsRoute =
+  AppProtectedGamesPopularWithFriendsRouteImport.update({
+    id: '/games/popular-with-friends',
+    path: '/games/popular-with-friends',
+    getParentRoute: () => AppProtectedRoute,
+  } as any)
 const AppProtectedUsernameTagsIndexRoute =
   AppProtectedUsernameTagsIndexRouteImport.update({
     id: '/$username/tags/',
@@ -259,12 +272,14 @@ export interface FileRoutesByFullPath {
   '/lists': typeof AppListsIndexRoute
   '/members': typeof AppMembersIndexRoute
   '/news': typeof AppNewsIndexRoute
+  '/games/popular-with-friends': typeof AppProtectedGamesPopularWithFriendsRoute
   '/lists/new': typeof AppProtectedListsNewRoute
   '/settings/appearance': typeof AppProtectedSettingsAppearanceRoute
   '/settings/integrations': typeof AppProtectedSettingsIntegrationsRoute
   '/settings/notifications': typeof AppProtectedSettingsNotificationsRoute
   '/settings/profile': typeof AppProtectedSettingsProfileRoute
   '/settings/security': typeof AppProtectedSettingsSecurityRoute
+  '/feed': typeof AppProtectedFeedIndexRoute
   '/settings/': typeof AppProtectedSettingsIndexRoute
   '/lists/$listId/edit': typeof AppProtectedListsListIdEditRoute
   '/profile/$username/tags/$tagName': typeof AppProfileUsernameTagsTagNameRoute
@@ -293,12 +308,14 @@ export interface FileRoutesByTo {
   '/lists': typeof AppListsIndexRoute
   '/members': typeof AppMembersIndexRoute
   '/news': typeof AppNewsIndexRoute
+  '/games/popular-with-friends': typeof AppProtectedGamesPopularWithFriendsRoute
   '/lists/new': typeof AppProtectedListsNewRoute
   '/settings/appearance': typeof AppProtectedSettingsAppearanceRoute
   '/settings/integrations': typeof AppProtectedSettingsIntegrationsRoute
   '/settings/notifications': typeof AppProtectedSettingsNotificationsRoute
   '/settings/profile': typeof AppProtectedSettingsProfileRoute
   '/settings/security': typeof AppProtectedSettingsSecurityRoute
+  '/feed': typeof AppProtectedFeedIndexRoute
   '/settings': typeof AppProtectedSettingsIndexRoute
   '/lists/$listId/edit': typeof AppProtectedListsListIdEditRoute
   '/profile/$username/tags/$tagName': typeof AppProfileUsernameTagsTagNameRoute
@@ -332,12 +349,14 @@ export interface FileRoutesById {
   '/_app/lists/': typeof AppListsIndexRoute
   '/_app/members/': typeof AppMembersIndexRoute
   '/_app/news/': typeof AppNewsIndexRoute
+  '/_app/_protected/games/popular-with-friends': typeof AppProtectedGamesPopularWithFriendsRoute
   '/_app/_protected/lists/new': typeof AppProtectedListsNewRoute
   '/_app/_protected/settings/appearance': typeof AppProtectedSettingsAppearanceRoute
   '/_app/_protected/settings/integrations': typeof AppProtectedSettingsIntegrationsRoute
   '/_app/_protected/settings/notifications': typeof AppProtectedSettingsNotificationsRoute
   '/_app/_protected/settings/profile': typeof AppProtectedSettingsProfileRoute
   '/_app/_protected/settings/security': typeof AppProtectedSettingsSecurityRoute
+  '/_app/_protected/feed/': typeof AppProtectedFeedIndexRoute
   '/_app/_protected/settings/': typeof AppProtectedSettingsIndexRoute
   '/_app/_protected/lists/$listId/edit': typeof AppProtectedListsListIdEditRoute
   '/_app/profile_/$username/tags/$tagName': typeof AppProfileUsernameTagsTagNameRoute
@@ -369,12 +388,14 @@ export interface FileRouteTypes {
     | '/lists'
     | '/members'
     | '/news'
+    | '/games/popular-with-friends'
     | '/lists/new'
     | '/settings/appearance'
     | '/settings/integrations'
     | '/settings/notifications'
     | '/settings/profile'
     | '/settings/security'
+    | '/feed'
     | '/settings/'
     | '/lists/$listId/edit'
     | '/profile/$username/tags/$tagName'
@@ -403,12 +424,14 @@ export interface FileRouteTypes {
     | '/lists'
     | '/members'
     | '/news'
+    | '/games/popular-with-friends'
     | '/lists/new'
     | '/settings/appearance'
     | '/settings/integrations'
     | '/settings/notifications'
     | '/settings/profile'
     | '/settings/security'
+    | '/feed'
     | '/settings'
     | '/lists/$listId/edit'
     | '/profile/$username/tags/$tagName'
@@ -441,12 +464,14 @@ export interface FileRouteTypes {
     | '/_app/lists/'
     | '/_app/members/'
     | '/_app/news/'
+    | '/_app/_protected/games/popular-with-friends'
     | '/_app/_protected/lists/new'
     | '/_app/_protected/settings/appearance'
     | '/_app/_protected/settings/integrations'
     | '/_app/_protected/settings/notifications'
     | '/_app/_protected/settings/profile'
     | '/_app/_protected/settings/security'
+    | '/_app/_protected/feed/'
     | '/_app/_protected/settings/'
     | '/_app/_protected/lists/$listId/edit'
     | '/_app/profile_/$username/tags/$tagName'
@@ -643,6 +668,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProtectedSettingsIndexRouteImport
       parentRoute: typeof AppProtectedSettingsRouteRoute
     }
+    '/_app/_protected/feed/': {
+      id: '/_app/_protected/feed/'
+      path: '/feed'
+      fullPath: '/feed'
+      preLoaderRoute: typeof AppProtectedFeedIndexRouteImport
+      parentRoute: typeof AppProtectedRoute
+    }
     '/_app/_protected/settings/security': {
       id: '/_app/_protected/settings/security'
       path: '/security'
@@ -683,6 +715,13 @@ declare module '@tanstack/react-router' {
       path: '/lists/new'
       fullPath: '/lists/new'
       preLoaderRoute: typeof AppProtectedListsNewRouteImport
+      parentRoute: typeof AppProtectedRoute
+    }
+    '/_app/_protected/games/popular-with-friends': {
+      id: '/_app/_protected/games/popular-with-friends'
+      path: '/games/popular-with-friends'
+      fullPath: '/games/popular-with-friends'
+      preLoaderRoute: typeof AppProtectedGamesPopularWithFriendsRouteImport
       parentRoute: typeof AppProtectedRoute
     }
     '/_app/_protected/$username/tags/': {
@@ -746,7 +785,9 @@ interface AppProtectedRouteChildren {
   AppProtectedSettingsRouteRoute: typeof AppProtectedSettingsRouteRouteWithChildren
   AppProtectedNotificationsRoute: typeof AppProtectedNotificationsRoute
   AppProtectedProfileRoute: typeof AppProtectedProfileRoute
+  AppProtectedGamesPopularWithFriendsRoute: typeof AppProtectedGamesPopularWithFriendsRoute
   AppProtectedListsNewRoute: typeof AppProtectedListsNewRoute
+  AppProtectedFeedIndexRoute: typeof AppProtectedFeedIndexRoute
   AppProtectedListsListIdEditRoute: typeof AppProtectedListsListIdEditRoute
   AppProtectedUsernameGamesIndexRoute: typeof AppProtectedUsernameGamesIndexRoute
   AppProtectedUsernameTagsIndexRoute: typeof AppProtectedUsernameTagsIndexRoute
@@ -756,7 +797,10 @@ const AppProtectedRouteChildren: AppProtectedRouteChildren = {
   AppProtectedSettingsRouteRoute: AppProtectedSettingsRouteRouteWithChildren,
   AppProtectedNotificationsRoute: AppProtectedNotificationsRoute,
   AppProtectedProfileRoute: AppProtectedProfileRoute,
+  AppProtectedGamesPopularWithFriendsRoute:
+    AppProtectedGamesPopularWithFriendsRoute,
   AppProtectedListsNewRoute: AppProtectedListsNewRoute,
+  AppProtectedFeedIndexRoute: AppProtectedFeedIndexRoute,
   AppProtectedListsListIdEditRoute: AppProtectedListsListIdEditRoute,
   AppProtectedUsernameGamesIndexRoute: AppProtectedUsernameGamesIndexRoute,
   AppProtectedUsernameTagsIndexRoute: AppProtectedUsernameTagsIndexRoute,

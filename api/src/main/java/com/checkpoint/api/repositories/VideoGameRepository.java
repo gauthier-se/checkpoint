@@ -174,4 +174,55 @@ public interface VideoGameRepository extends JpaRepository<VideoGame, UUID>, Vid
             @Param("friendIds") List<UUID> friendIds,
             @Param("since") LocalDateTime since,
             @Param("limit") int limit);
+
+    /**
+     * Paginated counterpart of {@link #findFriendsTrendingGames}. Restricts results to
+     * games with at least one interaction from the follow graph within the window so
+     * deeper pages don't drift into unrelated games sorted only by average rating.
+     *
+     * @param friendIds the IDs of users in the follow graph
+     * @param since     the start of the trending window
+     * @param pageable  pagination parameters (sorting is ignored — server-side score order)
+     * @return a page of trending game data as Object arrays
+     *         (id, title, coverUrl, releaseDate, averageRating, ratingCount)
+     */
+    @Query(value = """
+            SELECT * FROM (
+                SELECT vg.id, vg.title, vg.cover_url, vg.release_date, vg.average_rating,
+                       (SELECT COUNT(*) FROM rates r WHERE r.video_game_id = vg.id) AS rating_count,
+                       (3 * (SELECT COUNT(*) FROM user_games ug WHERE ug.video_game_id = vg.id AND ug.created_at >= :since AND ug.user_id IN (:friendIds))
+                        + 3 * (SELECT COUNT(*) FROM user_game_plays gp WHERE gp.video_game_id = vg.id AND gp.created_at >= :since AND gp.user_id IN (:friendIds))
+                        + 2 * (SELECT COUNT(*) FROM rates rr WHERE rr.video_game_id = vg.id AND rr.created_at >= :since AND rr.user_id IN (:friendIds))
+                        + 2 * (SELECT COUNT(*) FROM reviews rv WHERE rv.video_game_id = vg.id AND rv.created_at >= :since AND rv.user_id IN (:friendIds))
+                        + 1 * (SELECT COUNT(*) FROM likes lk WHERE lk.video_game_id = vg.id AND lk.created_at >= :since AND lk.user_id IN (:friendIds))
+                        + 1 * (SELECT COUNT(*) FROM wishes ws WHERE ws.video_game_id = vg.id AND ws.created_at >= :since AND ws.user_id IN (:friendIds))
+                       ) AS trending_score
+                FROM video_games vg
+                WHERE vg.parent_game_id IS NULL
+            ) t
+            WHERE t.trending_score > 0
+            ORDER BY t.trending_score DESC, COALESCE(t.average_rating, 0) DESC, t.release_date DESC
+            """,
+            countQuery = """
+            SELECT COUNT(*) FROM video_games vg
+            WHERE vg.parent_game_id IS NULL
+              AND vg.id IN (
+                SELECT ug.video_game_id FROM user_games ug WHERE ug.user_id IN (:friendIds) AND ug.created_at >= :since
+                UNION
+                SELECT gp.video_game_id FROM user_game_plays gp WHERE gp.user_id IN (:friendIds) AND gp.created_at >= :since
+                UNION
+                SELECT rr.video_game_id FROM rates rr WHERE rr.user_id IN (:friendIds) AND rr.created_at >= :since
+                UNION
+                SELECT rv.video_game_id FROM reviews rv WHERE rv.user_id IN (:friendIds) AND rv.created_at >= :since
+                UNION
+                SELECT lk.video_game_id FROM likes lk WHERE lk.user_id IN (:friendIds) AND lk.created_at >= :since
+                UNION
+                SELECT ws.video_game_id FROM wishes ws WHERE ws.user_id IN (:friendIds) AND ws.created_at >= :since
+              )
+            """,
+            nativeQuery = true)
+    Page<Object[]> findFriendsTrendingGamesPage(
+            @Param("friendIds") List<UUID> friendIds,
+            @Param("since") LocalDateTime since,
+            Pageable pageable);
 }

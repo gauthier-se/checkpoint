@@ -386,10 +386,17 @@ function FriendsActivitySection({
 
   return (
     <section className="my-12">
-      <div className="py-2">
+      <div className="flex items-center justify-between py-2">
         <h2 className="font-semibold text-muted-foreground">
-          Friends activity
+          New from friends
         </h2>
+        <Link
+          to="/feed"
+          search={{ page: 1 }}
+          className="text-sm text-muted-foreground hover:text-foreground"
+        >
+          More
+        </Link>
       </div>
       <Separator />
       <FeedList items={items} />
@@ -408,10 +415,17 @@ function FriendsTrendingSection({
 
   return (
     <section className="my-12">
-      <div className="py-2">
+      <div className="flex items-center justify-between py-2">
         <h2 className="font-semibold text-muted-foreground">
           Popular with friends
         </h2>
+        <Link
+          to="/games/popular-with-friends"
+          search={{ page: 1 }}
+          className="text-sm text-muted-foreground hover:text-foreground"
+        >
+          More
+        </Link>
       </div>
       <Separator />
       <GameGrid games={games} columns={7} />
