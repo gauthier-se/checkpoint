@@ -6,8 +6,8 @@ import java.util.List;
 /**
  * Client that fetches and parses an RSS or Atom feed using ROME.
  *
- * <p>HTML in {@code description} is sanitized by the implementation before being
- * returned, so callers can safely persist it without re-escaping.</p>
+ * <p>HTML in {@code description} is stripped to plain text by the implementation
+ * before being returned, so callers can safely persist it without re-escaping.</p>
  */
 public interface RssFeedClient {
 
@@ -26,10 +26,13 @@ public interface RssFeedClient {
      *
      * @param guid        item GUID (or link as fallback)
      * @param title       item title
-     * @param description sanitized HTML/text description
+     * @param description plain-text description (all HTML tags stripped)
      * @param link        item link
      * @param publishedAt publication time, or {@code null} when the feed omits it
-     * @param imageUrl    first {@code image/*} enclosure URL, or {@code null}
+     * @param imageUrl    image URL recovered from an enclosure, a Media RSS
+     *                    {@code <media:content>} / {@code <media:thumbnail>}, or
+     *                    the first {@code <img>} embedded in the description.
+     *                    {@code null} when no http(s) URL can be found.
      */
     record RssItem(
             String guid,
