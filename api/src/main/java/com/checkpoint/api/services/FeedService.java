@@ -31,4 +31,16 @@ public interface FeedService {
      * @return a list of trending game cards among friends
      */
     List<GameCardDto> getFriendsTrendingGames(String userEmail, int size);
+
+    /**
+     * Paginated variant of {@link #getFriendsTrendingGames} for the dedicated
+     * "Popular with friends" page. Only includes games with at least one
+     * interaction from the follow graph within the trending window.
+     *
+     * @param userEmail the authenticated user's email
+     * @param page      the page number (0-based)
+     * @param size      the page size
+     * @return a paginated response of trending game cards among friends
+     */
+    PagedResponseDto<GameCardDto> getFriendsPopularGames(String userEmail, int page, int size);
 }

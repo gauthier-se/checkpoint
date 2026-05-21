@@ -136,4 +136,47 @@ class FeedControllerTest {
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$").isEmpty());
     }
+
+    @Test
+    @DisplayName("GET /api/me/friends/popular-games should return paginated games")
+    @WithMockUser(username = "user@test.com")
+    void getFriendsPopularGames_shouldReturnPaginatedGames() throws Exception {
+        // Given
+        GameCardDto game = new GameCardDto(
+                UUID.randomUUID(), "Elden Ring", "cover.jpg",
+                LocalDate.of(2022, 2, 25), 4.9, 5000L
+        );
+        Page<GameCardDto> page = new PageImpl<>(List.of(game), PageRequest.of(0, 32), 1);
+        PagedResponseDto<GameCardDto> response = PagedResponseDto.from(page);
+
+        when(feedService.getFriendsPopularGames(eq("user@test.com"), anyInt(), anyInt()))
+                .thenReturn(response);
+
+        // When / Then
+        mockMvc.perform(get("/api/me/friends/popular-games"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content[0].title").value("Elden Ring"))
+                .andExpect(jsonPath("$.content[0].ratingCount").value(5000))
+                .andExpect(jsonPath("$.metadata.totalElements").value(1));
+    }
+
+    @Test
+    @DisplayName("GET /api/me/friends/popular-games should return empty when user follows nobody")
+    @WithMockUser(username = "lonely@test.com")
+    void getFriendsPopularGames_shouldReturnEmptyWhenNoFollowing() throws Exception {
+        // Given
+        Page<GameCardDto> emptyPage = new PageImpl<>(Collections.emptyList(), PageRequest.of(0, 32), 0);
+        PagedResponseDto<GameCardDto> response = PagedResponseDto.from(emptyPage);
+
+        when(feedService.getFriendsPopularGames(eq("lonely@test.com"), anyInt(), anyInt()))
+                .thenReturn(response);
+
+        // When / Then
+        mockMvc.perform(get("/api/me/friends/popular-games"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content").isEmpty())
+                .andExpect(jsonPath("$.metadata.totalElements").value(0));
+    }
 }

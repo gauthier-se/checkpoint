@@ -1,5 +1,5 @@
 import { queryOptions } from '@tanstack/react-query'
-import type { Game } from '@/types/game'
+import type { Game, GamesResponse } from '@/types/game'
 import type { FeedResponse } from '@/types/feed'
 import { apiFetch } from '@/services/api'
 
@@ -19,6 +19,22 @@ export function friendsTrendingGamesQueryOptions(size: number = 7) {
     queryKey: ['games', 'friends-trending', size],
     queryFn: async (): Promise<Array<Game>> => {
       const res = await apiFetch(`/api/me/friends/trending-games?size=${size}`)
+      return res.json()
+    },
+    staleTime: 5 * 60 * 1000,
+  })
+}
+
+export function friendsPopularGamesPagedQueryOptions(
+  page: number = 0,
+  size: number = 32,
+) {
+  return queryOptions({
+    queryKey: ['games', 'friends-popular', page, size],
+    queryFn: async (): Promise<GamesResponse> => {
+      const res = await apiFetch(
+        `/api/me/friends/popular-games?page=${page}&size=${size}`,
+      )
       return res.json()
     },
     staleTime: 5 * 60 * 1000,

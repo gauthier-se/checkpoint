@@ -48,6 +48,8 @@ public class FeedServiceImpl implements FeedService {
     private static final int DEFAULT_TRENDING_SIZE = 7;
     private static final int MAX_TRENDING_SIZE = 20;
 
+    private static final int MAX_POPULAR_PAGE_SIZE = 50;
+
     private final UserRepository userRepository;
     private final FeedRepository feedRepository;
     private final VideoGameRepository videoGameRepository;
@@ -136,6 +138,36 @@ public class FeedServiceImpl implements FeedService {
         return results.stream()
                 .map(this::mapToGameCardDto)
                 .toList();
+    }
+
+    @Override
+    public PagedResponseDto<GameCardDto> getFriendsPopularGames(String userEmail, int page, int size) {
+        int validatedPage = Math.max(0, page);
+        int validatedSize = Math.min(Math.max(1, size), MAX_POPULAR_PAGE_SIZE);
+
+        log.debug("Fetching friends popular games for user {} - page: {}, size: {}", userEmail, validatedPage, validatedSize);
+
+        User currentUser = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new IllegalArgumentException("Authenticated user not found"));
+
+        Pageable pageable = PageRequest.of(validatedPage, validatedSize);
+
+        List<UUID> followingIds = userRepository.findFollowingIdsByUserId(currentUser.getId());
+        if (followingIds.isEmpty()) {
+            log.debug("User {} follows nobody, returning empty popular games page", userEmail);
+            return PagedResponseDto.from(Page.empty(pageable));
+        }
+
+        LocalDateTime since = LocalDateTime.now().minusDays(TRENDING_WINDOW_DAYS);
+        Page<Object[]> rawPage = videoGameRepository.findFriendsTrendingGamesPage(followingIds, since, pageable);
+
+        List<GameCardDto> cards = rawPage.getContent().stream()
+                .map(this::mapToGameCardDto)
+                .toList();
+
+        return PagedResponseDto.from(
+                new org.springframework.data.domain.PageImpl<>(cards, pageable, rawPage.getTotalElements())
+        );
     }
 
     /**
