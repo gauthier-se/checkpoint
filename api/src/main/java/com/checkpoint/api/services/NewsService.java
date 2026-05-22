@@ -55,14 +55,6 @@ public interface NewsService {
     NewsResponseDto unpublishNews(UUID newsId);
 
     /**
-     * Returns a paginated list of published news articles, newest first.
-     *
-     * @param pageable pagination parameters
-     * @return page of published news articles
-     */
-    Page<NewsResponseDto> getPublishedNews(Pageable pageable);
-
-    /**
      * Returns a single published news article by ID.
      *
      * @param newsId the news article ID

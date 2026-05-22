@@ -1,0 +1,51 @@
+meta {
+  name: Quick Search News
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/news/search?q=elden
+  body: none
+  auth: none
+}
+
+params:query {
+  q: elden
+  ~limit: 5
+}
+
+docs {
+  # Quick Search News
+
+  Lightweight fuzzy search used by the global Ctrl+K palette. Returns up to `limit`
+  (clamped to 10) news articles sorted by relevance.
+
+  ## Query Parameters
+
+  | Parameter | Required | Default | Description |
+  |-----------|----------|---------|-------------|
+  | q         | Yes      | —       | Search query (fuzzy, max edit distance 2) |
+  | limit     | No       | 5       | Number of results (clamped to [1, 10]) |
+
+  ## Response (200 OK)
+
+  ```json
+  [
+    {
+      "id": "uuid",
+      "title": "Elden Ring DLC announced",
+      "description": "...",
+      "picture": "https://...",
+      "publishedAt": "2026-04-01T10:00:00",
+      "source": "RSS",
+      "feedName": "IGN",
+      "externalUrl": "https://ign.com/..."
+    }
+  ]
+  ```
+
+  ## Error Response (400 Bad Request)
+
+  Returned when the `q` parameter is missing.
+}

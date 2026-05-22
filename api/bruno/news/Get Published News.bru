@@ -14,20 +14,35 @@ params:query {
   ~page: 0
   ~size: 20
   ~sort: publishedAt,desc
+  ~q: elden
+  ~source: RSS
+  ~feedName: IGN
+  ~videoGameId: 00000000-0000-0000-0000-000000000000
+  ~publishedFrom: 2026-01-01
+  ~publishedTo: 2026-05-01
 }
 
 docs {
   # Get Published News
 
-  Retrieves a paginated list of published news articles, newest first.
+  Retrieves a paginated list of published news articles. Supports fuzzy full-text search
+  and filtering by source, feed, linked game, and a published-date range.
 
   ## Query Parameters
 
-  | Parameter | Default | Description |
-  |-----------|---------|-------------|
-  | page | 0 | Page number (0-based) |
-  | size | 20 | Number of items per page (max 100) |
-  | sort | publishedAt,desc | Sort field and direction |
+  | Parameter      | Default            | Description |
+  |----------------|--------------------|-------------|
+  | page           | 0                  | Page number (0-based) |
+  | size           | 20                 | Items per page (max 100) |
+  | sort           | publishedAt,desc¹  | `publishedAt,desc` \| `publishedAt,asc` \| `title,asc` \| `title,desc` \| `relevance` |
+  | q              | —                  | Fuzzy query against title + description (max edit distance 2) |
+  | source         | —                  | `MANUAL` \| `STEAM` \| `RSS` |
+  | feedName       | —                  | Exact keyword match (e.g. `IGN`, `Eurogamer`, `Steam Community`) |
+  | videoGameId    | —                  | Linked game UUID (STEAM per-game news) |
+  | publishedFrom  | —                  | ISO date (inclusive lower bound) |
+  | publishedTo    | —                  | ISO date (inclusive upper bound) |
+
+  ¹ Default is `relevance` when `q` is non-blank, otherwise `publishedAt,desc`.
 
   ## Response (200 OK)
 
@@ -37,16 +52,16 @@ docs {
       {
         "id": "uuid",
         "title": "New Game Release",
-        "description": "Exciting new game just dropped...",
+        "description": "...",
         "picture": "https://...",
         "publishedAt": "2026-04-01T10:00:00",
         "createdAt": "2026-03-30T08:00:00",
         "updatedAt": "2026-04-01T10:00:00",
-        "author": {
-          "id": "uuid",
-          "pseudo": "admin",
-          "picture": "https://..."
-        }
+        "author": { "id": "uuid", "pseudo": "admin", "picture": "https://..." },
+        "source": "MANUAL",
+        "externalUrl": null,
+        "feedName": null,
+        "videoGameId": null
       }
     ],
     "metadata": {
@@ -61,4 +76,8 @@ docs {
     }
   }
   ```
+
+  ## Error Response (400 Bad Request)
+
+  Returned when `publishedFrom` is after `publishedTo`.
 }

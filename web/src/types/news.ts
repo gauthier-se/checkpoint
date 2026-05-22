@@ -28,3 +28,21 @@ export interface NewsResponse {
   content: Array<NewsArticle>
   metadata: PaginationMetadata
 }
+
+export type NewsSortOption =
+  | 'publishedAt,desc'
+  | 'publishedAt,asc'
+  | 'title,asc'
+  | 'title,desc'
+  | 'relevance'
+
+export type NewsListSearchParams = {
+  page: number
+  q?: string
+  source?: NewsSource
+  feedName?: string
+  videoGameId?: string
+  publishedFrom?: string
+  publishedTo?: string
+  sort?: NewsSortOption
+}

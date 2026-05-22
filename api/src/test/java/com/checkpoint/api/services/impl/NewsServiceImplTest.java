@@ -220,29 +220,6 @@ class NewsServiceImplTest {
     }
 
     @Nested
-    @DisplayName("getPublishedNews")
-    class GetPublishedNews {
-
-        @Test
-        @DisplayName("should return paginated published news")
-        void getPublishedNews_shouldReturnPage() {
-            // Given
-            Pageable pageable = PageRequest.of(0, 20);
-            Page<News> newsPage = new PageImpl<>(List.of(testNews));
-
-            when(newsRepository.findByPublishedAtIsNotNullOrderByPublishedAtDesc(pageable)).thenReturn(newsPage);
-            when(newsMapper.toDto(testNews)).thenReturn(testResponseDto);
-
-            // When
-            Page<NewsResponseDto> result = newsService.getPublishedNews(pageable);
-
-            // Then
-            assertThat(result.getContent()).hasSize(1);
-            assertThat(result.getContent().get(0).title()).isEqualTo("Test News");
-        }
-    }
-
-    @Nested
     @DisplayName("getNewsById")
     class GetNewsById {
 

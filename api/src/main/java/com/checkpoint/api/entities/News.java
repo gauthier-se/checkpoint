@@ -3,6 +3,15 @@ package com.checkpoint.api.entities;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import org.hibernate.search.engine.backend.types.Sortable;
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.KeywordField;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -20,6 +29,7 @@ import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
 @Entity
+@Indexed
 @Table(
         name = "news",
         uniqueConstraints = @UniqueConstraint(
@@ -36,12 +46,16 @@ public class News {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @FullTextField
+    @KeywordField(name = "titleSort", sortable = Sortable.YES)
     @Column(nullable = false)
     private String title;
 
+    @FullTextField
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    @GenericField(sortable = Sortable.YES)
     @Column(name = "published_at")
     private LocalDateTime publishedAt;
 
@@ -59,6 +73,7 @@ public class News {
     @JoinColumn(name = "user_id")
     private User author;
 
+    @KeywordField
     @Enumerated(EnumType.STRING)
     @Column(
             name = "source",
@@ -77,10 +92,13 @@ public class News {
     private String externalUrl;
 
     // Human-readable feed name ("Steam Community", "IGN"). Null for MANUAL entries.
+    @KeywordField
     @Column(name = "feed_name")
     private String feedName;
 
     // Set only for STEAM per-game news.
+    @IndexedEmbedded(includePaths = {}, includeEmbeddedObjectId = true)
+    @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "video_game_id")
     private VideoGame videoGame;

@@ -1,5 +1,7 @@
 package com.checkpoint.api.controllers;
 
+import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -7,7 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,12 +18,15 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.checkpoint.api.dto.catalog.NewsResponseDto;
+import com.checkpoint.api.dto.catalog.NewsSearchCriteria;
 import com.checkpoint.api.dto.catalog.PagedResponseDto;
+import com.checkpoint.api.entities.NewsSource;
+import com.checkpoint.api.services.NewsSearchService;
 import com.checkpoint.api.services.NewsService;
 
 /**
  * REST controller for public news endpoints.
- * Provides read-only access to published news articles.
+ * Provides read-only access to published news articles with full-text search and filtering.
  */
 @RestController
 @RequestMapping("/api/news")
@@ -32,42 +37,79 @@ public class NewsController {
     private static final int DEFAULT_PAGE = 0;
     private static final int DEFAULT_SIZE = 20;
     private static final int MAX_SIZE = 100;
-    private static final String DEFAULT_SORT = "publishedAt,desc";
+
+    private static final int QUICK_SEARCH_DEFAULT_LIMIT = 5;
+    private static final int QUICK_SEARCH_MAX_LIMIT = 10;
 
     private final NewsService newsService;
+    private final NewsSearchService newsSearchService;
 
-    /**
-     * Constructs a new NewsController.
-     *
-     * @param newsService the news service
-     */
-    public NewsController(NewsService newsService) {
+    public NewsController(NewsService newsService, NewsSearchService newsSearchService) {
         this.newsService = newsService;
+        this.newsSearchService = newsSearchService;
     }
 
     /**
-     * Retrieves a paginated list of published news articles.
+     * Retrieves a paginated list of published news articles with optional filtering and fuzzy text search.
      *
-     * @param page the page number (0-based)
-     * @param size the page size
-     * @param sort the sorting parameters
+     * @param page          0-based page number
+     * @param size          page size (clamped to [1, 100])
+     * @param sort          "publishedAt,desc" | "publishedAt,asc" | "title,asc" | "title,desc" | "relevance"
+     * @param q             optional fuzzy query against title + description
+     * @param source        optional filter by news origin
+     * @param feedName      optional filter by feed name (exact keyword)
+     * @param videoGameId   optional filter by linked game
+     * @param publishedFrom optional inclusive lower bound on publication date
+     * @param publishedTo   optional inclusive upper bound on publication date
      * @return the paginated published news articles
      */
     @GetMapping
     public ResponseEntity<PagedResponseDto<NewsResponseDto>> getPublishedNews(
             @RequestParam(defaultValue = "" + DEFAULT_PAGE) int page,
             @RequestParam(defaultValue = "" + DEFAULT_SIZE) int size,
-            @RequestParam(defaultValue = DEFAULT_SORT) String sort) {
+            @RequestParam(required = false) String sort,
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) NewsSource source,
+            @RequestParam(required = false) String feedName,
+            @RequestParam(required = false) UUID videoGameId,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate publishedFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate publishedTo) {
 
-        log.info("GET /api/news - page: {}, size: {}, sort: {}", page, size, sort);
+        log.info("GET /api/news - page: {}, size: {}, sort: {}, q: '{}', source: {}, feedName: '{}', videoGameId: {}, publishedFrom: {}, publishedTo: {}",
+                page, size, sort, q, source, feedName, videoGameId, publishedFrom, publishedTo);
+
+        if (publishedFrom != null && publishedTo != null && publishedFrom.isAfter(publishedTo)) {
+            throw new IllegalArgumentException("publishedFrom must not be after publishedTo");
+        }
 
         int validatedSize = Math.min(Math.max(1, size), MAX_SIZE);
         int validatedPage = Math.max(0, page);
+        Pageable pageable = PageRequest.of(validatedPage, validatedSize);
 
-        Pageable pageable = createPageable(validatedPage, validatedSize, sort);
-        Page<NewsResponseDto> newsPage = newsService.getPublishedNews(pageable);
+        NewsSearchCriteria criteria = new NewsSearchCriteria(
+                q, source, feedName, videoGameId, publishedFrom, publishedTo, sort
+        );
+        Page<NewsResponseDto> newsPage = newsSearchService.search(criteria, pageable);
 
         return ResponseEntity.ok(PagedResponseDto.from(newsPage));
+    }
+
+    /**
+     * Fuzzy quick-search for the global Ctrl+K palette. Returns up to {@code limit} (max 10) results.
+     *
+     * @param q     the search query
+     * @param limit the maximum number of results (clamped to [1, 10])
+     * @return a list of matching news articles, sorted by relevance
+     */
+    @GetMapping("/search")
+    public ResponseEntity<List<NewsResponseDto>> quickSearch(
+            @RequestParam String q,
+            @RequestParam(defaultValue = "" + QUICK_SEARCH_DEFAULT_LIMIT) int limit) {
+
+        int clampedLimit = Math.max(1, Math.min(limit, QUICK_SEARCH_MAX_LIMIT));
+        log.info("GET /api/news/search - q: '{}', limit: {}", q, clampedLimit);
+
+        return ResponseEntity.ok(newsSearchService.quickSearch(q, clampedLimit));
     }
 
     /**
@@ -83,42 +125,5 @@ public class NewsController {
         NewsResponseDto news = newsService.getNewsById(newsId);
 
         return ResponseEntity.ok(news);
-    }
-
-    /**
-     * Creates a Pageable from the sort string.
-     * Supports format: "field,direction" (e.g., "publishedAt,desc").
-     *
-     * @param page the page number
-     * @param size the page size
-     * @param sort the sort string
-     * @return a Pageable instance
-     */
-    private Pageable createPageable(int page, int size, String sort) {
-        String[] sortParts = sort.split(",");
-        String sortField = sortParts[0].trim();
-        Sort.Direction direction = sortParts.length > 1
-                && sortParts[1].trim().equalsIgnoreCase("asc")
-                ? Sort.Direction.ASC
-                : Sort.Direction.DESC;
-
-        String mappedField = mapSortField(sortField);
-
-        return PageRequest.of(page, size, Sort.by(direction, mappedField));
-    }
-
-    /**
-     * Maps API sort field names to entity field names.
-     *
-     * @param field the API field name
-     * @return the entity field name
-     */
-    private String mapSortField(String field) {
-        return switch (field.toLowerCase()) {
-            case "publishedat", "published_at" -> "publishedAt";
-            case "createdat", "created_at" -> "createdAt";
-            case "updatedat", "updated_at" -> "updatedAt";
-            default -> "publishedAt";
-        };
     }
 }

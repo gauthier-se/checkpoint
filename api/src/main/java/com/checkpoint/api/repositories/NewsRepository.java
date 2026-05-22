@@ -27,14 +27,6 @@ public interface NewsRepository extends JpaRepository<News, UUID> {
 
 
     /**
-     * Finds all published news ordered by publication date descending.
-     *
-     * @param pageable pagination parameters
-     * @return page of published news
-     */
-    Page<News> findByPublishedAtIsNotNullOrderByPublishedAtDesc(Pageable pageable);
-
-    /**
      * Finds all news ordered by creation date descending (admin view).
      *
      * @param pageable pagination parameters

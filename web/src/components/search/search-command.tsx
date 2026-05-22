@@ -1,7 +1,7 @@
 import { useDeferredValue, useEffect, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
-import { Gamepad2, Loader2, Monitor, Tag, Users } from 'lucide-react'
+import { Gamepad2, Loader2, Monitor, Newspaper, Tag, Users } from 'lucide-react'
 import {
   CommandDialog,
   CommandEmpty,
@@ -17,8 +17,10 @@ import {
   searchGamesQueryOptions,
 } from '@/queries/catalog'
 import { searchMembersQueryOptions } from '@/queries/members'
+import { searchNewsQueryOptions } from '@/queries/news'
+import { Badge } from '@/components/ui/badge'
 
-type SearchTab = 'all' | 'games' | 'members' | 'genres' | 'platforms'
+type SearchTab = 'all' | 'games' | 'members' | 'news' | 'genres' | 'platforms'
 
 interface SearchCommandProps {
   open: boolean
@@ -34,6 +36,7 @@ export function SearchCommand({ open, onOpenChange }: SearchCommandProps) {
 
   const showGames = tab === 'all' || tab === 'games'
   const showMembers = tab === 'all' || tab === 'members'
+  const showNews = tab === 'all' || tab === 'news'
   const showGenres = tab === 'all' || tab === 'genres'
   const showPlatforms = tab === 'all' || tab === 'platforms'
 
@@ -45,6 +48,11 @@ export function SearchCommand({ open, onOpenChange }: SearchCommandProps) {
   const { data: membersResponse, isLoading: isLoadingMembers } = useQuery({
     ...searchMembersQueryOptions(deferredQuery),
     enabled: isSearchActive && showMembers,
+  })
+
+  const { data: news, isLoading: isLoadingNews } = useQuery({
+    ...searchNewsQueryOptions(deferredQuery),
+    enabled: isSearchActive && showNews,
   })
 
   const { data: genres } = useQuery(genresQueryOptions())
@@ -68,11 +76,14 @@ export function SearchCommand({ open, onOpenChange }: SearchCommandProps) {
 
   const isLoading =
     isSearchActive &&
-    ((showGames && isLoadingGames) || (showMembers && isLoadingMembers))
+    ((showGames && isLoadingGames) ||
+      (showMembers && isLoadingMembers) ||
+      (showNews && isLoadingNews))
 
   const hasResults =
     (showGames && games && games.length > 0) ||
     (showMembers && members && members.length > 0) ||
+    (showNews && news && news.length > 0) ||
     (showGenres && filteredGenres && filteredGenres.length > 0) ||
     (showPlatforms && filteredPlatforms && filteredPlatforms.length > 0)
 
@@ -163,6 +174,49 @@ export function SearchCommand({ open, onOpenChange }: SearchCommandProps) {
     </CommandGroup>
   )
 
+  const newsResults = showNews && news && news.length > 0 && (
+    <CommandGroup heading="News">
+      {news.slice(0, 5).map((article) => (
+        <CommandItem
+          key={article.id}
+          value={`news-${article.title}`}
+          onSelect={() =>
+            handleSelect(() =>
+              navigate({
+                to: '/news/$newsId',
+                params: { newsId: article.id },
+              }),
+            )
+          }
+        >
+          <Newspaper />
+          <div className="flex items-center gap-3">
+            {article.picture && (
+              <img
+                src={article.picture}
+                alt=""
+                className="h-8 w-12 rounded-sm object-cover"
+              />
+            )}
+            <div className="flex flex-col gap-0.5">
+              <p className="font-medium line-clamp-1">{article.title}</p>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="text-[10px] py-0">
+                  {article.source}
+                </Badge>
+                {article.feedName && (
+                  <span className="text-xs text-muted-foreground">
+                    {article.feedName}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        </CommandItem>
+      ))}
+    </CommandGroup>
+  )
+
   const genresResults = showGenres &&
     filteredGenres &&
     filteredGenres.length > 0 && (
@@ -226,11 +280,11 @@ export function SearchCommand({ open, onOpenChange }: SearchCommandProps) {
       open={open}
       onOpenChange={onOpenChange}
       title="Search"
-      description="Search for games, members, genres, and platforms"
+      description="Search for games, members, news, genres, and platforms"
       showCloseButton={false}
     >
       <CommandInput
-        placeholder="Search games, members, genres..."
+        placeholder="Search games, members, news…"
         value={query}
         onValueChange={setQuery}
       />
@@ -248,6 +302,10 @@ export function SearchCommand({ open, onOpenChange }: SearchCommandProps) {
           <TabsTrigger value="members">
             <Users className="size-3.5" />
             Members
+          </TabsTrigger>
+          <TabsTrigger value="news">
+            <Newspaper className="size-3.5" />
+            News
           </TabsTrigger>
           <TabsTrigger value="genres">
             <Tag className="size-3.5" />
@@ -277,6 +335,7 @@ export function SearchCommand({ open, onOpenChange }: SearchCommandProps) {
 
           <TabsContent value="all" className="mt-0">
             {gamesResults}
+            {newsResults}
             {membersResults}
             {genresResults}
             {platformsResults}
@@ -286,6 +345,9 @@ export function SearchCommand({ open, onOpenChange }: SearchCommandProps) {
           </TabsContent>
           <TabsContent value="members" className="mt-0">
             {membersResults}
+          </TabsContent>
+          <TabsContent value="news" className="mt-0">
+            {newsResults}
           </TabsContent>
           <TabsContent value="genres" className="mt-0">
             {genresResults}

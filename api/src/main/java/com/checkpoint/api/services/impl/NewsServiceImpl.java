@@ -122,16 +122,6 @@ public class NewsServiceImpl implements NewsService {
      */
     @Override
     @Transactional(readOnly = true)
-    public Page<NewsResponseDto> getPublishedNews(Pageable pageable) {
-        Page<News> newsPage = newsRepository.findByPublishedAtIsNotNullOrderByPublishedAtDesc(pageable);
-        return newsPage.map(newsMapper::toDto);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @Transactional(readOnly = true)
     public NewsResponseDto getNewsById(UUID newsId) {
         News news = newsRepository.findByIdAndPublishedAtIsNotNull(newsId)
                 .orElseThrow(() -> new NewsNotFoundException(newsId));

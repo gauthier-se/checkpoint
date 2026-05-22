@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import { ArrowLeft, ArrowRight } from 'lucide-react'
+import type { NewsListSearchParams } from '@/types/news'
 import { Button } from '@/components/ui/button'
 import { ButtonGroup } from '@/components/ui/button-group'
 import { getPageNumbers } from '@/lib/pagination'
@@ -9,7 +10,7 @@ interface NewsPaginationProps {
   totalPages: number
   hasNext: boolean
   hasPrevious: boolean
-  search: Record<string, unknown>
+  search: NewsListSearchParams
 }
 
 export function NewsPagination({
