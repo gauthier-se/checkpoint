@@ -28,4 +28,10 @@ public interface FavoriteRepository extends JpaRepository<Favorite, UUID> {
      * @param user the user whose favorites should be cleared
      */
     void deleteByUser(User user);
+
+    /**
+     * Counts how many favorite entries reference a given video game.
+     * Used by the admin delete-game integrity check.
+     */
+    long countByVideoGameId(UUID videoGameId);
 }

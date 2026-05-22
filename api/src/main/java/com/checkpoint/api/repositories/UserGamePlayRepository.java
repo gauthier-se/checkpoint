@@ -105,6 +105,12 @@ public interface UserGamePlayRepository extends JpaRepository<UserGamePlay, UUID
     long countByUserId(UUID userId);
 
     /**
+     * Counts how many play logs reference a given video game.
+     * Used by the admin delete-game integrity check.
+     */
+    long countByVideoGameId(UUID videoGameId);
+
+    /**
      * Counts the number of distinct platforms across all of the user's play logs.
      * Used by the badge system to evaluate platform-diversity badges
      * (e.g. {@code MULTIPLATFORM_NOMAD}).

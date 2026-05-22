@@ -1,0 +1,59 @@
+meta {
+  name: Update Game
+  type: http
+  seq: 29
+}
+
+put {
+  url: {{baseUrl}}/api/admin/games/{{gameId}}
+  body: json
+  auth: bearer
+}
+
+vars:pre-request {
+  gameId: 550e8400-e29b-41d4-a716-446655440000
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "title": "Updated Title",
+    "description": "Revised description.",
+    "coverUrl": "https://example.com/new-cover.jpg",
+    "artworkUrl": null,
+    "trailerYoutubeId": null,
+    "timeToBeatNormally": 40,
+    "timeToBeatHastily": 20,
+    "timeToBeatCompletely": 100,
+    "releaseDate": "2024-12-01",
+    "genreIds": [],
+    "platformIds": [],
+    "companyIds": []
+  }
+}
+
+docs {
+  # Update Game (Admin)
+
+  Fully updates the editable fields of an existing video game. `igdbId` and
+  `steamAppId` are intentionally not modifiable.
+
+  ## Authentication
+
+  - **Bearer Token**: JWT token
+  - **Required Role**: `ROLE_ADMIN`
+
+  ## Path Parameters
+
+  - `gameId` (UUID): The game's internal UUID
+
+  ## Response
+
+  - **200 OK**: Updated `GameDetailDto`
+  - **400 Bad Request**: Validation error, duplicate title, or unknown ID
+  - **404 Not Found**: No game matches the given ID
+  - **401 / 403**: Missing token / non-admin user
+}

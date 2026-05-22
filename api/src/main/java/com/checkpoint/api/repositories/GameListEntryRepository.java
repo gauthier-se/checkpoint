@@ -48,4 +48,10 @@ public interface GameListEntryRepository extends JpaRepository<GameListEntry, UU
      * Deletes an entry by list and video game.
      */
     void deleteByGameListIdAndVideoGameId(UUID gameListId, UUID videoGameId);
+
+    /**
+     * Counts how many user-list entries reference a given video game.
+     * Used by the admin delete-game integrity check.
+     */
+    long countByVideoGameId(UUID videoGameId);
 }

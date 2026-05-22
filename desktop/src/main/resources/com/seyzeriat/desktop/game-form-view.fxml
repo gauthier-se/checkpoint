@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox spacing="15" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.seyzeriat.desktop.controller.GameFormController"
+      styleClass="users-view">
+    <padding>
+        <Insets bottom="20" left="20" right="20" top="20"/>
+    </padding>
+
+    <!-- Header -->
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <Label fx:id="titleLabel" text="Créer un jeu" styleClass="view-title"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button fx:id="backButton" text="Retour" onAction="#onBack" styleClass="search-button"/>
+    </HBox>
+
+    <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS">
+        <content>
+            <VBox spacing="12">
+                <padding>
+                    <Insets bottom="10" left="2" right="10" top="2"/>
+                </padding>
+
+                <Label text="Titre *" styleClass="status-label"/>
+                <TextField fx:id="titleField" promptText="Titre du jeu"/>
+
+                <Label text="Description" styleClass="status-label"/>
+                <TextArea fx:id="descriptionField" promptText="Description" prefRowCount="4" wrapText="true"/>
+
+                <HBox spacing="10">
+                    <VBox spacing="4" HBox.hgrow="ALWAYS">
+                        <Label text="URL de la jaquette" styleClass="status-label"/>
+                        <TextField fx:id="coverUrlField" promptText="https://..."/>
+                    </VBox>
+                    <VBox spacing="4" HBox.hgrow="ALWAYS">
+                        <Label text="URL de l'artwork" styleClass="status-label"/>
+                        <TextField fx:id="artworkUrlField" promptText="https://..."/>
+                    </VBox>
+                </HBox>
+
+                <HBox spacing="10">
+                    <VBox spacing="4" HBox.hgrow="ALWAYS">
+                        <Label text="ID YouTube du trailer" styleClass="status-label"/>
+                        <TextField fx:id="trailerYoutubeIdField" promptText="dQw4w9WgXcQ"/>
+                    </VBox>
+                    <VBox spacing="4" HBox.hgrow="ALWAYS">
+                        <Label text="Date de sortie" styleClass="status-label"/>
+                        <DatePicker fx:id="releaseDatePicker"/>
+                    </VBox>
+                </HBox>
+
+                <HBox spacing="10">
+                    <VBox spacing="4" HBox.hgrow="ALWAYS">
+                        <Label text="Temps normal (h)" styleClass="status-label"/>
+                        <TextField fx:id="timeNormallyField" promptText="0"/>
+                    </VBox>
+                    <VBox spacing="4" HBox.hgrow="ALWAYS">
+                        <Label text="Temps rapide (h)" styleClass="status-label"/>
+                        <TextField fx:id="timeHastilyField" promptText="0"/>
+                    </VBox>
+                    <VBox spacing="4" HBox.hgrow="ALWAYS">
+                        <Label text="Temps complet (h)" styleClass="status-label"/>
+                        <TextField fx:id="timeCompletelyField" promptText="0"/>
+                    </VBox>
+                </HBox>
+
+                <HBox spacing="10">
+                    <VBox spacing="4" HBox.hgrow="ALWAYS">
+                        <Label text="Genres (Ctrl+clic)" styleClass="status-label"/>
+                        <ListView fx:id="genresList" prefHeight="160"/>
+                    </VBox>
+                    <VBox spacing="4" HBox.hgrow="ALWAYS">
+                        <Label text="Plateformes (Ctrl+clic)" styleClass="status-label"/>
+                        <ListView fx:id="platformsList" prefHeight="160"/>
+                    </VBox>
+                    <VBox spacing="4" HBox.hgrow="ALWAYS">
+                        <Label text="Studios (Ctrl+clic)" styleClass="status-label"/>
+                        <ListView fx:id="companiesList" prefHeight="160"/>
+                    </VBox>
+                </HBox>
+            </VBox>
+        </content>
+    </ScrollPane>
+
+    <HBox spacing="10" alignment="CENTER_RIGHT">
+        <Label fx:id="statusLabel" styleClass="status-label" HBox.hgrow="ALWAYS"/>
+        <ProgressIndicator fx:id="loadingIndicator" prefWidth="24" prefHeight="24"/>
+        <Button fx:id="cancelButton" text="Annuler" onAction="#onBack" styleClass="search-button"/>
+        <Button fx:id="saveButton" text="Enregistrer" onAction="#onSave" styleClass="search-button"/>
+    </HBox>
+</VBox>

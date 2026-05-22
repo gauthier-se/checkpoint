@@ -50,4 +50,10 @@ public interface RateRepository extends JpaRepository<Rate, UUID> {
      */
     @Query("SELECT AVG(CAST(r.score AS double)) FROM Rate r WHERE r.videoGame.id = :videoGameId")
     Double calculateAverageRating(@Param("videoGameId") UUID videoGameId);
+
+    /**
+     * Counts how many ratings reference a given video game.
+     * Used by the admin delete-game integrity check.
+     */
+    long countByVideoGameId(UUID videoGameId);
 }

@@ -40,6 +40,24 @@ public interface VideoGameRepository extends JpaRepository<VideoGame, UUID>, Vid
     boolean existsByIgdbId(Long igdbId);
 
     /**
+     * Checks if any video game has the given title (case-insensitive).
+     * Used by the admin create-game flow to prevent silent duplicates.
+     */
+    boolean existsByTitleIgnoreCase(String title);
+
+    /**
+     * Checks if any video game other than the one with the given ID has the
+     * given title (case-insensitive). Used by the admin update-game flow to
+     * prevent collisions while still allowing a no-op title save.
+     */
+    @Query("""
+            SELECT CASE WHEN COUNT(vg) > 0 THEN TRUE ELSE FALSE END
+            FROM VideoGame vg
+            WHERE LOWER(vg.title) = LOWER(:title) AND vg.id <> :excludedId
+            """)
+    boolean existsByTitleIgnoreCaseAndIdNot(@Param("title") String title, @Param("excludedId") UUID excludedId);
+
+    /**
      * Fetches every video game whose IGDB ID is in the given collection.
      * Used by the Steam library sync to bulk-resolve matched IGDB IDs in a single query.
      *

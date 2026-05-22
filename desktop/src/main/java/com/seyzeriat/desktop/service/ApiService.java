@@ -11,10 +11,15 @@ import java.time.Duration;
 import java.util.List;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.seyzeriat.desktop.dto.AnalyticsResult;
 import com.seyzeriat.desktop.dto.BulkImportResult;
+import com.seyzeriat.desktop.dto.CatalogOption;
 import com.seyzeriat.desktop.dto.ExternalGameResult;
+import com.seyzeriat.desktop.dto.GameDetailResult;
+import com.seyzeriat.desktop.dto.GameFormPayload;
+import com.seyzeriat.desktop.dto.GameSummaryResult;
 import com.seyzeriat.desktop.dto.ImportedGameResult;
 import com.seyzeriat.desktop.dto.NewsRequestPayload;
 import com.seyzeriat.desktop.dto.NewsResult;
@@ -25,6 +30,9 @@ import com.seyzeriat.desktop.dto.ReviewReportResult;
 import com.seyzeriat.desktop.dto.ReviewResult;
 import com.seyzeriat.desktop.dto.UserDetailResult;
 import com.seyzeriat.desktop.dto.UserResult;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * Service for communicating with the Checkpoint REST API.
@@ -695,6 +703,178 @@ public class ApiService {
         return objectMapper.readValue(response.body(), NewsResult.class);
     }
 
+    // ─── Manage Games (admin manual CRUD) ──────────────────────────────
+
+    /**
+     * Fetches a paginated list of games for the manage-games view.
+     * Uses the public {@code /api/games} endpoint.
+     */
+    public PagedResponse<GameSummaryResult> getGames(int page, int size)
+            throws IOException, InterruptedException, UnauthorizedException {
+
+        String url = BASE_URL + "/api/games?page=" + page + "&size=" + size + "&sort=title,asc";
+
+        HttpRequest.Builder builder = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("Accept", "application/json")
+                .GET();
+
+        HttpResponse<String> response = sendWithAuth(builder);
+
+        if (response.statusCode() != 200) {
+            throw new IOException("Failed to fetch games with status " + response.statusCode() + ": " + response.body());
+        }
+
+        return objectMapper.readValue(response.body(), new TypeReference<PagedResponse<GameSummaryResult>>() {});
+    }
+
+    /**
+     * Fetches the full detail of a single game (used to pre-fill the edit form).
+     */
+    public GameDetailResult getGameDetail(String id)
+            throws IOException, InterruptedException, UnauthorizedException {
+
+        String url = BASE_URL + "/api/games/" + id;
+
+        HttpRequest.Builder builder = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("Accept", "application/json")
+                .GET();
+
+        HttpResponse<String> response = sendWithAuth(builder);
+
+        if (response.statusCode() != 200) {
+            throw new IOException("Failed to fetch game detail with status " + response.statusCode() + ": " + response.body());
+        }
+
+        return objectMapper.readValue(response.body(), GameDetailResult.class);
+    }
+
+    /**
+     * Creates a game via the admin manual create endpoint.
+     */
+    public GameDetailResult createGame(GameFormPayload payload)
+            throws IOException, InterruptedException, UnauthorizedException {
+
+        String url = BASE_URL + "/api/admin/games";
+        String body = objectMapper.writeValueAsString(payload);
+
+        HttpRequest.Builder builder = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("Accept", "application/json")
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(body));
+
+        HttpResponse<String> response = sendWithAuth(builder);
+
+        if (response.statusCode() != 201 && response.statusCode() != 200) {
+            throw new IOException("Failed to create game with status " + response.statusCode() + ": " + response.body());
+        }
+
+        return objectMapper.readValue(response.body(), GameDetailResult.class);
+    }
+
+    /**
+     * Updates an existing game via the admin endpoint.
+     */
+    public GameDetailResult updateGame(String id, GameFormPayload payload)
+            throws IOException, InterruptedException, UnauthorizedException {
+
+        String url = BASE_URL + "/api/admin/games/" + id;
+        String body = objectMapper.writeValueAsString(payload);
+
+        HttpRequest.Builder builder = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("Accept", "application/json")
+                .header("Content-Type", "application/json")
+                .PUT(HttpRequest.BodyPublishers.ofString(body));
+
+        HttpResponse<String> response = sendWithAuth(builder);
+
+        if (response.statusCode() != 200) {
+            throw new IOException("Failed to update game with status " + response.statusCode() + ": " + response.body());
+        }
+
+        return objectMapper.readValue(response.body(), GameDetailResult.class);
+    }
+
+    /**
+     * Deletes a game via the admin endpoint. Throws
+     * {@link GameReferencedException} when the API returns 409 with a
+     * per-category blocking-references body.
+     */
+    public void deleteGame(String id)
+            throws IOException, InterruptedException, UnauthorizedException, GameReferencedException {
+
+        String url = BASE_URL + "/api/admin/games/" + id;
+
+        HttpRequest.Builder builder = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .DELETE();
+
+        HttpResponse<String> response = sendWithAuth(builder);
+
+        if (response.statusCode() == 409) {
+            Map<String, Long> blocking = new LinkedHashMap<>();
+            try {
+                JsonNode root = objectMapper.readTree(response.body());
+                JsonNode node = root.path("blockingReferences");
+                if (node.isObject()) {
+                    node.fieldNames().forEachRemaining(name -> blocking.put(name, node.path(name).asLong()));
+                }
+            } catch (IOException parseFailure) {
+                // best-effort — if the body isn't JSON we still throw with empty map
+            }
+            throw new GameReferencedException(blocking);
+        }
+
+        if (response.statusCode() != 204 && response.statusCode() != 200) {
+            throw new IOException("Failed to delete game with status " + response.statusCode() + ": " + response.body());
+        }
+    }
+
+    /**
+     * Returns the list of genre pickable options (id + name).
+     */
+    public List<CatalogOption> getGenres()
+            throws IOException, InterruptedException, UnauthorizedException {
+        return fetchCatalogOptions("/api/genres");
+    }
+
+    /**
+     * Returns the list of platform pickable options (id + name).
+     */
+    public List<CatalogOption> getPlatforms()
+            throws IOException, InterruptedException, UnauthorizedException {
+        return fetchCatalogOptions("/api/platforms");
+    }
+
+    /**
+     * Returns the list of company pickable options (id + name).
+     */
+    public List<CatalogOption> getCompanies()
+            throws IOException, InterruptedException, UnauthorizedException {
+        return fetchCatalogOptions("/api/companies");
+    }
+
+    private List<CatalogOption> fetchCatalogOptions(String path)
+            throws IOException, InterruptedException, UnauthorizedException {
+
+        HttpRequest.Builder builder = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + path))
+                .header("Accept", "application/json")
+                .GET();
+
+        HttpResponse<String> response = sendWithAuth(builder);
+
+        if (response.statusCode() != 200) {
+            throw new IOException("Failed to fetch " + path + " with status "
+                    + response.statusCode() + ": " + response.body());
+        }
+
+        return objectMapper.readValue(response.body(), new TypeReference<List<CatalogOption>>() {});
+    }
+
     // ─── Auth interceptor helpers ──────────────────────────────────────
 
     /**
@@ -746,6 +926,24 @@ public class ApiService {
     public static class UnauthorizedException extends Exception {
         public UnauthorizedException(String message) {
             super(message);
+        }
+    }
+
+    /**
+     * Thrown when the admin delete endpoint returns 409 because the game is
+     * still referenced by user-owned data or DLC entries. Carries the
+     * per-category counts so the UI can build a clear French message.
+     */
+    public static class GameReferencedException extends Exception {
+        private final Map<String, Long> blockingReferences;
+
+        public GameReferencedException(Map<String, Long> blockingReferences) {
+            super("Game is still referenced and cannot be deleted");
+            this.blockingReferences = blockingReferences == null ? Map.of() : blockingReferences;
+        }
+
+        public Map<String, Long> getBlockingReferences() {
+            return blockingReferences;
         }
     }
 }

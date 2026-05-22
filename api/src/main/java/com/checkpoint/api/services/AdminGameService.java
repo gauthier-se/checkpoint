@@ -1,12 +1,17 @@
 package com.checkpoint.api.services;
 
 import java.util.List;
+import java.util.UUID;
 
 import com.checkpoint.api.dto.admin.BulkImportResultDto;
+import com.checkpoint.api.dto.admin.CreateGameRequestDto;
 import com.checkpoint.api.dto.admin.ExternalGameDto;
+import com.checkpoint.api.dto.admin.UpdateGameRequestDto;
 import com.checkpoint.api.entities.VideoGame;
 import com.checkpoint.api.exceptions.ExternalApiUnavailableException;
 import com.checkpoint.api.exceptions.ExternalGameNotFoundException;
+import com.checkpoint.api.exceptions.GameNotFoundException;
+import com.checkpoint.api.exceptions.GameReferencedException;
 
 /**
  * Service interface for admin game management operations.
@@ -55,4 +60,37 @@ public interface AdminGameService {
      * @throws ExternalApiUnavailableException if IGDB API is unreachable
      */
     BulkImportResultDto bulkImportRecentGames(int limit);
+
+    /**
+     * Manually creates a new video game from the supplied admin payload.
+     * Title collisions (case-insensitive) and unknown genre/platform/company
+     * IDs are rejected with {@link IllegalArgumentException} (mapped to 400).
+     *
+     * @param request the create payload (validated upstream)
+     * @return the persisted video game with relationships loaded
+     */
+    VideoGame createGame(CreateGameRequestDto request);
+
+    /**
+     * Fully updates an existing video game. {@code igdbId} and {@code steamAppId}
+     * are intentionally not modifiable here.
+     *
+     * @param gameId  the video game ID
+     * @param request the update payload (validated upstream)
+     * @return the updated video game with relationships loaded
+     * @throws GameNotFoundException if no game matches {@code gameId}
+     */
+    VideoGame updateGame(UUID gameId, UpdateGameRequestDto request);
+
+    /**
+     * Deletes a video game if and only if no user-owned data references it.
+     * Runs the integrity check before issuing the JPA delete so the
+     * cascading associations on {@code VideoGame} cannot silently destroy
+     * user rows.
+     *
+     * @param gameId the video game ID
+     * @throws GameNotFoundException     if no game matches {@code gameId}
+     * @throws GameReferencedException   if the game is still referenced
+     */
+    void deleteGame(UUID gameId);
 }

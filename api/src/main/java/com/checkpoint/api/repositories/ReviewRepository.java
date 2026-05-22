@@ -78,6 +78,12 @@ public interface ReviewRepository extends JpaRepository<Review, UUID> {
     long countByUserId(UUID userId);
 
     /**
+     * Counts how many reviews reference a given video game.
+     * Used by the admin delete-game integrity check.
+     */
+    long countByVideoGameId(UUID videoGameId);
+
+    /**
      * Finds all reviews that have at least one report.
      *
      * @param pageable pagination and sorting details

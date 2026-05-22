@@ -7,6 +7,7 @@ import com.seyzeriat.desktop.controller.AnalyticsController;
 import com.seyzeriat.desktop.controller.BulkImportController;
 import com.seyzeriat.desktop.controller.ImportGamesController;
 import com.seyzeriat.desktop.controller.LoginController;
+import com.seyzeriat.desktop.controller.ManageGamesController;
 import com.seyzeriat.desktop.controller.NewsManagementController;
 import com.seyzeriat.desktop.controller.ReportModerationController;
 import com.seyzeriat.desktop.controller.ReviewModerationController;
@@ -112,6 +113,7 @@ public class HelloApplication extends Application {
         Button analyticsBtn = createNavButton("Tableau de bord", this::showAnalyticsView);
         Button importBtn = createNavButton("Importer des jeux", this::showImportGamesView);
         Button bulkImportBtn = createNavButton("Import en masse", this::showBulkImportView);
+        Button manageGamesBtn = createNavButton("Gérer les jeux", this::showManageGamesView);
         Button usersBtn = createNavButton("Utilisateurs", this::showUsersView);
         Button reviewsBtn = createNavButton("Modération des avis", this::showReviewsView);
         Button reportsBtn = createNavButton("Modération des signalements", this::showReportsView);
@@ -131,7 +133,7 @@ public class HelloApplication extends Application {
         logoutBtn.setMaxWidth(Double.MAX_VALUE);
         logoutBtn.setOnAction(event -> showLoginView());
 
-        sidebar.getChildren().addAll(appTitle, analyticsBtn, importBtn, bulkImportBtn, usersBtn, reviewsBtn, reportsBtn, newsBtn, spacer, logoutBtn);
+        sidebar.getChildren().addAll(appTitle, analyticsBtn, importBtn, bulkImportBtn, manageGamesBtn, usersBtn, reviewsBtn, reportsBtn, newsBtn, spacer, logoutBtn);
         return sidebar;
     }
 
@@ -189,6 +191,21 @@ public class HelloApplication extends Application {
             controller.setApplication(this);
 
             setContent(bulkImportView);
+        } catch (IOException e) {
+            Label error = new Label("Erreur lors du chargement de la vue : " + e.getMessage());
+            setContent(error);
+        }
+    }
+
+    private void showManageGamesView() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("manage-games-view.fxml"));
+            Node manageGamesView = loader.load();
+
+            ManageGamesController controller = loader.getController();
+            controller.setApplication(this);
+
+            setContent(manageGamesView);
         } catch (IOException e) {
             Label error = new Label("Erreur lors du chargement de la vue : " + e.getMessage());
             setContent(error);

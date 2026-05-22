@@ -1,0 +1,45 @@
+meta {
+  name: Delete Game
+  type: http
+  seq: 30
+}
+
+delete {
+  url: {{baseUrl}}/api/admin/games/{{gameId}}
+  body: none
+  auth: bearer
+}
+
+vars:pre-request {
+  gameId: 550e8400-e29b-41d4-a716-446655440000
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  # Delete Game (Admin)
+
+  Deletes a game **only if** no user-owned data still references it. The
+  integrity check runs before the JPA delete, so the cascading associations
+  on `VideoGame` cannot silently destroy user rows.
+
+  ## Authentication
+
+  - **Bearer Token**: JWT token
+  - **Required Role**: `ROLE_ADMIN`
+
+  ## Path Parameters
+
+  - `gameId` (UUID): The game's internal UUID
+
+  ## Response
+
+  - **204 No Content**: Game deleted successfully
+  - **404 Not Found**: No game matches the given ID
+  - **409 Conflict**: Game is still referenced. Body includes a structured
+    `blockingReferences` map (`library`, `playLogs`, `reviews`, `backlogs`,
+    `wishlists`, `favorites`, `ratings`, `likes`, `listEntries`, `dlcs`)
+  - **401 / 403**: Missing token / non-admin user
+}

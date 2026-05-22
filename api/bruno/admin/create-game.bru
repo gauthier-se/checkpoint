@@ -1,0 +1,61 @@
+meta {
+  name: Create Game
+  type: http
+  seq: 28
+}
+
+post {
+  url: {{baseUrl}}/api/admin/games
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "title": "My Manually Created Game",
+    "description": "An RPG masterpiece manually catalogued by an admin.",
+    "coverUrl": "https://example.com/cover.jpg",
+    "artworkUrl": "https://example.com/artwork.jpg",
+    "trailerYoutubeId": "dQw4w9WgXcQ",
+    "timeToBeatNormally": 30,
+    "timeToBeatHastily": 15,
+    "timeToBeatCompletely": 80,
+    "releaseDate": "2024-11-12",
+    "genreIds": [],
+    "platformIds": [],
+    "companyIds": []
+  }
+}
+
+docs {
+  # Create Game (Admin)
+
+  Manually creates a new video game with admin-supplied data. The IGDB / Steam
+  IDs are not exposed here — they remain managed by the import pipeline.
+
+  ## Authentication
+
+  - **Bearer Token**: JWT token obtained from `/api/auth/token`
+  - **Required Role**: `ROLE_ADMIN`
+
+  ## Request Body
+
+  - `title` (String, required): Non-blank, max 255 chars
+  - `description` (String, nullable)
+  - `coverUrl` (String, nullable, max 1024 chars)
+  - `artworkUrl` (String, nullable, max 1024 chars)
+  - `trailerYoutubeId` (String, nullable, max 64 chars)
+  - `timeToBeatNormally|Hastily|Completely` (Long, nullable, ≥ 0)
+  - `releaseDate` (ISO date, nullable)
+  - `genreIds`, `platformIds`, `companyIds` (Set<UUID>, optional)
+
+  ## Response
+
+  - **201 Created**: The persisted game details (`GameDetailDto`)
+  - **400 Bad Request**: Validation error, duplicate title, or unknown genre/platform/company ID
+  - **401 / 403**: Missing token / non-admin user
+}

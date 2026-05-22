@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox spacing="15" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.seyzeriat.desktop.controller.ManageGamesController"
+      styleClass="users-view">
+    <padding>
+        <Insets bottom="20" left="20" right="20" top="20"/>
+    </padding>
+
+    <!-- Header -->
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <Label text="Gérer les jeux" styleClass="view-title"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button fx:id="createButton" text="Créer un jeu" onAction="#onCreateGame" styleClass="search-button"/>
+    </HBox>
+
+    <!-- Status bar + pagination -->
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <Label fx:id="statusLabel" styleClass="status-label"/>
+        <Region HBox.hgrow="ALWAYS"/>
+
+        <Button fx:id="prevButton" text="Précédent" onAction="#onPrevPage" styleClass="search-button"/>
+        <Label fx:id="pageLabel" text="Page 1/1" styleClass="status-label"/>
+        <Button fx:id="nextButton" text="Suivant" onAction="#onNextPage" styleClass="search-button"/>
+
+        <Region minWidth="20"/>
+
+        <Button fx:id="refreshButton" text="Actualiser" onAction="#onRefresh" styleClass="search-button"/>
+        <ProgressIndicator fx:id="loadingIndicator" prefWidth="24" prefHeight="24"/>
+    </HBox>
+
+    <!-- Games table -->
+    <TableView fx:id="gamesTable" VBox.vgrow="ALWAYS" styleClass="users-table">
+        <columns>
+            <TableColumn fx:id="titleColumn" text="Titre" prefWidth="380"/>
+            <TableColumn fx:id="releaseDateColumn" text="Date de sortie" prefWidth="150"/>
+            <TableColumn fx:id="actionColumn" text="Actions" prefWidth="240"/>
+        </columns>
+        <placeholder>
+            <Label text="Aucun jeu à afficher." styleClass="status-label"/>
+        </placeholder>
+    </TableView>
+</VBox>

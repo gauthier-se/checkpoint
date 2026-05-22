@@ -1,36 +1,46 @@
 package com.checkpoint.api.controllers;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.checkpoint.api.dto.admin.BulkImportResultDto;
+import com.checkpoint.api.dto.admin.CreateGameRequestDto;
 import com.checkpoint.api.dto.admin.ExternalGameDto;
+import com.checkpoint.api.dto.admin.UpdateGameRequestDto;
 import com.checkpoint.api.dto.catalog.GameDetailDto;
 import com.checkpoint.api.entities.VideoGame;
 import com.checkpoint.api.services.AdminGameService;
 
+import jakarta.validation.Valid;
+
 /**
  * REST controller for admin game management operations.
- * Provides endpoints for searching and importing games from external APIs.
+ * Provides endpoints for searching, importing, and manually creating /
+ * editing / deleting games.
  *
- * Note: These endpoints should be secured with ROLE_ADMIN when Spring Security is configured.
+ * All endpoints require the {@code ROLE_ADMIN} authority.
  */
 @RestController
 @RequestMapping("/api/admin")
+@PreAuthorize("hasRole('ADMIN')")
 public class AdminGameController {
 
     private static final Logger log = LoggerFactory.getLogger(AdminGameController.class);
-    private static final int DEFAULT_SEARCH_LIMIT = 20;
     private static final int MAX_SEARCH_LIMIT = 50;
     private static final int MAX_BULK_LIMIT = 500;
 
@@ -134,6 +144,52 @@ public class AdminGameController {
     }
 
     /**
+     * Manually creates a new video game from an admin payload.
+     *
+     * @param request the create request (validated)
+     * @return 201 Created + the persisted game details
+     */
+    @PostMapping("/games")
+    public ResponseEntity<GameDetailDto> createGame(@Valid @RequestBody CreateGameRequestDto request) {
+        log.info("Admin create game request: title='{}'", request.title());
+
+        VideoGame created = adminGameService.createGame(request);
+        GameDetailDto response = mapToGameDetailDto(created);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    /**
+     * Fully updates an existing video game.
+     *
+     * @param id      the video game ID
+     * @param request the update request (validated)
+     * @return the updated game details
+     */
+    @PutMapping("/games/{id}")
+    public ResponseEntity<GameDetailDto> updateGame(@PathVariable UUID id,
+                                                    @Valid @RequestBody UpdateGameRequestDto request) {
+        log.info("Admin update game request: id={}", id);
+
+        VideoGame updated = adminGameService.updateGame(id, request);
+        GameDetailDto response = mapToGameDetailDto(updated);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Deletes a video game if no user-owned data references it.
+     *
+     * @param id the video game ID
+     * @return 204 on success; 409 (handled by {@code GlobalExceptionHandler}) if blocked
+     */
+    @DeleteMapping("/games/{id}")
+    public ResponseEntity<Void> deleteGame(@PathVariable UUID id) {
+        log.info("Admin delete game request: id={}", id);
+
+        adminGameService.deleteGame(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
      * Maps a VideoGame entity to a GameDetailDto for the response.
      */
     private GameDetailDto mapToGameDetailDto(VideoGame game) {
@@ -148,8 +204,8 @@ public class AdminGameController {
                 game.getTimeToBeatHastily(),
                 game.getTimeToBeatCompletely(),
                 game.getReleaseDate(),
-                null, // averageRating - not available from import
-                null, // ratingCount - not available from import
+                null,
+                null,
                 game.getGenres().stream()
                         .map(genre -> new GameDetailDto.GenreDto(genre.getId(), genre.getName()))
                         .toList(),
@@ -162,4 +218,3 @@ public class AdminGameController {
         );
     }
 }
-

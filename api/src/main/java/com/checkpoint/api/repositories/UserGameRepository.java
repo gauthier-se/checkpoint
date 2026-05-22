@@ -71,6 +71,12 @@ public interface UserGameRepository extends JpaRepository<UserGame, UUID> {
     long countByUserId(UUID userId);
 
     /**
+     * Counts how many library entries reference a given video game.
+     * Used by the admin delete-game integrity check.
+     */
+    long countByVideoGameId(UUID videoGameId);
+
+    /**
      * Counts the number of COMPLETED library entries whose video game has at least
      * one genre matching the given name (case-insensitive). Used by the badge system
      * to evaluate genre-completion thresholds (e.g. "finish 10 RPGs").

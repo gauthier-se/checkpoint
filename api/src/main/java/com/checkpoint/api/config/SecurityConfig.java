@@ -118,6 +118,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/plays/*").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/genres").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/platforms").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/companies").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/members/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/users/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/reviews/popular").permitAll()

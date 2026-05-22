@@ -96,4 +96,10 @@ public interface LikeRepository extends JpaRepository<Like, UUID> {
      */
     @Query("SELECT COUNT(l) FROM Like l WHERE l.review.user.id = :userId")
     long countLikesReceivedOnReviewsByUserId(@Param("userId") UUID userId);
+
+    /**
+     * Counts how many likes reference a given video game (top-level game likes).
+     * Used by the admin delete-game integrity check.
+     */
+    long countByVideoGameId(UUID videoGameId);
 }

@@ -1,18 +1,23 @@
 package com.checkpoint.api.controllers;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -22,17 +27,25 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.checkpoint.api.dto.admin.BulkImportResultDto;
+import com.checkpoint.api.dto.admin.CreateGameRequestDto;
 import com.checkpoint.api.dto.admin.ExternalGameDto;
+import com.checkpoint.api.dto.admin.UpdateGameRequestDto;
 import com.checkpoint.api.entities.VideoGame;
 import com.checkpoint.api.exceptions.ExternalApiUnavailableException;
 import com.checkpoint.api.exceptions.ExternalGameNotFoundException;
+import com.checkpoint.api.exceptions.GameNotFoundException;
+import com.checkpoint.api.exceptions.GameReferencedException;
 import com.checkpoint.api.security.ApiAuthenticationEntryPoint;
 import com.checkpoint.api.security.JwtAuthenticationFilter;
 import com.checkpoint.api.services.AdminGameService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 /**
  * Unit tests for {@link AdminGameController}.
@@ -266,6 +279,152 @@ class AdminGameControllerTest {
             mockMvc.perform(post("/api/admin/games/import/top-rated"))
                     .andExpect(status().isServiceUnavailable())
                     .andExpect(jsonPath("$.error").value("Service Unavailable"));
+        }
+    }
+
+    @Nested
+    @DisplayName("POST /api/admin/games")
+    class CreateGameTests {
+
+        private final ObjectMapper objectMapper = new ObjectMapper()
+                .registerModule(new JavaTimeModule())
+                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+        @Test
+        @DisplayName("Should create a new game and return 201")
+        void shouldCreateGame() throws Exception {
+            CreateGameRequestDto request = new CreateGameRequestDto(
+                    "Hollow Knight", "A metroidvania", "cover.jpg", null,
+                    null, 25L, 18L, 60L, LocalDate.of(2017, 2, 24),
+                    java.util.Set.of(), java.util.Set.of(), java.util.Set.of()
+            );
+
+            when(adminGameService.createGame(any(CreateGameRequestDto.class)))
+                    .thenReturn(sampleVideoGame);
+
+            mockMvc.perform(post("/api/admin/games")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isCreated())
+                    .andExpect(jsonPath("$.id").value(sampleVideoGame.getId().toString()))
+                    .andExpect(jsonPath("$.title").value("The Witcher 3: Wild Hunt"));
+
+            verify(adminGameService).createGame(any(CreateGameRequestDto.class));
+        }
+
+        @Test
+        @DisplayName("Should return 400 when title is blank")
+        void shouldReturn400WhenTitleBlank() throws Exception {
+            CreateGameRequestDto request = new CreateGameRequestDto(
+                    "  ", null, null, null, null, null, null, null, null,
+                    java.util.Set.of(), java.util.Set.of(), java.util.Set.of()
+            );
+
+            mockMvc.perform(post("/api/admin/games")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("Should return 400 when service rejects duplicate title")
+        void shouldReturn400OnDuplicateTitle() throws Exception {
+            CreateGameRequestDto request = new CreateGameRequestDto(
+                    "Existing", null, null, null, null, null, null, null, null,
+                    java.util.Set.of(), java.util.Set.of(), java.util.Set.of()
+            );
+            when(adminGameService.createGame(any(CreateGameRequestDto.class)))
+                    .thenThrow(new IllegalArgumentException("A game with this title already exists"));
+
+            mockMvc.perform(post("/api/admin/games")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.error").value("Bad Request"));
+        }
+    }
+
+    @Nested
+    @DisplayName("PUT /api/admin/games/{id}")
+    class UpdateGameTests {
+
+        private final ObjectMapper objectMapper = new ObjectMapper()
+                .registerModule(new JavaTimeModule())
+                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+        @Test
+        @DisplayName("Should update an existing game and return 200")
+        void shouldUpdateGame() throws Exception {
+            UpdateGameRequestDto request = new UpdateGameRequestDto(
+                    "The Witcher 3: Wild Hunt", null, null, null, null,
+                    null, null, null, null,
+                    java.util.Set.of(), java.util.Set.of(), java.util.Set.of()
+            );
+            when(adminGameService.updateGame(eq(sampleVideoGame.getId()), any(UpdateGameRequestDto.class)))
+                    .thenReturn(sampleVideoGame);
+
+            mockMvc.perform(put("/api/admin/games/" + sampleVideoGame.getId())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.id").value(sampleVideoGame.getId().toString()));
+        }
+
+        @Test
+        @DisplayName("Should return 404 when the game does not exist")
+        void shouldReturn404WhenMissing() throws Exception {
+            UUID id = UUID.randomUUID();
+            UpdateGameRequestDto request = new UpdateGameRequestDto(
+                    "Anything", null, null, null, null, null, null, null, null,
+                    java.util.Set.of(), java.util.Set.of(), java.util.Set.of()
+            );
+            when(adminGameService.updateGame(eq(id), any(UpdateGameRequestDto.class)))
+                    .thenThrow(new GameNotFoundException(id));
+
+            mockMvc.perform(put("/api/admin/games/" + id)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isNotFound());
+        }
+    }
+
+    @Nested
+    @DisplayName("DELETE /api/admin/games/{id}")
+    class DeleteGameTests {
+
+        @Test
+        @DisplayName("Should delete the game and return 204")
+        void shouldDeleteGame() throws Exception {
+            UUID id = UUID.randomUUID();
+
+            mockMvc.perform(delete("/api/admin/games/" + id))
+                    .andExpect(status().isNoContent());
+
+            verify(adminGameService).deleteGame(id);
+        }
+
+        @Test
+        @DisplayName("Should return 404 when the game does not exist")
+        void shouldReturn404WhenMissing() throws Exception {
+            UUID id = UUID.randomUUID();
+            doThrow(new GameNotFoundException(id)).when(adminGameService).deleteGame(id);
+
+            mockMvc.perform(delete("/api/admin/games/" + id))
+                    .andExpect(status().isNotFound());
+        }
+
+        @Test
+        @DisplayName("Should return 409 with blockingReferences when the game is referenced")
+        void shouldReturn409WhenReferenced() throws Exception {
+            UUID id = UUID.randomUUID();
+            doThrow(new GameReferencedException(id, Map.of("library", 3L, "reviews", 2L)))
+                    .when(adminGameService).deleteGame(id);
+
+            mockMvc.perform(delete("/api/admin/games/" + id))
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.error").value("Conflict"))
+                    .andExpect(jsonPath("$.blockingReferences.library").value(3))
+                    .andExpect(jsonPath("$.blockingReferences.reviews").value(2));
         }
     }
 

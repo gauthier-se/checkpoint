@@ -1,6 +1,7 @@
 package com.checkpoint.api.controllers;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +29,7 @@ import com.checkpoint.api.exceptions.ExternalGameNotFoundException;
 import com.checkpoint.api.exceptions.GameAlreadyInLibraryException;
 import com.checkpoint.api.exceptions.GameNotFoundException;
 import com.checkpoint.api.exceptions.GameNotInLibraryException;
+import com.checkpoint.api.exceptions.GameReferencedException;
 import com.checkpoint.api.exceptions.GameAlreadyInBacklogException;
 import com.checkpoint.api.exceptions.GameAlreadyInWishlistException;
 import com.checkpoint.api.exceptions.GameNotInBacklogException;
@@ -222,6 +224,28 @@ public class GlobalExceptionHandler {
                 "Conflict",
                 ex.getMessage(),
                 LocalDateTime.now()
+        );
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    /**
+     * Handles GameReferencedException when an admin attempts to delete a game
+     * that is still referenced by user-owned data or DLC entries.
+     *
+     * @param ex the exception
+     * @return error response with 409 status and per-category blocking counts
+     */
+    @ExceptionHandler(GameReferencedException.class)
+    public ResponseEntity<GameReferencedResponse> handleGameReferenced(GameReferencedException ex) {
+        log.warn("Game referenced — refusing delete: {}", ex.getMessage());
+
+        GameReferencedResponse error = new GameReferencedResponse(
+                HttpStatus.CONFLICT.value(),
+                "Conflict",
+                "Game cannot be deleted because it is referenced by existing data",
+                LocalDateTime.now(),
+                ex.getBlockingReferences()
         );
 
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
@@ -1082,5 +1106,17 @@ public class GlobalExceptionHandler {
             String error,
             String message,
             LocalDateTime timestamp
+    ) {}
+
+    /**
+     * Error response used for {@link GameReferencedException}, including the
+     * per-category counts of references blocking the deletion.
+     */
+    public record GameReferencedResponse(
+            int status,
+            String error,
+            String message,
+            LocalDateTime timestamp,
+            Map<String, Long> blockingReferences
     ) {}
 }
