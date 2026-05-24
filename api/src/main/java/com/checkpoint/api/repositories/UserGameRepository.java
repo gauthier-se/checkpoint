@@ -89,4 +89,10 @@ public interface UserGameRepository extends JpaRepository<UserGame, UUID> {
             """)
     long countCompletedByUserIdAndGenreName(@Param("userId") UUID userId,
                                             @Param("genreName") String genreName);
+
+    /**
+     * Returns every library entry for the given user. Used by the recommendation service
+     * to weight games by status (COMPLETED, PLAYING…) when building the affinity profile.
+     */
+    List<UserGame> findAllByUserId(UUID userId);
 }

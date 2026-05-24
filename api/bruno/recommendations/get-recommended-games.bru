@@ -1,0 +1,60 @@
+meta {
+  name: Get Recommended Games
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/me/games/recommended
+  body: none
+  auth: bearer
+}
+
+params:query {
+  ~size: 10
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  # Get Recommended Games
+
+  Returns personalised game recommendations for the authenticated user, built
+  from a SQL-based tag-overlap of their rates / library statuses / wishes against
+  every game's genres, platforms, and companies.
+
+  Falls back to trending games (with reason "Trending this week") when the user
+  has no liked games yet — the endpoint is therefore never empty for an
+  authenticated user as long as the catalog has trending data.
+
+  ## Authentication
+
+  Requires a valid JWT token in the `Authorization: Bearer` header.
+
+  ## Query Parameters
+
+  | Parameter | Default | Description |
+  |-----------|---------|-------------|
+  | size | 10 | Number of recommendations to return (capped at 30) |
+
+  ## Response (200 OK)
+
+  ```json
+  [
+    {
+      "id": "uuid",
+      "title": "Cool RPG",
+      "coverUrl": "https://...",
+      "releaseDate": "2025-01-15",
+      "averageRating": 4.5,
+      "reason": "Matches your favorite genres: RPG, Adventure"
+    }
+  ]
+  ```
+
+  ## Error Responses
+
+  - **401 Unauthorized**: Not authenticated
+}

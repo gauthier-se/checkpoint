@@ -7,6 +7,15 @@ export interface Game {
   ratingCount: number
 }
 
+export interface RecommendedGame {
+  id: string
+  title: string
+  coverUrl: string
+  releaseDate: string
+  averageRating: number | null
+  reason: string
+}
+
 export interface Genre {
   id: string
   name: string

@@ -117,6 +117,61 @@ public interface VideoGameRepository extends JpaRepository<VideoGame, UUID>, Vid
     Optional<VideoGame> findByIdWithRelationships(@Param("id") UUID id);
 
     /**
+     * Batched counterpart of {@link #findByIdWithRelationships} — loads every game whose
+     * ID is in the given collection and eagerly fetches genres, platforms, and companies
+     * in a single round-trip. Used by the recommendation service to score either the
+     * user's library or the candidate pool without N+1 access on tag sets.
+     *
+     * @param ids the video game IDs to load
+     * @return the matching games with relationships hydrated (may be empty)
+     */
+    @Query("""
+            SELECT DISTINCT vg FROM VideoGame vg
+            LEFT JOIN FETCH vg.genres
+            LEFT JOIN FETCH vg.platforms
+            LEFT JOIN FETCH vg.companies
+            WHERE vg.id IN :ids
+            """)
+    List<VideoGame> findAllByIdInWithRelationships(@Param("ids") Collection<UUID> ids);
+
+    /**
+     * Pre-filters the catalog to games sharing at least one genre or company with the
+     * user's taste profile, excluding games already in their library or wishlist and
+     * any DLC. Returns only IDs so the caller can apply an upper bound via
+     * {@link org.springframework.data.domain.Pageable} without hitting Hibernate's
+     * JOIN FETCH + first/max in-memory pagination caveat — load the entities in a
+     * second pass through {@link #findAllByIdInWithRelationships}.
+     *
+     * <p>Used by the v1 recommendation service to keep the candidate pool bounded
+     * (typically a few hundred rows out of the full catalog).</p>
+     *
+     * @param userId          the authenticated user's ID
+     * @param likedGenreIds   genre IDs that appear in the user's affinity profile
+     * @param likedCompanyIds company IDs that appear in the user's affinity profile
+     * @param pageable        caps the candidate set (sort is ignored)
+     * @return up to {@code pageable.pageSize} candidate game IDs
+     */
+    @Query("""
+            SELECT vg.id FROM VideoGame vg
+            LEFT JOIN vg.genres g
+            LEFT JOIN vg.companies c
+            WHERE vg.parentGame IS NULL
+              AND (g.id IN :likedGenreIds OR c.id IN :likedCompanyIds)
+              AND vg.id NOT IN (
+                  SELECT ug.videoGame.id FROM UserGame ug WHERE ug.user.id = :userId
+              )
+              AND vg.id NOT IN (
+                  SELECT w.videoGame.id FROM Wish w WHERE w.user.id = :userId
+              )
+            GROUP BY vg.id
+            """)
+    List<UUID> findCandidateIdsForRecommendation(
+            @Param("userId") UUID userId,
+            @Param("likedGenreIds") Collection<UUID> likedGenreIds,
+            @Param("likedCompanyIds") Collection<UUID> likedCompanyIds,
+            Pageable pageable);
+
+    /**
      * Counts the number of ratings for a video game.
      *
      * @param videoGameId the video game ID
