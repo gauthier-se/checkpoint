@@ -56,4 +56,10 @@ public interface RateRepository extends JpaRepository<Rate, UUID> {
      * Used by the admin delete-game integrity check.
      */
     long countByVideoGameId(UUID videoGameId);
+
+    /**
+     * Returns every rating the given user has authored.
+     * Used by the recommendation service to build the user's affinity profile.
+     */
+    List<Rate> findAllByUserId(UUID userId);
 }

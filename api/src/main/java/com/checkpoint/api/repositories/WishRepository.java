@@ -1,5 +1,6 @@
 package com.checkpoint.api.repositories;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -129,4 +130,11 @@ public interface WishRepository extends JpaRepository<Wish, UUID> {
             ORDER BY COUNT(DISTINCT w.id) DESC
             """)
     Page<GameCardDto> findMostWishlistedGames(Pageable pageable);
+
+    /**
+     * Returns the video game IDs the given user has wishlisted. Used by the recommendation
+     * service to feed the affinity profile and as an exclusion list for candidates.
+     */
+    @Query("SELECT w.videoGame.id FROM Wish w WHERE w.user.id = :userId")
+    List<UUID> findVideoGameIdsByUserId(@Param("userId") UUID userId);
 }

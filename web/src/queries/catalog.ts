@@ -1,5 +1,11 @@
 import { queryOptions } from '@tanstack/react-query'
-import type { Game, GameDetail, Genre, Platform } from '@/types/game'
+import type {
+  Game,
+  GameDetail,
+  Genre,
+  Platform,
+  RecommendedGame,
+} from '@/types/game'
 import { apiFetch } from '@/services/api'
 
 export function searchGamesQueryOptions(query: string) {
@@ -43,6 +49,17 @@ export function trendingGamesQueryOptions() {
     queryKey: ['games', 'trending'],
     queryFn: async (): Promise<Array<Game>> => {
       const res = await apiFetch('/api/games/trending?size=7')
+      return res.json()
+    },
+    staleTime: 5 * 60 * 1000,
+  })
+}
+
+export function recommendedGamesQueryOptions(size: number = 7) {
+  return queryOptions({
+    queryKey: ['games', 'recommended', size],
+    queryFn: async (): Promise<Array<RecommendedGame>> => {
+      const res = await apiFetch(`/api/me/games/recommended?size=${size}`)
       return res.json()
     },
     staleTime: 5 * 60 * 1000,

@@ -20,12 +20,16 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { GameGrid } from '@/components/games/game-grid'
+import { RecommendedForYouSection } from '@/components/games/recommended-for-you-section'
 import { NewsCard } from '@/components/news/news-card'
 import { MemberCard } from '@/components/members/member-card'
 import { ListsGrid } from '@/components/lists/lists-grid'
 import { FeedList } from '@/components/feed/feed-list'
 import { useAuth } from '@/hooks/use-auth'
-import { trendingGamesQueryOptions } from '@/queries/catalog'
+import {
+  recommendedGamesQueryOptions,
+  trendingGamesQueryOptions,
+} from '@/queries/catalog'
 import { newsListQueryOptions } from '@/queries/news'
 import { userProfileQueryOptions } from '@/queries/profile'
 import { suggestedMembersQueryOptions } from '@/queries/members'
@@ -227,6 +231,7 @@ function AuthenticatedHome({ user, data }: { user: User; data: HomeData }) {
   const popularListsQuery = useQuery(popularListsQueryOptions(0, 4))
   const feedQuery = useQuery(feedQueryOptions(0, 5))
   const friendsTrendingQuery = useQuery(friendsTrendingGamesQueryOptions(7))
+  const recommendedQuery = useQuery(recommendedGamesQueryOptions(7))
 
   return (
     <div className="mx-auto max-w-7xl px-4">
@@ -238,6 +243,10 @@ function AuthenticatedHome({ user, data }: { user: User; data: HomeData }) {
       <FriendsTrendingSection
         games={friendsTrendingQuery.data}
         isLoading={friendsTrendingQuery.isLoading}
+      />
+      <RecommendedForYouSection
+        games={recommendedQuery.data}
+        isLoading={recommendedQuery.isLoading}
       />
       <TrendingSection games={data.trending} />
       <SuggestedMembersSection
