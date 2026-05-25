@@ -66,6 +66,17 @@ export function recommendedGamesQueryOptions(size: number = 7) {
   })
 }
 
+export function similarGamesQueryOptions(gameId: string, size: number = 12) {
+  return queryOptions({
+    queryKey: ['games', gameId, 'similar', size],
+    queryFn: async (): Promise<Array<Game>> => {
+      const res = await apiFetch(`/api/games/${gameId}/similar?size=${size}`)
+      return res.json()
+    },
+    staleTime: 5 * 60 * 1000,
+  })
+}
+
 export function platformsQueryOptions() {
   return queryOptions({
     queryKey: ['platforms'],

@@ -41,6 +41,7 @@ import com.checkpoint.api.security.JwtAuthenticationFilter;
 import com.checkpoint.api.services.GameCatalogService;
 import com.checkpoint.api.services.GameListService;
 import com.checkpoint.api.services.GameSearchService;
+import com.checkpoint.api.services.GameSimilarityService;
 import com.checkpoint.api.services.GameTrendingService;
 
 /**
@@ -64,6 +65,9 @@ class GameControllerTest {
 
     @MockitoBean
     private GameListService gameListService;
+
+    @MockitoBean
+    private GameSimilarityService gameSimilarityService;
 
     @MockitoBean
     private JwtAuthenticationFilter jwtAuthenticationFilter;
@@ -565,5 +569,60 @@ class GameControllerTest {
                 eq(gameId),
                 isNull(),
                 argThat((Pageable p) -> p.getPageSize() == 6 && p.getPageNumber() == 0));
+    }
+
+    @Test
+    @DisplayName("GET /api/games/{gameId}/similar should return similar games")
+    void getSimilarGames_shouldReturnSimilarGames() throws Exception {
+        UUID gameId = UUID.randomUUID();
+        UUID similarId = UUID.randomUUID();
+        List<GameCardDto> similar = List.of(
+                new GameCardDto(similarId, "Similar Game", "cover.jpg", LocalDate.of(2021, 3, 1), 4.5, 200L)
+        );
+        when(gameSimilarityService.getSimilarGames(eq(gameId), isNull(), anyInt())).thenReturn(similar);
+
+        mockMvc.perform(get("/api/games/{gameId}/similar", gameId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$[0].id").value(similarId.toString()))
+                .andExpect(jsonPath("$[0].title").value("Similar Game"));
+    }
+
+    @Test
+    @DisplayName("GET /api/games/{gameId}/similar should pass null viewerEmail when anonymous")
+    void getSimilarGames_shouldPassNullViewerEmailWhenAnonymous() throws Exception {
+        UUID gameId = UUID.randomUUID();
+        when(gameSimilarityService.getSimilarGames(eq(gameId), isNull(), anyInt())).thenReturn(List.of());
+
+        mockMvc.perform(get("/api/games/{gameId}/similar", gameId))
+                .andExpect(status().isOk());
+
+        verify(gameSimilarityService).getSimilarGames(eq(gameId), isNull(), anyInt());
+    }
+
+    @Test
+    @DisplayName("GET /api/games/{gameId}/similar should pass viewer email when authenticated")
+    @WithMockUser(username = "user@example.com")
+    void getSimilarGames_shouldPassViewerEmailWhenAuthenticated() throws Exception {
+        UUID gameId = UUID.randomUUID();
+        when(gameSimilarityService.getSimilarGames(eq(gameId), eq("user@example.com"), anyInt()))
+                .thenReturn(List.of());
+
+        mockMvc.perform(get("/api/games/{gameId}/similar", gameId))
+                .andExpect(status().isOk());
+
+        verify(gameSimilarityService).getSimilarGames(eq(gameId), eq("user@example.com"), anyInt());
+    }
+
+    @Test
+    @DisplayName("GET /api/games/{gameId}/similar should clamp size to maximum 30")
+    void getSimilarGames_shouldClampSizeToMaximum() throws Exception {
+        UUID gameId = UUID.randomUUID();
+        when(gameSimilarityService.getSimilarGames(eq(gameId), isNull(), eq(30))).thenReturn(List.of());
+
+        mockMvc.perform(get("/api/games/{gameId}/similar", gameId).param("size", "999"))
+                .andExpect(status().isOk());
+
+        verify(gameSimilarityService).getSimilarGames(eq(gameId), isNull(), eq(30));
     }
 }

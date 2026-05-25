@@ -1,0 +1,60 @@
+meta {
+  name: Get Similar Games
+  type: http
+  seq: 15
+}
+
+get {
+  url: {{baseUrl}}/api/games/:gameId/similar?size=12
+  body: none
+  auth: none
+}
+
+params:query {
+  ~size: 12
+}
+
+params:path {
+  gameId: 9ca266dd-0852-4748-ab5d-f7cf575e9d7a
+}
+
+docs {
+  # Get Similar Games
+
+  Returns games similar to the given game, ranked by shared genre / company / platform
+  overlap (plus a small average-rating tiebreaker and a recency boost). This is
+  item-to-item discovery driven by the seed game itself, not by the viewer's library.
+
+  DLCs and the seed game itself are never returned. The endpoint is public; this
+  anonymous variant applies no per-viewer filtering.
+
+  ## Path Parameters
+
+  | Parameter | Description       |
+  |-----------|-------------------|
+  | gameId    | UUID of the game  |
+
+  ## Query Parameters
+
+  | Parameter | Default | Description                                   |
+  |-----------|---------|-----------------------------------------------|
+  | size      | 12      | Number of similar games to return (max 30)    |
+
+  ## Response (200 OK)
+
+  ```json
+  [
+    {
+      "id": "uuid",
+      "title": "The Witcher 3: Wild Hunt",
+      "coverUrl": "https://images.igdb.com/...",
+      "releaseDate": "2015-05-19",
+      "averageRating": 4.8,
+      "ratingCount": 1500
+    }
+  ]
+  ```
+
+  Returns an empty array when the seed game has no genre/company tags or no neighbour
+  matches.
+}

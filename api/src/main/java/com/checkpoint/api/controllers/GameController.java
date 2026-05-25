@@ -25,6 +25,7 @@ import com.checkpoint.api.dto.list.GameListCardDto;
 import com.checkpoint.api.services.GameCatalogService;
 import com.checkpoint.api.services.GameListService;
 import com.checkpoint.api.services.GameSearchService;
+import com.checkpoint.api.services.GameSimilarityService;
 import com.checkpoint.api.services.GameTrendingService;
 
 /**
@@ -46,21 +47,26 @@ public class GameController {
     private static final int MAX_DISCOVERY_SIZE = 20;
     private static final int DEFAULT_LISTS_SIZE = 6;
     private static final int MAX_LISTS_SIZE = 50;
+    private static final int DEFAULT_SIMILAR_SIZE = 12;
+    private static final int MAX_SIMILAR_SIZE = 30;
     private static final String DEFAULT_SORT = "releaseDate,desc";
 
     private final GameCatalogService gameCatalogService;
     private final GameSearchService gameSearchService;
     private final GameTrendingService gameTrendingService;
     private final GameListService gameListService;
+    private final GameSimilarityService gameSimilarityService;
 
     public GameController(GameCatalogService gameCatalogService,
                           GameSearchService gameSearchService,
                           GameTrendingService gameTrendingService,
-                          GameListService gameListService) {
+                          GameListService gameListService,
+                          GameSimilarityService gameSimilarityService) {
         this.gameCatalogService = gameCatalogService;
         this.gameSearchService = gameSearchService;
         this.gameTrendingService = gameTrendingService;
         this.gameListService = gameListService;
+        this.gameSimilarityService = gameSimilarityService;
     }
 
     /**
@@ -219,6 +225,33 @@ public class GameController {
 
         Page<GameListCardDto> lists = gameListService.findListsContainingGame(gameId, viewerEmail, pageable);
         return ResponseEntity.ok(PagedResponseDto.from(lists));
+    }
+
+    /**
+     * Returns games similar to the given game, ranked by shared genre / company / platform
+     * overlap. The result is item-to-item (driven by the seed game, not the viewer's
+     * library), but when the viewer is authenticated, games already in their library,
+     * wishlist, favorites, or likes are excluded. Anonymous viewers get the unfiltered list.
+     *
+     * @param gameId      the seed game ID
+     * @param size        the number of similar games to return (default 12, max 30)
+     * @param userDetails the authenticated user, or null if anonymous
+     * @return a list of similar game cards, best match first (may be empty)
+     */
+    @GetMapping("/{gameId}/similar")
+    public ResponseEntity<List<GameCardDto>> getSimilarGames(
+            @PathVariable UUID gameId,
+            @RequestParam(defaultValue = "" + DEFAULT_SIMILAR_SIZE) int size,
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        String viewerEmail = userDetails != null ? userDetails.getUsername() : null;
+        log.info("GET /api/games/{}/similar - size: {}, viewer: {}",
+                gameId, size, viewerEmail != null ? viewerEmail : "anonymous");
+
+        int validatedSize = Math.min(Math.max(1, size), MAX_SIMILAR_SIZE);
+
+        List<GameCardDto> similar = gameSimilarityService.getSimilarGames(gameId, viewerEmail, validatedSize);
+        return ResponseEntity.ok(similar);
     }
 
     /**

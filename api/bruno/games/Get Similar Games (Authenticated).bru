@@ -1,0 +1,52 @@
+meta {
+  name: Get Similar Games (Authenticated)
+  type: http
+  seq: 16
+}
+
+get {
+  url: {{baseUrl}}/api/games/:gameId/similar?size=12
+  body: none
+  auth: bearer
+}
+
+params:query {
+  ~size: 12
+}
+
+params:path {
+  gameId: 9ca266dd-0852-4748-ab5d-f7cf575e9d7a
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  # Get Similar Games (Authenticated)
+
+  Same item-to-item ranking as the anonymous endpoint, but games the authenticated
+  viewer already has a relationship with — library, wishlist, favorites, or a game-like —
+  are excluded from the results, so the section surfaces only new discoveries.
+
+  ## Path Parameters
+
+  | Parameter | Description       |
+  |-----------|-------------------|
+  | gameId    | UUID of the game  |
+
+  ## Query Parameters
+
+  | Parameter | Default | Description                                   |
+  |-----------|---------|-----------------------------------------------|
+  | size      | 12      | Number of similar games to return (max 30)    |
+
+  ## Authentication
+
+  Optional. With a valid JWT token in the `Authorization: Bearer` header, the viewer's
+  owned / wishlisted / favorited / liked games are filtered out.
+
+  ## Response (200 OK)
+
+  Same shape as the anonymous endpoint.
+}
