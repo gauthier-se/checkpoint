@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.checkpoint.api.dto.onboarding.OnboardingSteps;
 import com.checkpoint.api.dto.profile.FavoriteDto;
 import com.checkpoint.api.entities.Favorite;
 import com.checkpoint.api.entities.User;
@@ -23,6 +24,7 @@ import com.checkpoint.api.repositories.FavoriteRepository;
 import com.checkpoint.api.repositories.UserRepository;
 import com.checkpoint.api.repositories.VideoGameRepository;
 import com.checkpoint.api.services.FavoriteService;
+import com.checkpoint.api.services.OnboardingService;
 
 /**
  * Implementation of {@link FavoriteService}.
@@ -39,6 +41,7 @@ public class FavoriteServiceImpl implements FavoriteService {
     private final UserRepository userRepository;
     private final VideoGameRepository videoGameRepository;
     private final ProfileMapper profileMapper;
+    private final OnboardingService onboardingService;
 
     /**
      * Constructs a new FavoriteServiceImpl.
@@ -47,15 +50,18 @@ public class FavoriteServiceImpl implements FavoriteService {
      * @param userRepository      the user repository
      * @param videoGameRepository the video game repository
      * @param profileMapper       the profile mapper
+     * @param onboardingService   the onboarding service
      */
     public FavoriteServiceImpl(FavoriteRepository favoriteRepository,
                                 UserRepository userRepository,
                                 VideoGameRepository videoGameRepository,
-                                ProfileMapper profileMapper) {
+                                ProfileMapper profileMapper,
+                                OnboardingService onboardingService) {
         this.favoriteRepository = favoriteRepository;
         this.userRepository = userRepository;
         this.videoGameRepository = videoGameRepository;
         this.profileMapper = profileMapper;
+        this.onboardingService = onboardingService;
     }
 
     /**
@@ -108,6 +114,10 @@ public class FavoriteServiceImpl implements FavoriteService {
         for (int i = 0; i < orderedGameIds.size(); i++) {
             VideoGame game = gamesById.get(orderedGameIds.get(i));
             favoriteRepository.save(new Favorite(user, game, i));
+        }
+
+        if (!orderedGameIds.isEmpty()) {
+            onboardingService.markStepDone(email, OnboardingSteps.FAVORITES);
         }
 
         return favoriteRepository.findByUserOrderByDisplayOrderAsc(user).stream()

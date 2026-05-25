@@ -1,12 +1,16 @@
 package com.checkpoint.api.entities;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.KeywordField;
+import org.hibernate.type.SqlTypes;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -89,6 +93,13 @@ public class User {
 
     @Column(name = "steam_synced_at")
     private LocalDateTime steamSyncedAt;
+
+    @Column(name = "onboarding_completed_at")
+    private LocalDateTime onboardingCompletedAt;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "onboarding_steps")
+    private Map<String, Boolean> onboardingSteps = new HashMap<>();
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -549,5 +560,21 @@ public class User {
 
     public void setSteamSyncedAt(LocalDateTime steamSyncedAt) {
         this.steamSyncedAt = steamSyncedAt;
+    }
+
+    public LocalDateTime getOnboardingCompletedAt() {
+        return onboardingCompletedAt;
+    }
+
+    public void setOnboardingCompletedAt(LocalDateTime onboardingCompletedAt) {
+        this.onboardingCompletedAt = onboardingCompletedAt;
+    }
+
+    public Map<String, Boolean> getOnboardingSteps() {
+        return onboardingSteps;
+    }
+
+    public void setOnboardingSteps(Map<String, Boolean> onboardingSteps) {
+        this.onboardingSteps = onboardingSteps;
     }
 }

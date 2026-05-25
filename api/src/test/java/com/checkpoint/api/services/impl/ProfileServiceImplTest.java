@@ -82,6 +82,9 @@ class ProfileServiceImplTest {
     @Mock
     private StorageService storageService;
 
+    @Mock
+    private com.checkpoint.api.services.OnboardingService onboardingService;
+
     private ProfileMapper profileMapper;
     private ProfileServiceImpl profileService;
 
@@ -94,7 +97,8 @@ class ProfileServiceImplTest {
         profileService = new ProfileServiceImpl(
                 userRepository, reviewRepository, wishRepository,
                 userGamePlayRepository, likeRepository,
-                gameListService, storageService, profileMapper, reviewMapper, wishMapper);
+                gameListService, storageService, profileMapper, reviewMapper, wishMapper,
+                onboardingService);
 
         profileUser = new User();
         profileUser.setId(UUID.randomUUID());

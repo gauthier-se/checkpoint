@@ -40,6 +40,9 @@ class NotificationPreferencesServiceImplTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private com.checkpoint.api.services.OnboardingService onboardingService;
+
     private NotificationPreferencesMapper preferencesMapper;
     private NotificationPreferencesServiceImpl preferencesService;
 
@@ -49,7 +52,7 @@ class NotificationPreferencesServiceImplTest {
     void setUp() {
         preferencesMapper = new NotificationPreferencesMapperImpl();
         preferencesService = new NotificationPreferencesServiceImpl(
-                preferencesRepository, userRepository, preferencesMapper);
+                preferencesRepository, userRepository, preferencesMapper, onboardingService);
 
         user = new User();
         user.setId(UUID.randomUUID());

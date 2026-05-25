@@ -74,6 +74,9 @@ class SteamServiceImplTest {
     @Mock
     private GameImportService gameImportService;
 
+    @Mock
+    private OnboardingService onboardingService;
+
     @InjectMocks
     private SteamServiceImpl steamService;
 

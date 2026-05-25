@@ -35,11 +35,17 @@ const MAX_FAVORITES = 5
 interface FavoriteGamesEditorProps {
   username: string
   initialFavorites: Array<FavoriteGame>
+  /** When true, render the bare content without the surrounding Card chrome (used in the onboarding wizard). */
+  embedded?: boolean
+  /** Called after each successful save with the resulting favorites. */
+  onSaved?: (favorites: Array<FavoriteGame>) => void
 }
 
 export function FavoriteGamesEditor({
   username,
   initialFavorites,
+  embedded = false,
+  onSaved,
 }: FavoriteGamesEditorProps) {
   const queryClient = useQueryClient()
   const [favorites, setFavorites] =
@@ -57,6 +63,7 @@ export function FavoriteGamesEditor({
       void queryClient.invalidateQueries({
         queryKey: ['users', username, 'profile'],
       })
+      onSaved?.(returned)
     },
   })
 
@@ -110,6 +117,50 @@ export function FavoriteGamesEditor({
   const canAdd = favorites.length < MAX_FAVORITES
   const excludeIds = favorites.map((f) => f.gameId)
 
+  const body = (
+    <>
+      {favorites.length > 0 ? (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={favorites.map((f) => f.gameId)}
+            strategy={horizontalListSortingStrategy}
+          >
+            <ul className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+              {favorites.map((favorite) => (
+                <SortableFavoriteSlot
+                  key={favorite.gameId}
+                  favorite={favorite}
+                  onRemove={() => handleRemove(favorite.gameId)}
+                />
+              ))}
+            </ul>
+          </SortableContext>
+        </DndContext>
+      ) : (
+        <p className="text-muted-foreground text-sm">
+          No favorites yet. Search below to add one.
+        </p>
+      )}
+
+      {canAdd ? (
+        <ListGameSearch onSelect={handleAdd} excludeIds={excludeIds} />
+      ) : (
+        <p className="text-muted-foreground text-sm">
+          You've reached the limit of {MAX_FAVORITES} favorites. Remove one to
+          add another.
+        </p>
+      )}
+    </>
+  )
+
+  if (embedded) {
+    return <div className="space-y-4">{body}</div>
+  }
+
   return (
     <Card id="favorites">
       <CardHeader>
@@ -119,43 +170,7 @@ export function FavoriteGamesEditor({
           Drag to reorder.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {favorites.length > 0 ? (
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleDragEnd}
-          >
-            <SortableContext
-              items={favorites.map((f) => f.gameId)}
-              strategy={horizontalListSortingStrategy}
-            >
-              <ul className="grid grid-cols-2 gap-3 sm:grid-cols-5">
-                {favorites.map((favorite) => (
-                  <SortableFavoriteSlot
-                    key={favorite.gameId}
-                    favorite={favorite}
-                    onRemove={() => handleRemove(favorite.gameId)}
-                  />
-                ))}
-              </ul>
-            </SortableContext>
-          </DndContext>
-        ) : (
-          <p className="text-muted-foreground text-sm">
-            No favorites yet. Search below to add one.
-          </p>
-        )}
-
-        {canAdd ? (
-          <ListGameSearch onSelect={handleAdd} excludeIds={excludeIds} />
-        ) : (
-          <p className="text-muted-foreground text-sm">
-            You've reached the limit of {MAX_FAVORITES} favorites. Remove one to
-            add another.
-          </p>
-        )}
-      </CardContent>
+      <CardContent className="space-y-4">{body}</CardContent>
     </Card>
   )
 }

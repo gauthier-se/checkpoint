@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.checkpoint.api.dto.onboarding.OnboardingSteps;
 import com.checkpoint.api.entities.AuthProvider;
 import com.checkpoint.api.entities.Role;
 import com.checkpoint.api.entities.User;
@@ -80,6 +81,10 @@ public class OAuth2UserServiceImpl implements OAuth2UserService {
         User created = new User(pseudo, email, provider, providerId);
         created.setPicture(picture);
         created.setRole(userRole);
+        // The OAuth provider already gave us an avatar — count the picture step as done.
+        if (picture != null && !picture.isBlank()) {
+            created.getOnboardingSteps().put(OnboardingSteps.PICTURE, true);
+        }
         log.info("Created new OAuth2 user {} via {}", email, provider);
         return initRole(userRepository.save(created));
     }

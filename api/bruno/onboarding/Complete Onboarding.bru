@@ -1,0 +1,29 @@
+meta {
+  name: Complete Onboarding
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/me/onboarding/complete
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  # Complete Onboarding
+
+  Sets `onboarding_completed_at` to `NOW()`. Hides the wizard and the home-page
+  checklist permanently. Called by the wizard's final "Go to my dashboard"
+  button and by the checklist's "Dismiss" button.
+
+  Idempotent — subsequent calls do not overwrite the original timestamp.
+
+  ## Response (200 OK)
+
+  The updated onboarding snapshot with `completedAt` populated.
+}

@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.checkpoint.api.client.IgdbApiClient;
 import com.checkpoint.api.client.SteamApiClient;
 import com.checkpoint.api.dto.igdb.IgdbExternalGameDto;
+import com.checkpoint.api.dto.onboarding.OnboardingSteps;
 import com.checkpoint.api.dto.steam.SteamAccountDto;
 import com.checkpoint.api.dto.steam.SteamOwnedGameDto;
 import com.checkpoint.api.dto.steam.SteamPlayerSummaryDto;
@@ -37,6 +38,7 @@ import com.checkpoint.api.repositories.UserGameRepository;
 import com.checkpoint.api.repositories.UserRepository;
 import com.checkpoint.api.repositories.VideoGameRepository;
 import com.checkpoint.api.services.GameImportService;
+import com.checkpoint.api.services.OnboardingService;
 import com.checkpoint.api.services.SteamService;
 
 /**
@@ -67,19 +69,22 @@ public class SteamServiceImpl implements SteamService {
     private final VideoGameRepository videoGameRepository;
     private final UserGameRepository userGameRepository;
     private final GameImportService gameImportService;
+    private final OnboardingService onboardingService;
 
     public SteamServiceImpl(UserRepository userRepository,
                             SteamApiClient steamApiClient,
                             IgdbApiClient igdbApiClient,
                             VideoGameRepository videoGameRepository,
                             UserGameRepository userGameRepository,
-                            GameImportService gameImportService) {
+                            GameImportService gameImportService,
+                            OnboardingService onboardingService) {
         this.userRepository = userRepository;
         this.steamApiClient = steamApiClient;
         this.igdbApiClient = igdbApiClient;
         this.videoGameRepository = videoGameRepository;
         this.userGameRepository = userGameRepository;
         this.gameImportService = gameImportService;
+        this.onboardingService = onboardingService;
     }
 
     @Override
@@ -121,6 +126,7 @@ public class SteamServiceImpl implements SteamService {
         user.setSteamProfileUrl(null);
         user.setSteamSyncedAt(LocalDateTime.now());
         userRepository.save(user);
+        onboardingService.markStepDone(email, OnboardingSteps.STEAM);
         return new SteamAccountDto(steamId, null, null, null);
     }
 
@@ -310,6 +316,7 @@ public class SteamServiceImpl implements SteamService {
         user.setSteamProfileUrl(summary.profileUrl());
         user.setSteamSyncedAt(LocalDateTime.now());
         userRepository.save(user);
+        onboardingService.markStepDone(user.getEmail(), OnboardingSteps.STEAM);
         log.info("Linked Steam account {} to user {}", summary.steamId(), user.getEmail());
         return new SteamAccountDto(
                 summary.steamId(),

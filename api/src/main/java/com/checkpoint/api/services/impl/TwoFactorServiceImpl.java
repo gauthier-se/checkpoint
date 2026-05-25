@@ -23,12 +23,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.checkpoint.api.dto.auth.TwoFactorSetupResponseDto;
+import com.checkpoint.api.dto.onboarding.OnboardingSteps;
 import com.checkpoint.api.entities.User;
 import com.checkpoint.api.exceptions.InvalidTokenException;
 import com.checkpoint.api.exceptions.InvalidTotpCodeException;
 import com.checkpoint.api.exceptions.UserNotFoundException;
 import com.checkpoint.api.repositories.UserRepository;
 import com.checkpoint.api.security.JwtService;
+import com.checkpoint.api.services.OnboardingService;
 import com.checkpoint.api.services.TwoFactorService;
 
 /**
@@ -45,13 +47,16 @@ public class TwoFactorServiceImpl implements TwoFactorService {
     private final UserRepository userRepository;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
+    private final OnboardingService onboardingService;
 
     public TwoFactorServiceImpl(UserRepository userRepository,
                                  JwtService jwtService,
-                                 PasswordEncoder passwordEncoder) {
+                                 PasswordEncoder passwordEncoder,
+                                 OnboardingService onboardingService) {
         this.userRepository = userRepository;
         this.jwtService = jwtService;
         this.passwordEncoder = passwordEncoder;
+        this.onboardingService = onboardingService;
     }
 
     @Override
@@ -96,6 +101,7 @@ public class TwoFactorServiceImpl implements TwoFactorService {
 
         user.setTwoFactorEnabled(true);
         userRepository.save(user);
+        onboardingService.markStepDone(email, OnboardingSteps.TWOFA);
         log.info("2FA enabled for user: {}", email);
     }
 

@@ -25,6 +25,7 @@ import { NewsCard } from '@/components/news/news-card'
 import { MemberCard } from '@/components/members/member-card'
 import { ListsGrid } from '@/components/lists/lists-grid'
 import { FeedList } from '@/components/feed/feed-list'
+import { OnboardingChecklist } from '@/components/onboarding/onboarding-checklist'
 import { useAuth } from '@/hooks/use-auth'
 import {
   recommendedGamesQueryOptions,
@@ -235,6 +236,7 @@ function AuthenticatedHome({ user, data }: { user: User; data: HomeData }) {
 
   return (
     <div className="mx-auto max-w-7xl px-4">
+      <OnboardingChecklist />
       <WelcomeSection user={user} profile={profileQuery.data} />
       <FriendsActivitySection
         items={feedQuery.data?.content}

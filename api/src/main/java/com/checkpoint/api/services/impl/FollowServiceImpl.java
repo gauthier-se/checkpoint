@@ -19,9 +19,11 @@ import com.checkpoint.api.events.UserFollowedEvent;
 import com.checkpoint.api.events.UserGainedFollowerEvent;
 import com.checkpoint.api.exceptions.SelfFollowException;
 import com.checkpoint.api.exceptions.UserNotFoundException;
+import com.checkpoint.api.dto.onboarding.OnboardingSteps;
 import com.checkpoint.api.mapper.FollowMapper;
 import com.checkpoint.api.repositories.UserRepository;
 import com.checkpoint.api.services.FollowService;
+import com.checkpoint.api.services.OnboardingService;
 
 /**
  * Implementation of {@link FollowService}.
@@ -36,12 +38,15 @@ public class FollowServiceImpl implements FollowService {
     private final UserRepository userRepository;
     private final FollowMapper followMapper;
     private final ApplicationEventPublisher eventPublisher;
+    private final OnboardingService onboardingService;
 
     public FollowServiceImpl(UserRepository userRepository, FollowMapper followMapper,
-                             ApplicationEventPublisher eventPublisher) {
+                             ApplicationEventPublisher eventPublisher,
+                             OnboardingService onboardingService) {
         this.userRepository = userRepository;
         this.followMapper = followMapper;
         this.eventPublisher = eventPublisher;
+        this.onboardingService = onboardingService;
     }
 
     /**
@@ -76,6 +81,8 @@ public class FollowServiceImpl implements FollowService {
             eventPublisher.publishEvent(new NotificationEvent(
                     targetUser.getId(), currentUser.getId(),
                     NotificationType.FOLLOW, targetUser.getId(), message));
+
+            onboardingService.markStepDone(userEmail, OnboardingSteps.FOLLOW);
 
             return new FollowResponseDto(true, "Successfully followed " + targetUser.getPseudo());
         }

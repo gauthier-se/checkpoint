@@ -27,6 +27,7 @@ import com.checkpoint.api.dto.auth.TokenPairDto;
 import com.checkpoint.api.dto.auth.TwoFactorLoginRequestDto;
 import com.checkpoint.api.dto.auth.TwoFactorRequiredResponseDto;
 import com.checkpoint.api.dto.auth.UserMeDto;
+import com.checkpoint.api.dto.onboarding.OnboardingSteps;
 import com.checkpoint.api.entities.PasswordResetToken;
 import com.checkpoint.api.entities.RefreshToken;
 import com.checkpoint.api.entities.Role;
@@ -242,7 +243,9 @@ public class AuthServiceImpl implements AuthService {
                 Boolean.TRUE.equals(user.getTwoFactorEnabled()),
                 user.getSteamId(),
                 user.getSteamDisplayName(),
-                user.getSteamAvatarUrl()
+                user.getSteamAvatarUrl(),
+                user.getOnboardingCompletedAt(),
+                user.getOnboardingSteps()
         );
     }
 
@@ -305,6 +308,13 @@ public class AuthServiceImpl implements AuthService {
         user.setSteamAvatarUrl(claims.steamAvatarUrl());
         user.setSteamProfileUrl(claims.steamProfileUrl());
         user.setSteamSyncedAt(LocalDateTime.now());
+
+        // Account is created with Steam already linked — count that step as done, and the
+        // picture step too when Steam handed us an avatar URL.
+        user.getOnboardingSteps().put(OnboardingSteps.STEAM, true);
+        if (claims.steamAvatarUrl() != null && !claims.steamAvatarUrl().isBlank()) {
+            user.getOnboardingSteps().put(OnboardingSteps.PICTURE, true);
+        }
 
         userRepository.save(user);
 

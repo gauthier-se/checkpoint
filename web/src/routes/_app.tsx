@@ -3,6 +3,8 @@ import { Outlet, createFileRoute } from '@tanstack/react-router'
 import { Footer } from '@/components/layout/footer'
 import { Header } from '@/components/layout/header'
 import { KeyboardShortcutsDialog } from '@/components/keyboard-shortcuts-dialog'
+import { OnboardingProvider } from '@/components/onboarding/onboarding-provider'
+import { OnboardingWizard } from '@/components/onboarding/onboarding-wizard'
 import { useNotificationsWebSocket } from '@/hooks/use-notifications-websocket'
 import { useHelpHotkey } from '@/hooks/use-help-hotkey'
 import { authQueryOptions } from '@/hooks/use-auth'
@@ -28,11 +30,12 @@ function AppLayout() {
   useHelpHotkey(openHelp)
 
   return (
-    <>
+    <OnboardingProvider>
       <Header />
       <Outlet />
       <Footer onOpenKeymaps={openHelp} />
       <KeyboardShortcutsDialog open={helpOpen} onOpenChange={setHelpOpen} />
-    </>
+      <OnboardingWizard />
+    </OnboardingProvider>
   )
 }

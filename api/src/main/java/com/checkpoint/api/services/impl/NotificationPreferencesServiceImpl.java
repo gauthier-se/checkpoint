@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.checkpoint.api.dto.notification.NotificationPreferencesDto;
 import com.checkpoint.api.dto.notification.UpdateNotificationPreferencesDto;
+import com.checkpoint.api.dto.onboarding.OnboardingSteps;
 import com.checkpoint.api.entities.NotificationPreferences;
 import com.checkpoint.api.entities.User;
 import com.checkpoint.api.enums.NotificationType;
@@ -16,6 +17,7 @@ import com.checkpoint.api.mapper.NotificationPreferencesMapper;
 import com.checkpoint.api.repositories.NotificationPreferencesRepository;
 import com.checkpoint.api.repositories.UserRepository;
 import com.checkpoint.api.services.NotificationPreferencesService;
+import com.checkpoint.api.services.OnboardingService;
 
 /**
  * Implementation of {@link NotificationPreferencesService}.
@@ -29,13 +31,16 @@ public class NotificationPreferencesServiceImpl implements NotificationPreferenc
     private final NotificationPreferencesRepository preferencesRepository;
     private final UserRepository userRepository;
     private final NotificationPreferencesMapper preferencesMapper;
+    private final OnboardingService onboardingService;
 
     public NotificationPreferencesServiceImpl(NotificationPreferencesRepository preferencesRepository,
                                               UserRepository userRepository,
-                                              NotificationPreferencesMapper preferencesMapper) {
+                                              NotificationPreferencesMapper preferencesMapper,
+                                              OnboardingService onboardingService) {
         this.preferencesRepository = preferencesRepository;
         this.userRepository = userRepository;
         this.preferencesMapper = preferencesMapper;
+        this.onboardingService = onboardingService;
     }
 
     /**
@@ -76,6 +81,7 @@ public class NotificationPreferencesServiceImpl implements NotificationPreferenc
         }
 
         NotificationPreferences saved = preferencesRepository.save(preferences);
+        onboardingService.markStepDone(userEmail, OnboardingSteps.NOTIFICATIONS);
         log.info("Notification preferences updated for user {}", userEmail);
 
         return preferencesMapper.toDto(saved);

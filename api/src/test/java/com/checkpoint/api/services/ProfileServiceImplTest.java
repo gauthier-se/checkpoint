@@ -34,6 +34,7 @@ import com.checkpoint.api.repositories.UserGamePlayRepository;
 import com.checkpoint.api.repositories.UserRepository;
 import com.checkpoint.api.repositories.WishRepository;
 import com.checkpoint.api.services.impl.ProfileServiceImpl;
+import com.checkpoint.api.services.OnboardingService;
 
 /**
  * Unit tests for {@link ProfileServiceImpl} profile update methods.
@@ -71,6 +72,9 @@ class ProfileServiceImplTest {
     @Mock
     private WishMapper wishMapper;
 
+    @Mock
+    private OnboardingService onboardingService;
+
     private ProfileServiceImpl profileService;
 
     @BeforeEach
@@ -79,7 +83,8 @@ class ProfileServiceImplTest {
                 userRepository, reviewRepository, wishRepository,
                 userGamePlayRepository, likeRepository,
                 gameListService, storageService,
-                profileMapper, reviewMapper, wishMapper);
+                profileMapper, reviewMapper, wishMapper,
+                onboardingService);
     }
 
     private User createTestUser() {

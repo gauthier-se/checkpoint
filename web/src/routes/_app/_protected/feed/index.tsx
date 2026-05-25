@@ -3,6 +3,7 @@ import { Users } from 'lucide-react'
 import type { FeedResponse } from '@/types/feed'
 import { FeedList } from '@/components/feed/feed-list'
 import { FeedPagination } from '@/components/feed/feed-pagination'
+import { OnboardingChecklist } from '@/components/onboarding/onboarding-checklist'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { feedQueryOptions } from '@/queries/feed'
@@ -33,6 +34,7 @@ function RouteComponent() {
   return (
     <div className="max-w-7xl mx-auto">
       <div className="mt-10">
+        <OnboardingChecklist />
         <h1 className="text-xl font-bold">New from friends</h1>
       </div>
 

@@ -52,6 +52,9 @@ class FavoriteServiceImplTest {
     @Mock
     private ProfileMapper profileMapper;
 
+    @Mock
+    private com.checkpoint.api.services.OnboardingService onboardingService;
+
     private FavoriteServiceImpl service;
 
     private User testUser;
@@ -59,7 +62,8 @@ class FavoriteServiceImplTest {
     @BeforeEach
     void setUp() {
         service = new FavoriteServiceImpl(
-                favoriteRepository, userRepository, videoGameRepository, profileMapper);
+                favoriteRepository, userRepository, videoGameRepository, profileMapper,
+                onboardingService);
         testUser = new User("alice", "alice@test.com", "encoded-pwd");
         testUser.setId(UUID.randomUUID());
     }

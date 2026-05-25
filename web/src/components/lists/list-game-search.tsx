@@ -30,7 +30,7 @@ export function ListGameSearch({ onSelect, excludeIds }: ListGameSearchProps) {
   }
 
   return (
-    <div>
+    <div className="relative">
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
         <Input
@@ -42,7 +42,7 @@ export function ListGameSearch({ onSelect, excludeIds }: ListGameSearchProps) {
       </div>
 
       {isSearchActive && (
-        <div className="mt-2 max-h-[250px] overflow-y-auto rounded-md border">
+        <div className="bg-popover text-popover-foreground absolute left-0 right-0 top-full z-50 mt-2 max-h-[250px] overflow-y-auto rounded-md border shadow-md">
           {isSearching && (
             <div className="flex items-center justify-center py-6">
               <Loader2 className="size-5 animate-spin text-muted-foreground" />

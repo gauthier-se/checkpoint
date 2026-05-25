@@ -1,0 +1,39 @@
+meta {
+  name: Get Onboarding
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/me/onboarding
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  # Get Onboarding
+
+  Returns the current user's onboarding snapshot.
+
+  ## Response (200 OK)
+
+  ```json
+  {
+    "completedAt": null,
+    "steps": {
+      "welcome": true,
+      "picture": false
+    }
+  }
+  ```
+
+  - `completedAt` is `null` while the user is still in the wizard / checklist.
+  - `steps` is a sparse map — a missing entry means "not yet seen".
+
+  This data is also embedded in `GET /api/auth/me`, so the frontend usually
+  doesn't need to call this endpoint explicitly.
+}

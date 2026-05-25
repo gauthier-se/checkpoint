@@ -1,0 +1,43 @@
+meta {
+  name: Update Step
+  type: http
+  seq: 2
+}
+
+patch {
+  url: {{baseUrl}}/api/me/onboarding
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "step": "welcome",
+    "done": true
+  }
+}
+
+docs {
+  # Update Step
+
+  Explicitly records a step as done or skipped. Mostly used for the welcome
+  click ("Let's go") and for "Skip" buttons (where `done` is `false`).
+
+  Step-completed events from real actions (uploading a picture, linking Steam,
+  enabling 2FA, etc.) are recorded automatically server-side, so the client
+  doesn't need to PATCH after those.
+
+  ## Body
+
+  - `step` (required): one of `welcome`, `picture`, `bio`, `steam`, `twofa`,
+    `notifications`, `follow`.
+  - `done` (required): `true` for completed, `false` for explicitly skipped.
+
+  ## Response (200 OK)
+
+  The updated onboarding snapshot (same shape as `GET /api/me/onboarding`).
+}

@@ -17,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.checkpoint.api.dto.catalog.ReviewResponseDto;
 import com.checkpoint.api.dto.collection.WishResponseDto;
 import com.checkpoint.api.dto.list.GameListCardDto;
+import com.checkpoint.api.dto.onboarding.OnboardingSteps;
 import com.checkpoint.api.dto.profile.ProfileUpdatedDto;
 import com.checkpoint.api.dto.profile.RecentPlayDto;
 import com.checkpoint.api.dto.profile.UpdateProfileDto;
@@ -35,6 +36,7 @@ import com.checkpoint.api.repositories.UserGamePlayRepository;
 import com.checkpoint.api.repositories.UserRepository;
 import com.checkpoint.api.repositories.WishRepository;
 import com.checkpoint.api.services.GameListService;
+import com.checkpoint.api.services.OnboardingService;
 import com.checkpoint.api.services.ProfileService;
 import com.checkpoint.api.services.StorageService;
 
@@ -61,20 +63,10 @@ public class ProfileServiceImpl implements ProfileService {
     private final ProfileMapper profileMapper;
     private final ReviewMapper reviewMapper;
     private final WishMapper wishMapper;
+    private final OnboardingService onboardingService;
 
     /**
      * Constructs a new ProfileServiceImpl.
-     *
-     * @param userRepository         the user repository
-     * @param reviewRepository       the review repository
-     * @param wishRepository         the wish repository
-     * @param userGamePlayRepository the user game play repository
-     * @param likeRepository         the like repository
-     * @param gameListService        the game list service
-     * @param storageService         the storage service
-     * @param profileMapper          the profile mapper
-     * @param reviewMapper           the review mapper
-     * @param wishMapper             the wish mapper
      */
     public ProfileServiceImpl(UserRepository userRepository,
                                ReviewRepository reviewRepository,
@@ -85,7 +77,8 @@ public class ProfileServiceImpl implements ProfileService {
                                StorageService storageService,
                                ProfileMapper profileMapper,
                                ReviewMapper reviewMapper,
-                               WishMapper wishMapper) {
+                               WishMapper wishMapper,
+                               OnboardingService onboardingService) {
         this.userRepository = userRepository;
         this.reviewRepository = reviewRepository;
         this.wishRepository = wishRepository;
@@ -96,6 +89,7 @@ public class ProfileServiceImpl implements ProfileService {
         this.profileMapper = profileMapper;
         this.reviewMapper = reviewMapper;
         this.wishMapper = wishMapper;
+        this.onboardingService = onboardingService;
     }
 
     /**
@@ -239,6 +233,9 @@ public class ProfileServiceImpl implements ProfileService {
         }
 
         User savedUser = userRepository.save(user);
+        if (savedUser.getBio() != null && !savedUser.getBio().isBlank()) {
+            onboardingService.markStepDone(email, OnboardingSteps.BIO);
+        }
         return profileMapper.toProfileUpdatedDto(savedUser);
     }
 
@@ -263,6 +260,8 @@ public class ProfileServiceImpl implements ProfileService {
         String servingUrl = "/uploads/" + storagePath;
         user.setPicture(servingUrl);
         userRepository.save(user);
+
+        onboardingService.markStepDone(email, OnboardingSteps.PICTURE);
 
         return servingUrl;
     }

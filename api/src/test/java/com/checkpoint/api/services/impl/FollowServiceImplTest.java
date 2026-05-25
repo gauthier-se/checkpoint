@@ -48,6 +48,9 @@ class FollowServiceImplTest {
     @Mock
     private ApplicationEventPublisher eventPublisher;
 
+    @Mock
+    private com.checkpoint.api.services.OnboardingService onboardingService;
+
     private FollowMapper followMapper;
     private FollowServiceImpl followService;
 
@@ -57,7 +60,7 @@ class FollowServiceImplTest {
     @BeforeEach
     void setUp() {
         followMapper = new FollowMapperImpl();
-        followService = new FollowServiceImpl(userRepository, followMapper, eventPublisher);
+        followService = new FollowServiceImpl(userRepository, followMapper, eventPublisher, onboardingService);
 
         currentUser = new User();
         currentUser.setId(UUID.randomUUID());

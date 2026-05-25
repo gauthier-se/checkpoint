@@ -26,6 +26,7 @@ import com.checkpoint.api.exceptions.UserNotFoundException;
 import com.checkpoint.api.repositories.UserRepository;
 import com.checkpoint.api.security.JwtService;
 import com.checkpoint.api.services.impl.TwoFactorServiceImpl;
+import com.checkpoint.api.services.OnboardingService;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("TwoFactorServiceImpl")
@@ -40,11 +41,14 @@ class TwoFactorServiceImplTest {
     @Mock
     private PasswordEncoder passwordEncoder;
 
+    @Mock
+    private OnboardingService onboardingService;
+
     private TwoFactorService twoFactorService;
 
     @BeforeEach
     void setUp() {
-        twoFactorService = new TwoFactorServiceImpl(userRepository, jwtService, passwordEncoder);
+        twoFactorService = new TwoFactorServiceImpl(userRepository, jwtService, passwordEncoder, onboardingService);
     }
 
     @Nested
