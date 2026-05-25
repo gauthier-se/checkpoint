@@ -41,4 +41,16 @@ public interface LikeService {
      * @throws com.checkpoint.api.exceptions.CommentNotFoundException if the comment does not exist
      */
     LikeResponseDto toggleCommentLike(String userEmail, UUID commentId);
+
+    /**
+     * Toggles a like on a video game. If the user already likes the game, the like is removed.
+     * Otherwise, a new like is created. A "like" marks a game the user loves — distinct from
+     * the wishlist, which tracks games the user wants to buy.
+     *
+     * @param userEmail   the authenticated user's email
+     * @param videoGameId the video game ID
+     * @return a response indicating the new like status and updated count
+     * @throws com.checkpoint.api.exceptions.GameNotFoundException if the video game does not exist
+     */
+    LikeResponseDto toggleGameLike(String userEmail, UUID videoGameId);
 }

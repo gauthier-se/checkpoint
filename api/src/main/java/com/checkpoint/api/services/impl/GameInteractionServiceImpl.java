@@ -18,6 +18,7 @@ import com.checkpoint.api.entities.Wish;
 import com.checkpoint.api.enums.GameStatus;
 import com.checkpoint.api.enums.Priority;
 import com.checkpoint.api.repositories.BacklogRepository;
+import com.checkpoint.api.repositories.LikeRepository;
 import com.checkpoint.api.repositories.RateRepository;
 import com.checkpoint.api.repositories.ReviewRepository;
 import com.checkpoint.api.repositories.UserGamePlayRepository;
@@ -39,6 +40,7 @@ public class GameInteractionServiceImpl implements GameInteractionService {
     private final UserGamePlayRepository userGamePlayRepository;
     private final RateRepository rateRepository;
     private final ReviewRepository reviewRepository;
+    private final LikeRepository likeRepository;
 
     public GameInteractionServiceImpl(
             UserRepository userRepository,
@@ -47,7 +49,8 @@ public class GameInteractionServiceImpl implements GameInteractionService {
             UserGameRepository userGameRepository,
             UserGamePlayRepository userGamePlayRepository,
             RateRepository rateRepository,
-            ReviewRepository reviewRepository) {
+            ReviewRepository reviewRepository,
+            LikeRepository likeRepository) {
         this.userRepository = userRepository;
         this.wishRepository = wishRepository;
         this.backlogRepository = backlogRepository;
@@ -55,6 +58,7 @@ public class GameInteractionServiceImpl implements GameInteractionService {
         this.userGamePlayRepository = userGamePlayRepository;
         this.rateRepository = rateRepository;
         this.reviewRepository = reviewRepository;
+        this.likeRepository = likeRepository;
     }
 
     @Override
@@ -88,6 +92,8 @@ public class GameInteractionServiceImpl implements GameInteractionService {
                 .findMostRecentScoredPlay(user.getId(), videoGameId);
         Integer lastPlayRating = mostRecentScoredPlay.map(UserGamePlay::getScore).orElse(null);
 
+        boolean liked = likeRepository.existsByUserIdAndVideoGameId(user.getId(), videoGameId);
+
         return new GameInteractionStatusDto(
                 inWishlist,
                 wishlistPriority,
@@ -99,7 +105,8 @@ public class GameInteractionServiceImpl implements GameInteractionService {
                 playCount,
                 userRating,
                 hasReview,
-                lastPlayRating
+                lastPlayRating,
+                liked
         );
     }
 }

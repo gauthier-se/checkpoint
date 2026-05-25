@@ -19,17 +19,20 @@ import com.checkpoint.api.entities.GameList;
 import com.checkpoint.api.entities.Like;
 import com.checkpoint.api.entities.Review;
 import com.checkpoint.api.entities.User;
+import com.checkpoint.api.entities.VideoGame;
 import com.checkpoint.api.enums.NotificationType;
 import com.checkpoint.api.events.NotificationEvent;
 import com.checkpoint.api.events.ReviewLikedEvent;
 import com.checkpoint.api.exceptions.CommentNotFoundException;
 import com.checkpoint.api.exceptions.GameListNotFoundException;
+import com.checkpoint.api.exceptions.GameNotFoundException;
 import com.checkpoint.api.exceptions.ReviewNotFoundException;
 import com.checkpoint.api.repositories.CommentRepository;
 import com.checkpoint.api.repositories.GameListRepository;
 import com.checkpoint.api.repositories.LikeRepository;
 import com.checkpoint.api.repositories.ReviewRepository;
 import com.checkpoint.api.repositories.UserRepository;
+import com.checkpoint.api.repositories.VideoGameRepository;
 import com.checkpoint.api.services.LikeService;
 
 /**
@@ -47,25 +50,28 @@ public class LikeServiceImpl implements LikeService {
     private final GameListRepository gameListRepository;
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
+    private final VideoGameRepository videoGameRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final EntityManager entityManager;
 
     /**
      * Constructs a new LikeServiceImpl.
      *
-     * @param likeRepository     the like repository
-     * @param reviewRepository   the review repository
-     * @param gameListRepository the game list repository
-     * @param commentRepository  the comment repository
-     * @param userRepository     the user repository
-     * @param eventPublisher     the application event publisher
-     * @param entityManager      the JPA entity manager (used to refresh search index)
+     * @param likeRepository      the like repository
+     * @param reviewRepository    the review repository
+     * @param gameListRepository  the game list repository
+     * @param commentRepository   the comment repository
+     * @param userRepository      the user repository
+     * @param videoGameRepository the video game repository
+     * @param eventPublisher      the application event publisher
+     * @param entityManager       the JPA entity manager (used to refresh search index)
      */
     public LikeServiceImpl(LikeRepository likeRepository,
                            ReviewRepository reviewRepository,
                            GameListRepository gameListRepository,
                            CommentRepository commentRepository,
                            UserRepository userRepository,
+                           VideoGameRepository videoGameRepository,
                            ApplicationEventPublisher eventPublisher,
                            EntityManager entityManager) {
         this.likeRepository = likeRepository;
@@ -73,6 +79,7 @@ public class LikeServiceImpl implements LikeService {
         this.gameListRepository = gameListRepository;
         this.commentRepository = commentRepository;
         this.userRepository = userRepository;
+        this.videoGameRepository = videoGameRepository;
         this.eventPublisher = eventPublisher;
         this.entityManager = entityManager;
     }
@@ -183,6 +190,32 @@ public class LikeServiceImpl implements LikeService {
             likeRepository.save(like);
             long likesCount = likeRepository.countByCommentId(commentId) + 1;
             log.info("User {} liked comment {}", user.getPseudo(), commentId);
+            return new LikeResponseDto(true, likesCount);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public LikeResponseDto toggleGameLike(String userEmail, UUID videoGameId) {
+        User user = getUserByEmail(userEmail);
+
+        VideoGame videoGame = videoGameRepository.findById(videoGameId)
+                .orElseThrow(() -> new GameNotFoundException(videoGameId));
+
+        Optional<Like> existingLike = likeRepository.findByUserIdAndVideoGameId(user.getId(), videoGameId);
+
+        if (existingLike.isPresent()) {
+            likeRepository.delete(existingLike.get());
+            long likesCount = likeRepository.countByVideoGameId(videoGameId) - 1;
+            log.info("User {} unliked game {}", user.getPseudo(), videoGameId);
+            return new LikeResponseDto(false, Math.max(0, likesCount));
+        } else {
+            Like like = Like.forVideoGame(user, videoGame);
+            likeRepository.save(like);
+            long likesCount = likeRepository.countByVideoGameId(videoGameId) + 1;
+            log.info("User {} liked game {}", user.getPseudo(), videoGameId);
             return new LikeResponseDto(true, likesCount);
         }
     }

@@ -27,6 +27,7 @@ import com.checkpoint.api.enums.GameStatus;
 import com.checkpoint.api.enums.PlayStatus;
 import com.checkpoint.api.enums.Priority;
 import com.checkpoint.api.repositories.BacklogRepository;
+import com.checkpoint.api.repositories.LikeRepository;
 import com.checkpoint.api.repositories.RateRepository;
 import com.checkpoint.api.repositories.ReviewRepository;
 import com.checkpoint.api.repositories.UserGamePlayRepository;
@@ -57,6 +58,9 @@ class GameInteractionServiceImplTest {
 
     @Mock
     private ReviewRepository reviewRepository;
+
+    @Mock
+    private LikeRepository likeRepository;
 
     @InjectMocks
     private GameInteractionServiceImpl gameInteractionService;
@@ -101,12 +105,14 @@ class GameInteractionServiceImplTest {
         when(reviewRepository.existsByUserPseudoAndVideoGameId(testUser.getPseudo(), testGame.getId())).thenReturn(true);
         when(userGamePlayRepository.findMostRecentScoredPlay(testUser.getId(), testGame.getId()))
                 .thenReturn(Optional.of(mostRecentScoredPlay));
+        when(likeRepository.existsByUserIdAndVideoGameId(testUser.getId(), testGame.getId())).thenReturn(true);
 
         // When
         GameInteractionStatusDto result = gameInteractionService.getGameInteractionStatus(testUser.getEmail(), testGame.getId());
 
         // Then
         assertThat(result).isNotNull();
+        assertThat(result.liked()).isTrue();
         assertThat(result.inWishlist()).isTrue();
         assertThat(result.wishlistPriority()).isEqualTo(Priority.HIGH);
         assertThat(result.inBacklog()).isTrue();
@@ -149,6 +155,7 @@ class GameInteractionServiceImplTest {
         assertThat(result.userRating()).isNull();
         assertThat(result.hasReview()).isFalse();
         assertThat(result.lastPlayRating()).isNull();
+        assertThat(result.liked()).isFalse();
     }
 
     @Test

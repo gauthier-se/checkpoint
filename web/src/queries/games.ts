@@ -110,6 +110,18 @@ export async function updateBacklogPriority(
   })
 }
 
+/**
+ * Toggles a "like" on a game. A like marks a game the user loves — distinct from
+ * the wishlist (games the user wants to buy). The endpoint is a server-side toggle:
+ * a single POST likes or unlikes depending on the current state.
+ */
+export async function toggleGameLike(gameId: string) {
+  const res = await apiFetch(`/api/me/games/${gameId}/like`, {
+    method: 'POST',
+  })
+  return res.json() as Promise<{ liked: boolean; likesCount: number }>
+}
+
 export async function updateLibraryStatus(
   gameId: string,
   request: UserGameRequest | null,

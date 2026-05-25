@@ -14,6 +14,7 @@ export interface GameInteractionStatusDto {
   userRating: number | null
   hasReview: boolean
   lastPlayRating: number | null
+  liked: boolean
 }
 
 export type PlayStatus =

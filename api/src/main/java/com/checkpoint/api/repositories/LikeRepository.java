@@ -54,6 +54,12 @@ public interface LikeRepository extends JpaRepository<Like, UUID> {
     boolean existsByUserIdAndVideoGameId(UUID userId, UUID videoGameId);
 
     /**
+     * Finds a user's like on a specific video game (top-level like).
+     * Used by the like/unlike toggle to locate the row to remove.
+     */
+    Optional<Like> findByUserIdAndVideoGameId(UUID userId, UUID videoGameId);
+
+    /**
      * Returns the subset of {@code videoGameIds} that the given user has liked.
      * Batched single-query lookup used to populate the {@code isLiked} flag for
      * a list of plays without triggering N+1.

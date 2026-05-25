@@ -1,6 +1,6 @@
 import type { PaginationMetadata } from './game'
 
-export type FeedItemType = 'PLAY' | 'RATING' | 'REVIEW' | 'LIST'
+export type FeedItemType = 'PLAY' | 'RATING' | 'REVIEW' | 'LIST' | 'LIKE_GAME'
 
 export interface FeedUser {
   id: string

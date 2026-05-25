@@ -21,6 +21,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import com.checkpoint.api.dto.social.LikeResponseDto;
 import com.checkpoint.api.exceptions.CommentNotFoundException;
 import com.checkpoint.api.exceptions.GameListNotFoundException;
+import com.checkpoint.api.exceptions.GameNotFoundException;
 import com.checkpoint.api.exceptions.ReviewNotFoundException;
 import com.checkpoint.api.security.ApiAuthenticationEntryPoint;
 import com.checkpoint.api.security.JwtAuthenticationFilter;
@@ -211,6 +212,63 @@ class LikeControllerTest {
 
             // When / Then
             mockMvc.perform(post("/api/comments/{commentId}/like", commentId))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.status").value(404));
+        }
+    }
+
+    @Nested
+    @DisplayName("POST /api/me/games/{videoGameId}/like")
+    class ToggleGameLike {
+
+        @Test
+        @DisplayName("should like game and return 200")
+        @WithMockUser(username = "user@example.com")
+        void toggleGameLike_shouldLikeGame() throws Exception {
+            // Given
+            UUID videoGameId = UUID.randomUUID();
+            LikeResponseDto response = new LikeResponseDto(true, 7);
+
+            when(likeService.toggleGameLike(eq("user@example.com"), eq(videoGameId)))
+                    .thenReturn(response);
+
+            // When / Then
+            mockMvc.perform(post("/api/me/games/{videoGameId}/like", videoGameId))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.liked").value(true))
+                    .andExpect(jsonPath("$.likesCount").value(7));
+        }
+
+        @Test
+        @DisplayName("should unlike game and return 200")
+        @WithMockUser(username = "user@example.com")
+        void toggleGameLike_shouldUnlikeGame() throws Exception {
+            // Given
+            UUID videoGameId = UUID.randomUUID();
+            LikeResponseDto response = new LikeResponseDto(false, 6);
+
+            when(likeService.toggleGameLike(eq("user@example.com"), eq(videoGameId)))
+                    .thenReturn(response);
+
+            // When / Then
+            mockMvc.perform(post("/api/me/games/{videoGameId}/like", videoGameId))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.liked").value(false))
+                    .andExpect(jsonPath("$.likesCount").value(6));
+        }
+
+        @Test
+        @DisplayName("should return 404 when game not found")
+        @WithMockUser(username = "user@example.com")
+        void toggleGameLike_shouldReturn404WhenGameNotFound() throws Exception {
+            // Given
+            UUID videoGameId = UUID.randomUUID();
+
+            when(likeService.toggleGameLike(eq("user@example.com"), eq(videoGameId)))
+                    .thenThrow(new GameNotFoundException(videoGameId));
+
+            // When / Then
+            mockMvc.perform(post("/api/me/games/{videoGameId}/like", videoGameId))
                     .andExpect(status().isNotFound())
                     .andExpect(jsonPath("$.status").value(404));
         }

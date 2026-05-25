@@ -42,6 +42,12 @@ public class FeedRepositoryImpl implements FeedRepository {
                        l.title, CAST((SELECT COUNT(*) FROM game_list_entries gle WHERE gle.list_id = l.id) AS VARCHAR)
                 FROM lists l
                 WHERE l.user_id IN (:followingIds) AND l.created_at >= :since AND l.is_private = false
+                UNION ALL
+                SELECT lk.id, 'LIKE_GAME', lk.created_at, lk.user_id, lk.video_game_id,
+                       NULL, NULL
+                FROM likes lk
+                WHERE lk.user_id IN (:followingIds) AND lk.created_at >= :since
+                  AND lk.video_game_id IS NOT NULL
             ) AS feed
             ORDER BY created_at DESC
             """;
@@ -59,6 +65,10 @@ public class FeedRepositoryImpl implements FeedRepository {
                 UNION ALL
                 SELECT l.id FROM lists l
                 WHERE l.user_id IN (:followingIds) AND l.created_at >= :since AND l.is_private = false
+                UNION ALL
+                SELECT lk.id FROM likes lk
+                WHERE lk.user_id IN (:followingIds) AND lk.created_at >= :since
+                  AND lk.video_game_id IS NOT NULL
             ) AS feed_count
             """;
 

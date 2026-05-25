@@ -35,12 +35,14 @@ import com.checkpoint.api.enums.NotificationType;
 import com.checkpoint.api.events.NotificationEvent;
 import com.checkpoint.api.exceptions.CommentNotFoundException;
 import com.checkpoint.api.exceptions.GameListNotFoundException;
+import com.checkpoint.api.exceptions.GameNotFoundException;
 import com.checkpoint.api.exceptions.ReviewNotFoundException;
 import com.checkpoint.api.repositories.CommentRepository;
 import com.checkpoint.api.repositories.GameListRepository;
 import com.checkpoint.api.repositories.LikeRepository;
 import com.checkpoint.api.repositories.ReviewRepository;
 import com.checkpoint.api.repositories.UserRepository;
+import com.checkpoint.api.repositories.VideoGameRepository;
 
 /**
  * Unit tests for {@link LikeServiceImpl}.
@@ -64,6 +66,9 @@ class LikeServiceImplTest {
     private UserRepository userRepository;
 
     @Mock
+    private VideoGameRepository videoGameRepository;
+
+    @Mock
     private ApplicationEventPublisher eventPublisher;
 
     @Mock
@@ -82,7 +87,8 @@ class LikeServiceImplTest {
     void setUp() {
         likeService = new LikeServiceImpl(
                 likeRepository, reviewRepository, gameListRepository,
-                commentRepository, userRepository, eventPublisher, entityManager);
+                commentRepository, userRepository, videoGameRepository,
+                eventPublisher, entityManager);
 
         user = new User();
         user.setId(UUID.randomUUID());
@@ -98,6 +104,7 @@ class LikeServiceImplTest {
         listOwner.setPseudo("listOwner");
 
         videoGame = new VideoGame();
+        videoGame.setId(UUID.randomUUID());
         videoGame.setTitle("The Last of Us");
 
         review = new Review();
@@ -348,6 +355,73 @@ class LikeServiceImplTest {
             // When / Then
             assertThatThrownBy(() -> likeService.toggleCommentLike("user@example.com", unknownId))
                     .isInstanceOf(CommentNotFoundException.class);
+        }
+    }
+
+    @Nested
+    @DisplayName("toggleGameLike")
+    class ToggleGameLike {
+
+        @Test
+        @DisplayName("should like when not already liked")
+        void toggleGameLike_shouldLikeWhenNotLiked() {
+            // Given
+            when(userRepository.findByEmail("user@example.com"))
+                    .thenReturn(Optional.of(user));
+            when(videoGameRepository.findById(videoGame.getId()))
+                    .thenReturn(Optional.of(videoGame));
+            when(likeRepository.findByUserIdAndVideoGameId(user.getId(), videoGame.getId()))
+                    .thenReturn(Optional.empty());
+            when(likeRepository.countByVideoGameId(videoGame.getId()))
+                    .thenReturn(5L);
+
+            // When
+            LikeResponseDto result = likeService.toggleGameLike("user@example.com", videoGame.getId());
+
+            // Then
+            assertThat(result.liked()).isTrue();
+            assertThat(result.likesCount()).isEqualTo(6);
+            verify(likeRepository).save(any(Like.class));
+            verify(eventPublisher, never()).publishEvent(any(NotificationEvent.class));
+        }
+
+        @Test
+        @DisplayName("should unlike when already liked")
+        void toggleGameLike_shouldUnlikeWhenAlreadyLiked() {
+            // Given
+            Like existingLike = Like.forVideoGame(user, videoGame);
+
+            when(userRepository.findByEmail("user@example.com"))
+                    .thenReturn(Optional.of(user));
+            when(videoGameRepository.findById(videoGame.getId()))
+                    .thenReturn(Optional.of(videoGame));
+            when(likeRepository.findByUserIdAndVideoGameId(user.getId(), videoGame.getId()))
+                    .thenReturn(Optional.of(existingLike));
+            when(likeRepository.countByVideoGameId(videoGame.getId()))
+                    .thenReturn(6L);
+
+            // When
+            LikeResponseDto result = likeService.toggleGameLike("user@example.com", videoGame.getId());
+
+            // Then
+            assertThat(result.liked()).isFalse();
+            assertThat(result.likesCount()).isEqualTo(5);
+            verify(likeRepository).delete(existingLike);
+        }
+
+        @Test
+        @DisplayName("should throw GameNotFoundException when game does not exist")
+        void toggleGameLike_shouldThrowWhenGameNotFound() {
+            // Given
+            UUID unknownId = UUID.randomUUID();
+            when(userRepository.findByEmail("user@example.com"))
+                    .thenReturn(Optional.of(user));
+            when(videoGameRepository.findById(unknownId))
+                    .thenReturn(Optional.empty());
+
+            // When / Then
+            assertThatThrownBy(() -> likeService.toggleGameLike("user@example.com", unknownId))
+                    .isInstanceOf(GameNotFoundException.class);
         }
     }
 }

@@ -7,5 +7,6 @@ public enum FeedItemType {
     PLAY,
     RATING,
     REVIEW,
-    LIST
+    LIST,
+    LIKE_GAME
 }

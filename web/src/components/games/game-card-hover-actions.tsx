@@ -1,4 +1,4 @@
-import { Bookmark, Heart } from 'lucide-react'
+import { Gamepad2, Gift, Heart, Library, Play } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
@@ -22,13 +22,22 @@ export function GameCardHoverActions({
   const {
     inWishlist,
     inBacklog,
+    liked,
+    libraryStatus,
     toggleWishlist,
     toggleBacklog,
+    toggleLike,
+    toggleLibraryStatus,
     wishlistPending,
     backlogPending,
+    likePending,
+    libraryPending,
   } = useWishlistBacklogActions(gameId)
 
   if (!user) return null
+
+  const isPlaying = libraryStatus === 'PLAYING'
+  const isCompleted = libraryStatus === 'COMPLETED'
 
   const stop = (e: React.MouseEvent) => {
     e.preventDefault()
@@ -50,6 +59,27 @@ export function GameCardHoverActions({
             variant="secondary"
             size="icon"
             className="size-7 bg-background/80 backdrop-blur-sm hover:bg-background"
+            disabled={likePending}
+            aria-label={liked ? 'Unlike' : 'Like'}
+            aria-pressed={liked}
+            onClick={(e) => {
+              stop(e)
+              toggleLike()
+            }}
+          >
+            <Heart className={cn('size-3.5', liked && 'fill-current')} />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>{liked ? 'Unlike' : 'Like'}</TooltipContent>
+      </Tooltip>
+
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            type="button"
+            variant="secondary"
+            size="icon"
+            className="size-7 bg-background/80 backdrop-blur-sm hover:bg-background"
             disabled={wishlistPending}
             aria-label={inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
             onClick={(e) => {
@@ -57,7 +87,7 @@ export function GameCardHoverActions({
               toggleWishlist()
             }}
           >
-            <Heart className={cn('size-3.5', inWishlist && 'fill-current')} />
+            <Gift className={cn('size-3.5', inWishlist && 'fill-current')} />
           </Button>
         </TooltipTrigger>
         <TooltipContent>
@@ -79,11 +109,61 @@ export function GameCardHoverActions({
               toggleBacklog()
             }}
           >
-            <Bookmark className={cn('size-3.5', inBacklog && 'fill-current')} />
+            <Library className={cn('size-3.5', inBacklog && 'fill-current')} />
           </Button>
         </TooltipTrigger>
         <TooltipContent>
           {inBacklog ? 'Remove from backlog' : 'Add to backlog'}
+        </TooltipContent>
+      </Tooltip>
+
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            type="button"
+            variant="secondary"
+            size="icon"
+            className="size-7 bg-background/80 backdrop-blur-sm hover:bg-background"
+            disabled={libraryPending}
+            aria-label={isPlaying ? 'Clear playing status' : 'Mark as playing'}
+            aria-pressed={isPlaying}
+            onClick={(e) => {
+              stop(e)
+              toggleLibraryStatus('PLAYING')
+            }}
+          >
+            <Play className={cn('size-3.5', isPlaying && 'fill-current')} />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          {isPlaying ? 'Clear playing status' : 'Mark as playing'}
+        </TooltipContent>
+      </Tooltip>
+
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            type="button"
+            variant="secondary"
+            size="icon"
+            className="size-7 bg-background/80 backdrop-blur-sm hover:bg-background"
+            disabled={libraryPending}
+            aria-label={
+              isCompleted ? 'Clear completed status' : 'Mark as completed'
+            }
+            aria-pressed={isCompleted}
+            onClick={(e) => {
+              stop(e)
+              toggleLibraryStatus('COMPLETED')
+            }}
+          >
+            <Gamepad2
+              className={cn('size-3.5', isCompleted && 'fill-current')}
+            />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          {isCompleted ? 'Clear completed status' : 'Mark as completed'}
         </TooltipContent>
       </Tooltip>
     </div>

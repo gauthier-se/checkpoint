@@ -1,0 +1,49 @@
+meta {
+  name: Toggle Game Like
+  type: http
+  seq: 14
+}
+
+post {
+  url: {{baseUrl}}/api/me/games/:videoGameId/like
+  body: none
+  auth: bearer
+}
+
+params:path {
+  videoGameId: 00000000-0000-0000-0000-000000000000
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  # Toggle Game Like
+
+  Toggles a like on a video game. If the user already likes the game, the like is removed.
+  Otherwise, a new like is created. A "like" marks a game the user loves — distinct from the
+  wishlist, which tracks games the user wants to buy.
+
+  ## Authentication
+
+  Requires a valid JWT token in the `Authorization: Bearer` header.
+
+  ## Path Parameters
+
+  - **videoGameId**: The UUID of the video game to like/unlike
+
+  ## Response (200 OK)
+
+  ```json
+  {
+    "liked": true,
+    "likesCount": 5
+  }
+  ```
+
+  ## Error Responses
+
+  - **401 Unauthorized**: Not authenticated
+  - **404 Not Found**: Video game does not exist
+}

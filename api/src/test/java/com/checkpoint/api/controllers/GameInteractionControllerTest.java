@@ -52,7 +52,7 @@ class GameInteractionControllerTest {
         UUID videoGameId = UUID.randomUUID();
 
         GameInteractionStatusDto response = new GameInteractionStatusDto(
-                true, null, false, null, true, GameStatus.COMPLETED, "My private notes", 1, 4, true, 4
+                true, null, false, null, true, GameStatus.COMPLETED, "My private notes", 1, 4, true, 4, true
         );
 
         when(gameInteractionService.getGameInteractionStatus(eq("user@example.com"), eq(videoGameId)))

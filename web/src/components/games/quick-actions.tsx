@@ -3,13 +3,16 @@ import { useState } from 'react'
 import { useHotkey } from '@tanstack/react-hotkeys'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
-  Bookmark,
+  Boxes,
   Check,
   ChevronDown,
   Gamepad2,
+  Gift,
   Heart,
   Library,
+  NotebookPen,
   Pencil,
+  Play,
   StickyNote,
   Trash2,
 } from 'lucide-react'
@@ -66,8 +69,10 @@ export function GameQuickActions({ game }: GameQuickActionsProps) {
   const {
     toggleWishlist: toggleWishlistAction,
     toggleBacklog: toggleBacklogAction,
+    toggleLike: toggleLikeAction,
     wishlistPending,
     backlogPending,
+    likePending,
   } = useWishlistBacklogActions(game.id)
 
   const wishlistPriorityMutation = useMutation({
@@ -208,6 +213,14 @@ export function GameQuickActions({ game }: GameQuickActionsProps) {
     { enabled: hotkeysEnabled },
   )
 
+  useHotkey(
+    'L',
+    () => {
+      toggleLikeAction()
+    },
+    { enabled: hotkeysEnabled },
+  )
+
   const handleLibraryChange = (newStatus: GameStatus) => {
     libraryMutation.mutate(newStatus)
   }
@@ -218,6 +231,7 @@ export function GameQuickActions({ game }: GameQuickActionsProps) {
 
   const renderButtons = () => {
     const disabled = !user
+    const isLiked = status?.liked ?? false
     const isWishlisted = status?.inWishlist
     const wishlistPriority = status?.wishlistPriority ?? null
     const isBacklog = status?.inBacklog
@@ -232,6 +246,27 @@ export function GameQuickActions({ game }: GameQuickActionsProps) {
 
     const buttons = (
       <div className="flex flex-wrap items-center gap-2">
+        {/* Like Button — a game the user loves (distinct from the wishlist) */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant={isLiked ? 'default' : 'outline'}
+              size="sm"
+              className="gap-2 focus:ring-0"
+              disabled={disabled || likePending}
+              aria-pressed={isLiked}
+              onClick={() => toggleLikeAction()}
+            >
+              <Heart className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
+              {isLiked ? 'Liked' : 'Like'}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent className="flex items-center gap-2">
+            <span>Toggle like</span>
+            <KbdHint keys={['L']} />
+          </TooltipContent>
+        </Tooltip>
+
         {/* Wishlist Button */}
         {isWishlisted ? (
           <DropdownMenu>
@@ -248,7 +283,7 @@ export function GameQuickActions({ game }: GameQuickActionsProps) {
                       wishlistPriorityMutation.isPending
                     }
                   >
-                    <Heart className="w-4 h-4 fill-current" />
+                    <Gift className="w-4 h-4 fill-current" />
                     Wishlist
                     {wishlistPriority &&
                       ` · ${PRIORITY_LABEL[wishlistPriority]}`}
@@ -323,7 +358,7 @@ export function GameQuickActions({ game }: GameQuickActionsProps) {
                     className="gap-2 focus:ring-0"
                     disabled={disabled || wishlistPending}
                   >
-                    <Heart className="w-4 h-4" />
+                    <Gift className="w-4 h-4" />
                     Wishlist
                     <ChevronDown className="w-3 h-3 opacity-50" />
                   </Button>
@@ -368,7 +403,7 @@ export function GameQuickActions({ game }: GameQuickActionsProps) {
                       backlogPriorityMutation.isPending
                     }
                   >
-                    <Bookmark className="w-4 h-4 fill-current" />
+                    <Library className="w-4 h-4 fill-current" />
                     Backlog
                     {backlogPriority && ` · ${PRIORITY_LABEL[backlogPriority]}`}
                     <ChevronDown className="w-3 h-3 opacity-50" />
@@ -440,7 +475,7 @@ export function GameQuickActions({ game }: GameQuickActionsProps) {
                     className="gap-2 focus:ring-0"
                     disabled={disabled || backlogPending}
                   >
-                    <Bookmark className="w-4 h-4" />
+                    <Library className="w-4 h-4" />
                     Backlog
                     <ChevronDown className="w-3 h-3 opacity-50" />
                   </Button>
@@ -469,6 +504,40 @@ export function GameQuickActions({ game }: GameQuickActionsProps) {
           </DropdownMenu>
         )}
 
+        {/* Quick Library Status: Playing */}
+        <Button
+          variant={libraryStatus === 'PLAYING' ? 'default' : 'outline'}
+          size="sm"
+          className="gap-2 focus:ring-0"
+          disabled={disabled || libraryMutation.isPending}
+          aria-pressed={libraryStatus === 'PLAYING'}
+          onClick={() =>
+            libraryMutation.mutate(
+              libraryStatus === 'PLAYING' ? null : 'PLAYING',
+            )
+          }
+        >
+          <Play className="w-4 h-4" />
+          Playing
+        </Button>
+
+        {/* Quick Library Status: Completed */}
+        <Button
+          variant={libraryStatus === 'COMPLETED' ? 'default' : 'outline'}
+          size="sm"
+          className="gap-2 focus:ring-0"
+          disabled={disabled || libraryMutation.isPending}
+          aria-pressed={libraryStatus === 'COMPLETED'}
+          onClick={() =>
+            libraryMutation.mutate(
+              libraryStatus === 'COMPLETED' ? null : 'COMPLETED',
+            )
+          }
+        >
+          <Gamepad2 className="w-4 h-4" />
+          Completed
+        </Button>
+
         {/* Library Dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -478,7 +547,7 @@ export function GameQuickActions({ game }: GameQuickActionsProps) {
               className="gap-2 focus:ring-0"
               disabled={disabled || libraryMutation.isPending}
             >
-              <Library className="w-4 h-4" />
+              <Boxes className="w-4 h-4" />
               {libraryStatus ? `Lib: ${libraryStatus}` : 'Library'}
               <ChevronDown className="w-3 h-3 opacity-50" />
             </Button>
@@ -548,7 +617,7 @@ export function GameQuickActions({ game }: GameQuickActionsProps) {
           disabled={disabled}
           onClick={() => setPlayLogOpen(true)}
         >
-          <Gamepad2 className="w-4 h-4" />
+          <NotebookPen className="w-4 h-4" />
           Log Play
         </Button>
 

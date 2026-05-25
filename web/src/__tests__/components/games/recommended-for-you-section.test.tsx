@@ -39,10 +39,13 @@ vi.mock('@/hooks/use-wishlist-backlog-actions', () => ({
   useWishlistBacklogActions: () => ({
     inWishlist: false,
     inBacklog: false,
+    liked: false,
     toggleWishlist: () => {},
     toggleBacklog: () => {},
+    toggleLike: () => {},
     wishlistPending: false,
     backlogPending: false,
+    likePending: false,
   }),
 }))
 

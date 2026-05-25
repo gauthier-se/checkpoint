@@ -96,4 +96,26 @@ public class LikeController {
 
         return ResponseEntity.ok(response);
     }
+
+    /**
+     * Toggles a like on a video game. If the user already likes the game, the like is removed.
+     * Otherwise, a new like is created. A "like" marks a game the user loves — distinct from the
+     * wishlist (games the user wants to buy).
+     *
+     * @param userDetails the authenticated user principal
+     * @param videoGameId the video game ID
+     * @return the new like status and updated count
+     */
+    @PostMapping("/api/me/games/{videoGameId}/like")
+    public ResponseEntity<LikeResponseDto> toggleGameLike(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable UUID videoGameId) {
+
+        log.info("POST /api/me/games/{}/like - user: {}", videoGameId, userDetails.getUsername());
+
+        LikeResponseDto response = likeService.toggleGameLike(
+                userDetails.getUsername(), videoGameId);
+
+        return ResponseEntity.ok(response);
+    }
 }

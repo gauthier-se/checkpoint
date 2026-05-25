@@ -68,6 +68,9 @@ public class FeedMapperImpl implements FeedMapper {
                 listTitle = extra1;
                 listGameCount = extra2 != null ? Integer.parseInt(extra2) : null;
                 break;
+            case LIKE_GAME:
+                // No type-specific fields; the liked game is carried by the common `game` field.
+                break;
         }
 
         return new FeedItemDto(

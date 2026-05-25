@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import { formatDistanceToNow } from 'date-fns'
-import { ListMusic, MessageSquare, Play, Star } from 'lucide-react'
+import { Heart, ListMusic, MessageSquare, Play, Star } from 'lucide-react'
 import type { FeedItem as FeedItemType } from '@/types/feed'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
@@ -25,6 +25,8 @@ function getActivityIcon(type: FeedItemType['type']) {
       return <MessageSquare className="size-4" />
     case 'LIST':
       return <ListMusic className="size-4" />
+    case 'LIKE_GAME':
+      return <Heart className="size-4" />
   }
 }
 
@@ -38,6 +40,8 @@ function getActivityText(item: FeedItemType) {
       return 'reviewed'
     case 'LIST':
       return 'created a list'
+    case 'LIKE_GAME':
+      return 'liked'
   }
 }
 
