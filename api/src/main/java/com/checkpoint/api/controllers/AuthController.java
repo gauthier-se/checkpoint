@@ -457,6 +457,10 @@ public class AuthController {
         // login / signup: try to log in the existing user, otherwise hand off to the prefilled signup.
         User user = steamService.findUserBySteamId(steamId).orElse(null);
         if (user != null) {
+            if (authService.requireTwoFactorChallenge(user.getEmail(), servletResponse)) {
+                log.info("Steam OpenID login requires 2FA challenge for {}", user.getEmail());
+                return clientSideRedirect(frontendUrl + "/login?2fa=required");
+            }
             authService.establishWebSession(user.getEmail(), servletResponse);
             log.info("Steam OpenID login successful for {}", user.getEmail());
             return clientSideRedirect(frontendUrl + "/");

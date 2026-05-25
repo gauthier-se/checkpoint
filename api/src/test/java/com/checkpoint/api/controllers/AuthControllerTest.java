@@ -731,6 +731,36 @@ class AuthControllerTest {
         }
 
         @Test
+        @DisplayName("GET /steam/openid/callback action=login redirects to 2FA challenge when account has 2FA enabled")
+        void callback_loginRequiresTwoFactor() throws Exception {
+            stubValidLoginState();
+            com.checkpoint.api.entities.User user = new com.checkpoint.api.entities.User();
+            user.setEmail("alice@test.com");
+
+            when(steamOpenIdClient.verifyAndExtractSteamId(any())).thenReturn(STEAM_ID);
+            when(steamService.findUserBySteamId(STEAM_ID))
+                    .thenReturn(java.util.Optional.of(user));
+            when(authService.requireTwoFactorChallenge(
+                    org.mockito.ArgumentMatchers.eq("alice@test.com"),
+                    any(HttpServletResponse.class)))
+                    .thenReturn(true);
+
+            mockMvc.perform(get("/api/auth/steam/openid/callback")
+                            .param("action", "login")
+                            .param("state", STATE_TOKEN)
+                            .param("openid.mode", "id_res")
+                            .param("openid.claimed_id",
+                                    "https://steamcommunity.com/openid/id/" + STEAM_ID))
+                    .andExpect(status().isOk())
+                    .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
+                            .content().string(org.hamcrest.Matchers.containsString(
+                                    "/login?2fa=required")));
+
+            verify(authService, never()).establishWebSession(
+                    org.mockito.ArgumentMatchers.anyString(), any(HttpServletResponse.class));
+        }
+
+        @Test
         @DisplayName("GET /steam/openid/callback action=login redirects to /register?steam_token=... when no user")
         void callback_loginNoLinkedUserRedirectsToSignup() throws Exception {
             stubValidLoginState();

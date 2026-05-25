@@ -175,6 +175,23 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public boolean requireTwoFactorChallenge(String email, HttpServletResponse servletResponse) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + email));
+
+        if (!Boolean.TRUE.equals(user.getTwoFactorEnabled())) {
+            return false;
+        }
+
+        String intermediateToken = twoFactorService.generateIntermediateToken(email);
+        ResponseCookie twoFaCookie = buildCookie(TWO_FA_COOKIE_NAME, intermediateToken,
+                TWO_FA_COOKIE_MAX_AGE_SECONDS, "/api/auth/2fa/login");
+        servletResponse.addHeader(HttpHeaders.SET_COOKIE, twoFaCookie.toString());
+        return true;
+    }
+
+    @Override
     @Transactional
     public void refreshTokenAndSetCookie(String refreshToken, HttpServletResponse servletResponse) {
         RefreshToken existing = refreshTokenService.validateToken(refreshToken);

@@ -227,6 +227,58 @@ class AuthServiceImplTest {
     }
 
     @Nested
+    @DisplayName("requireTwoFactorChallenge")
+    class RequireTwoFactorChallengeTests {
+
+        @Test
+        @DisplayName("Should set checkpoint_2fa cookie and return true when 2FA is enabled")
+        void shouldChallengeWhenTwoFactorEnabled() {
+            // Given
+            com.checkpoint.api.entities.User user =
+                    new com.checkpoint.api.entities.User("alice", "user@test.com", "enc");
+            user.setTwoFactorEnabled(true);
+            HttpServletResponse servletResponse = mock(HttpServletResponse.class);
+
+            when(userRepository.findByEmail("user@test.com")).thenReturn(Optional.of(user));
+            when(twoFactorService.generateIntermediateToken("user@test.com"))
+                    .thenReturn("intermediate.jwt");
+
+            // When
+            boolean challenged = authService.requireTwoFactorChallenge("user@test.com", servletResponse);
+
+            // Then
+            assertThat(challenged).isTrue();
+
+            ArgumentCaptor<String> headerValueCaptor = ArgumentCaptor.forClass(String.class);
+            verify(servletResponse).addHeader(org.mockito.ArgumentMatchers.eq("Set-Cookie"),
+                    headerValueCaptor.capture());
+            String cookie = headerValueCaptor.getValue();
+            assertThat(cookie).contains("checkpoint_2fa=intermediate.jwt")
+                    .contains("HttpOnly")
+                    .contains("Path=/api/auth/2fa/login");
+        }
+
+        @Test
+        @DisplayName("Should write no cookie and return false when 2FA is disabled")
+        void shouldNotChallengeWhenTwoFactorDisabled() {
+            // Given
+            com.checkpoint.api.entities.User user =
+                    new com.checkpoint.api.entities.User("alice", "user@test.com", "enc");
+            HttpServletResponse servletResponse = mock(HttpServletResponse.class);
+
+            when(userRepository.findByEmail("user@test.com")).thenReturn(Optional.of(user));
+
+            // When
+            boolean challenged = authService.requireTwoFactorChallenge("user@test.com", servletResponse);
+
+            // Then
+            assertThat(challenged).isFalse();
+            verify(servletResponse, never()).addHeader(any(), any());
+            verify(twoFactorService, never()).generateIntermediateToken(any());
+        }
+    }
+
+    @Nested
     @DisplayName("clearAuthCookie")
     class ClearAuthCookieTests {
 

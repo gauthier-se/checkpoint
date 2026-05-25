@@ -19,12 +19,19 @@ import {
   FieldSeparator,
 } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import { TotpInput } from '@/components/auth/totp-input'
 import { useAuth } from '@/hooks/use-auth'
 import { cn } from '@/lib/utils'
 import { apiFetch, isApiError } from '@/services/api'
 
 interface LoginFormProps extends React.ComponentProps<'div'> {
   redirectTo?: string
+  /**
+   * When true, the form opens directly on the TOTP challenge step. Set by the
+   * login route after a social login (Google/Twitch/Steam) redirects back with
+   * `?2fa=required`; the `checkpoint_2fa` cookie has already been issued by the API.
+   */
+  twoFactorRequired?: boolean
 }
 
 const API_URL = import.meta.env.VITE_API_URL ?? ''
@@ -54,10 +61,17 @@ const totpSchema = z.object({
   code: z.string().length(6, 'Code must be exactly 6 digits'),
 })
 
-export function LoginForm({ className, redirectTo, ...props }: LoginFormProps) {
+export function LoginForm({
+  className,
+  redirectTo,
+  twoFactorRequired: twoFactorRequiredInitial = false,
+  ...props
+}: LoginFormProps) {
   const navigate = useNavigate()
   const { invalidate } = useAuth()
-  const [twoFactorRequired, setTwoFactorRequired] = useState(false)
+  const [twoFactorRequired, setTwoFactorRequired] = useState(
+    twoFactorRequiredInitial,
+  )
 
   const form = useForm({
     defaultValues: {
@@ -136,21 +150,18 @@ export function LoginForm({ className, redirectTo, ...props }: LoginFormProps) {
                   name="code"
                   children={(field) => (
                     <Field>
-                      <FieldLabel htmlFor="totp-code">
-                        Authenticator code
-                      </FieldLabel>
-                      <Input
+                      <FieldLabel htmlFor="totp-code">2FA Code</FieldLabel>
+                      <TotpInput
                         id="totp-code"
-                        type="text"
-                        inputMode="numeric"
-                        maxLength={6}
-                        placeholder="000000"
-                        autoComplete="one-time-code"
                         autoFocus
                         value={field.state.value}
                         onBlur={field.handleBlur}
-                        onChange={(e) => field.handleChange(e.target.value)}
+                        onChange={(value) => field.handleChange(value)}
+                        invalid={field.state.meta.errors.length > 0}
                       />
+                      <FieldDescription>
+                        Enter the 6-digit code from your authenticator app.
+                      </FieldDescription>
                       {field.state.meta.errors.length > 0 && (
                         <p className="text-sm text-destructive">
                           {field.state.meta.errors
@@ -164,24 +175,34 @@ export function LoginForm({ className, redirectTo, ...props }: LoginFormProps) {
                   )}
                 />
                 <Field>
-                  <totpForm.Subscribe
-                    selector={(state) => [state.canSubmit, state.isSubmitting]}
-                    children={([canSubmit, isSubmitting]) => (
-                      <Button
-                        type="submit"
-                        disabled={!canSubmit || isSubmitting}
-                      >
-                        {isSubmitting ? 'Verifying...' : 'Verify'}
-                      </Button>
-                    )}
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setTwoFactorRequired(false)}
-                  >
-                    Back
-                  </Button>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => setTwoFactorRequired(false)}
+                    >
+                      Back
+                    </Button>
+                    <totpForm.Subscribe
+                      selector={(state) => [
+                        state.canSubmit,
+                        state.isSubmitting,
+                      ]}
+                      children={([canSubmit, isSubmitting]) => (
+                        <Button
+                          type="submit"
+                          className="w-full"
+                          disabled={!canSubmit || isSubmitting}
+                        >
+                          {isSubmitting ? 'Verifying...' : 'Verify'}
+                        </Button>
+                      )}
+                    />
+                  </div>
+                  <FieldDescription className="text-right">
+                    <Link to="/forgot-password">Lost your password?</Link>
+                  </FieldDescription>
                 </Field>
               </FieldGroup>
             </form>

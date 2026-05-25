@@ -6,6 +6,7 @@ import { LoginForm } from '@/components/auth/login-form'
 type LoginSearchParams = {
   redirect?: string
   error?: string
+  twoFactorRequired?: boolean
 }
 
 const OAUTH_ERROR_MESSAGES: Record<string, string> = {
@@ -20,12 +21,15 @@ export const Route = createFileRoute('/_auth/login')({
   validateSearch: (search: Record<string, unknown>): LoginSearchParams => ({
     redirect: typeof search.redirect === 'string' ? search.redirect : undefined,
     error: typeof search.error === 'string' ? search.error : undefined,
+    // Social logins (Google/Twitch/Steam) redirect here with `?2fa=required`
+    // when the matched account has 2FA enabled, to prompt for the TOTP code.
+    twoFactorRequired: search['2fa'] === 'required',
   }),
   component: LoginPage,
 })
 
 function LoginPage() {
-  const { redirect, error } = Route.useSearch()
+  const { redirect, error, twoFactorRequired } = Route.useSearch()
 
   useEffect(() => {
     if (error) {
@@ -45,7 +49,10 @@ function LoginPage() {
           <img className="w-6" src="/images/logo.png" alt="Checkpoint" />
           Checkpoint
         </Link>
-        <LoginForm redirectTo={redirect} />
+        <LoginForm
+          redirectTo={redirect}
+          twoFactorRequired={twoFactorRequired}
+        />
       </div>
     </div>
   )

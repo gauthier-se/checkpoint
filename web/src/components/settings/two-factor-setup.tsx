@@ -6,7 +6,7 @@ import { toast } from 'sonner'
 import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Field, FieldLabel } from '@/components/ui/field'
-import { Input } from '@/components/ui/input'
+import { TotpInput } from '@/components/auth/totp-input'
 import { authQueryOptions } from '@/hooks/use-auth'
 import { apiFetch, isApiError } from '@/services/api'
 
@@ -122,16 +122,12 @@ export function TwoFactorSetup({
                 <FieldLabel htmlFor="verify-code">
                   6-digit confirmation code
                 </FieldLabel>
-                <Input
+                <TotpInput
                   id="verify-code"
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={6}
-                  placeholder="000000"
-                  autoComplete="one-time-code"
                   value={field.state.value}
                   onBlur={field.handleBlur}
-                  onChange={(e) => field.handleChange(e.target.value)}
+                  onChange={(value) => field.handleChange(value)}
+                  invalid={field.state.meta.errors.length > 0}
                 />
                 {field.state.meta.errors.length > 0 && (
                   <p className="text-sm text-destructive">

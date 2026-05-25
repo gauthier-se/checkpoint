@@ -63,6 +63,21 @@ public interface AuthService {
     void establishWebSession(String email, HttpServletResponse servletResponse);
 
     /**
+     * Decides whether a social/redirect login (OAuth2, Steam OpenID) for {@code email} must be
+     * gated behind two-factor authentication.
+     *
+     * <p>If the user has 2FA enabled, writes the short-lived {@code checkpoint_2fa} intermediate
+     * cookie and returns {@code true} — the caller must then redirect to the 2FA challenge instead
+     * of establishing a session. If 2FA is disabled, writes nothing and returns {@code false},
+     * leaving the caller to establish the session as usual.</p>
+     *
+     * @param email           the email of the already-identity-verified user (from OAuth/OpenID)
+     * @param servletResponse the HTTP servlet response to write the {@code checkpoint_2fa} cookie on
+     * @return {@code true} if a 2FA challenge was issued, {@code false} otherwise
+     */
+    boolean requireTwoFactorChallenge(String email, HttpServletResponse servletResponse);
+
+    /**
      * Clears auth cookies and revokes the refresh token (for Web logout).
      * The refresh token parameter is optional; if {@code null} only the cookies are expired.
      *

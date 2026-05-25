@@ -5,6 +5,7 @@ import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -18,6 +19,7 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationSu
 import org.springframework.stereotype.Component;
 
 import com.checkpoint.api.security.JwtService;
+import com.checkpoint.api.services.AuthService;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -42,19 +44,30 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
 
     private final UserDetailsService userDetailsService;
     private final JwtService jwtService;
+    private final AuthService authService;
     private final SimpleUrlAuthenticationSuccessHandler delegate;
     private final String fallbackTargetUrl;
+    private final String twoFactorChallengeUrl;
     private final boolean cookieSecure;
     private final long jwtExpirationMs;
 
+    /**
+     * {@code authService} is injected lazily to break a bean-creation cycle: {@code SecurityConfig}
+     * needs this handler, this handler needs {@code AuthService}, and {@code AuthService} needs the
+     * {@code AuthenticationManager} bean that {@code SecurityConfig} itself defines. A {@link Lazy}
+     * proxy defers the dependency until first use, after the context has finished starting.
+     */
     public OAuth2AuthenticationSuccessHandler(UserDetailsService userDetailsService,
                                               JwtService jwtService,
+                                              @Lazy AuthService authService,
                                               @Value("${app.frontend-url:http://localhost:3000}") String frontendUrl,
                                               @Value("${app.cookie.secure:true}") boolean cookieSecure,
                                               @Value("${jwt.expiration-ms:86400000}") long jwtExpirationMs) {
         this.userDetailsService = userDetailsService;
         this.jwtService = jwtService;
+        this.authService = authService;
         this.fallbackTargetUrl = frontendUrl + "/";
+        this.twoFactorChallengeUrl = frontendUrl + "/login?2fa=required";
         this.delegate = new SimpleUrlAuthenticationSuccessHandler(this.fallbackTargetUrl);
         this.cookieSecure = cookieSecure;
         this.jwtExpirationMs = jwtExpirationMs;
@@ -68,6 +81,12 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
         if (email == null) {
             log.warn("OAuth2 success handler could not extract email from principal");
             response.sendRedirect(fallbackTargetUrl);
+            return;
+        }
+
+        if (authService.requireTwoFactorChallenge(email, response)) {
+            log.info("OAuth2 login requires 2FA challenge for {}", email);
+            response.sendRedirect(twoFactorChallengeUrl);
             return;
         }
 
