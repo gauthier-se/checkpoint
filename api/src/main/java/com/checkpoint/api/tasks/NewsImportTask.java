@@ -7,6 +7,8 @@ import org.springframework.stereotype.Component;
 
 import com.checkpoint.api.services.NewsImportService;
 
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
+
 /**
  * Scheduled passes that pull news from Steam (per-game) and from configured RSS feeds
  * into the local {@code news} table. Both passes are dedup-safe (see
@@ -28,6 +30,7 @@ public class NewsImportTask {
      * so a library of 200 games takes ~3 minutes — well within the cron window.
      */
     @Scheduled(cron = "0 0 */6 * * *")
+    @SchedulerLock(name = "newsImportSteam", lockAtLeastFor = "30m", lockAtMostFor = "2h")
     public void runSteamPass() {
         log.info("Scheduled Steam news pass starting");
         try {
@@ -43,6 +46,7 @@ public class NewsImportTask {
      * handful of feeds finishes well under a minute even if one is sluggish.
      */
     @Scheduled(cron = "0 30 * * * *")
+    @SchedulerLock(name = "newsImportRss", lockAtLeastFor = "5m", lockAtMostFor = "20m")
     public void runRssPass() {
         log.info("Scheduled RSS news pass starting");
         try {

@@ -18,6 +18,8 @@ import com.checkpoint.api.entities.User;
 import com.checkpoint.api.exceptions.SteamApiException;
 import com.checkpoint.api.repositories.UserRepository;
 
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
+
 /**
  * Scheduled task that keeps cached Steam profile fields ({@code steamDisplayName},
  * {@code steamAvatarUrl}, {@code steamProfileUrl}) on the {@code User} entity fresh.
@@ -48,6 +50,7 @@ public class SteamProfileRefreshTask {
     }
 
     @Scheduled(cron = "0 0 4 * * *")
+    @SchedulerLock(name = "steamProfileRefresh", lockAtLeastFor = "10m", lockAtMostFor = "30m")
     @Transactional
     public void refreshStaleProfiles() {
         LocalDateTime cutoff = LocalDateTime.now().minusHours(24);

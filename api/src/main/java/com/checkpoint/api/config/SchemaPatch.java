@@ -29,7 +29,25 @@ public class SchemaPatch implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
+        createShedlockTable();
         dropNotNullOnNewsUserId();
+    }
+
+    /**
+     * TE-310: create the shedlock table for distributed task locking if it doesn't exist.
+     */
+    private void createShedlockTable() {
+        try {
+            jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS shedlock (" +
+                    "name VARCHAR(64) PRIMARY KEY, " +
+                    "lock_until TIMESTAMP NOT NULL, " +
+                    "locked_at TIMESTAMP NOT NULL, " +
+                    "locked_by VARCHAR(255) NOT NULL" +
+                    ")");
+            log.info("SchemaPatch: ensured shedlock table exists");
+        } catch (Exception e) {
+            log.error("SchemaPatch: failed to create shedlock table", e);
+        }
     }
 
     /**
