@@ -6,6 +6,7 @@ import type { GameDetail } from '@/types/game'
 import { ErrorPage } from '@/components/errors/error-page'
 import { GameListsSection } from '@/components/games/game-lists-section'
 import { GameQuickActions } from '@/components/games/quick-actions'
+import { SimilarGamesSection } from '@/components/games/similar-games-section'
 import { ReviewList } from '@/components/reviews/review-list'
 import { Button } from '@/components/ui/button'
 import {
@@ -15,6 +16,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Separator } from '@/components/ui/separator'
+import { similarGamesQueryOptions } from '@/queries/catalog'
 import { listsContainingGameQueryOptions } from '@/queries/lists'
 import { gameReviewsQueryOptions } from '@/queries/review'
 import { apiFetch, isApiError } from '@/services/api'
@@ -27,10 +29,13 @@ export const Route = createFileRoute('/_app/games/$gameId')({
       gameReviewsQueryOptions(gameId, 0, 10),
     )
 
-    // prefetch the first page of lists containing this game so SSR renders the section
-    await context.queryClient.prefetchQuery(
-      listsContainingGameQueryOptions(gameId, 0, 6),
-    )
+    // prefetch lists + similar games so SSR renders those sections
+    await Promise.all([
+      context.queryClient.prefetchQuery(
+        listsContainingGameQueryOptions(gameId, 0, 6),
+      ),
+      context.queryClient.prefetchQuery(similarGamesQueryOptions(gameId)),
+    ])
 
     const res = await apiFetch(`/api/games/${gameId}`)
     return res.json() as Promise<GameDetail>
@@ -284,6 +289,10 @@ function RouteComponent() {
             </div>
           </>
         )}
+
+        <Suspense fallback={null}>
+          <SimilarGamesSection gameId={game.id} />
+        </Suspense>
 
         <Separator className="my-6" />
 

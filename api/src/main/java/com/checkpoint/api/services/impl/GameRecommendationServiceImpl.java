@@ -2,7 +2,6 @@ package com.checkpoint.api.services.impl;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -60,13 +59,6 @@ public class GameRecommendationServiceImpl implements GameRecommendationService 
     private static final double STATUS_PLAYING_WEIGHT = 0.5;
     private static final double LIKE_WEIGHT = 2.0;
     private static final double WISH_WEIGHT = 0.5;
-
-    private static final double GENRE_SCORE_WEIGHT = 1.0;
-    private static final double COMPANY_SCORE_WEIGHT = 0.6;
-    private static final double PLATFORM_SCORE_WEIGHT = 0.4;
-    private static final double AVERAGE_RATING_TIEBREAKER_WEIGHT = 0.2;
-    private static final double RECENCY_BOOST = 0.5;
-    private static final int RECENCY_BOOST_YEARS = 2;
 
     private static final String COLD_START_REASON = "Trending this week";
 
@@ -139,8 +131,8 @@ public class GameRecommendationServiceImpl implements GameRecommendationService 
 
         List<UUID> candidateIds = videoGameRepository.findCandidateIdsForRecommendation(
                 userId,
-                ensureNonEmpty(genreScores.keySet()),
-                ensureNonEmpty(companyScores.keySet()),
+                GameTagScorer.ensureNonEmpty(genreScores.keySet()),
+                GameTagScorer.ensureNonEmpty(companyScores.keySet()),
                 PageRequest.of(0, CANDIDATE_POOL_CAP));
 
         if (candidateIds.isEmpty()) {
@@ -153,25 +145,13 @@ public class GameRecommendationServiceImpl implements GameRecommendationService 
 
         List<ScoredCandidate> scored = new ArrayList<>(candidates.size());
         for (VideoGame candidate : candidates) {
-            double genreContrib = sumScores(candidate.getGenres().stream().map(Genre::getId).toList(), genreScores);
-            double platformContrib = sumScores(candidate.getPlatforms().stream().map(com.checkpoint.api.entities.Platform::getId).toList(), platformScores);
-            double companyContrib = sumScores(candidate.getCompanies().stream().map(Company::getId).toList(), companyScores);
-
-            double rating = candidate.getAverageRating() != null ? candidate.getAverageRating() : 0.0;
-            double recency = isRecent(candidate.getReleaseDate(), today) ? RECENCY_BOOST : 0.0;
-
-            double score = genreContrib * GENRE_SCORE_WEIGHT
-                    + platformContrib * PLATFORM_SCORE_WEIGHT
-                    + companyContrib * COMPANY_SCORE_WEIGHT
-                    + rating * AVERAGE_RATING_TIEBREAKER_WEIGHT
-                    + recency;
-
-            if (score <= 0) {
+            GameTagScorer.TagScore tagScore =
+                    GameTagScorer.score(candidate, genreScores, platformScores, companyScores, today);
+            if (tagScore.total() <= 0) {
                 continue;
             }
-            scored.add(new ScoredCandidate(candidate, score,
-                    genreContrib * GENRE_SCORE_WEIGHT,
-                    companyContrib * COMPANY_SCORE_WEIGHT));
+            scored.add(new ScoredCandidate(candidate, tagScore.total(),
+                    tagScore.genreContribution(), tagScore.companyContribution()));
         }
 
         Comparator<ScoredCandidate> byTitle =
@@ -265,33 +245,6 @@ public class GameRecommendationServiceImpl implements GameRecommendationService 
             return STATUS_PLAYING_WEIGHT;
         }
         return 0.0;
-    }
-
-    private static double sumScores(Collection<UUID> ids, Map<UUID, Double> scores) {
-        double sum = 0.0;
-        for (UUID id : ids) {
-            Double v = scores.get(id);
-            if (v != null) {
-                sum += v;
-            }
-        }
-        return sum;
-    }
-
-    private static boolean isRecent(LocalDate releaseDate, LocalDate today) {
-        return releaseDate != null && !releaseDate.isBefore(today.minusYears(RECENCY_BOOST_YEARS));
-    }
-
-    /**
-     * Empty collections in JPQL {@code IN} clauses are rejected by some Hibernate
-     * dialects. Substitute a sentinel UUID that cannot match any real row so the
-     * query reduces to "false" rather than throwing.
-     */
-    private static Collection<UUID> ensureNonEmpty(Set<UUID> ids) {
-        if (ids.isEmpty()) {
-            return List.of(new UUID(0L, 0L));
-        }
-        return ids;
     }
 
     private List<RecommendedGameDto> mapTrendingToRecommendations(List<GameCardDto> trending) {
