@@ -4,6 +4,7 @@ import { Gamepad2, Loader2, Search } from 'lucide-react'
 import type { Game } from '@/types/game'
 import { Input } from '@/components/ui/input'
 import { searchGamesQueryOptions } from '@/queries/catalog'
+import { cn } from '@/lib/utils'
 
 interface ListGameSearchProps {
   onSelect: (game: Game) => void
@@ -15,7 +16,11 @@ export function ListGameSearch({ onSelect, excludeIds }: ListGameSearchProps) {
   const deferredQuery = useDeferredValue(query)
   const isSearchActive = deferredQuery.length >= 2
 
-  const { data: searchResults, isLoading: isSearching } = useQuery({
+  const {
+    data: searchResults,
+    isLoading: isSearching,
+    isFetching: isFetchingSearch,
+  } = useQuery({
     ...searchGamesQueryOptions(deferredQuery),
     enabled: isSearchActive,
   })
@@ -37,12 +42,22 @@ export function ListGameSearch({ onSelect, excludeIds }: ListGameSearchProps) {
           placeholder="Search games to add..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="pl-9"
+          className="pl-9 pr-9"
         />
+        {isFetchingSearch && !isSearching && (
+          <div className="absolute right-3 top-1/2 -translate-y-1/2">
+            <Loader2 className="size-4 animate-spin text-muted-foreground opacity-50" />
+          </div>
+        )}
       </div>
 
       {isSearchActive && (
-        <div className="bg-popover text-popover-foreground absolute left-0 right-0 top-full z-50 mt-2 max-h-[250px] overflow-y-auto rounded-md border shadow-md">
+        <div
+          className={cn(
+            'bg-popover text-popover-foreground absolute left-0 right-0 top-full z-50 mt-2 max-h-[250px] overflow-y-auto rounded-md border shadow-md transition-opacity duration-200',
+            isFetchingSearch && !isSearching ? 'opacity-50' : 'opacity-100',
+          )}
+        >
           {isSearching && (
             <div className="flex items-center justify-center py-6">
               <Loader2 className="size-5 animate-spin text-muted-foreground" />

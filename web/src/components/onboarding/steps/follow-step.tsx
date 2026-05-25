@@ -1,8 +1,9 @@
 import { useDeferredValue, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Search, UserCheck, UserPlus } from 'lucide-react'
+import { Loader2, Search, UserCheck, UserPlus } from 'lucide-react'
 import { StepFrame } from '../step-frame'
 import type { MemberCard } from '@/types/member'
+import { cn } from '@/lib/utils'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -25,9 +26,11 @@ export function FollowStep({ onNext }: FollowStepProps) {
   const isSearching = deferredQuery.length >= 2
 
   const { data: suggested = [] } = useQuery(suggestedMembersQueryOptions(6))
-  const { data: searchResults } = useQuery(
-    searchMembersQueryOptions(deferredQuery),
-  )
+  const {
+    data: searchResults,
+    isLoading: isSearchingMembers,
+    isFetching: isFetchingMembers,
+  } = useQuery(searchMembersQueryOptions(deferredQuery))
 
   const members: Array<MemberCard> = isSearching
     ? (searchResults?.content ?? [])
@@ -73,9 +76,14 @@ export function FollowStep({ onNext }: FollowStepProps) {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search people by username..."
-          className="pl-9"
+          className="pl-9 pr-9"
           aria-label="Search people to follow"
         />
+        {isFetchingMembers && !isSearchingMembers && (
+          <div className="absolute right-3 top-1/2 -translate-y-1/2">
+            <Loader2 className="size-4 animate-spin text-muted-foreground opacity-50" />
+          </div>
+        )}
       </div>
 
       {members.length === 0 ? (
@@ -85,7 +93,14 @@ export function FollowStep({ onNext }: FollowStepProps) {
             : 'No suggestions yet — search above to find people to follow.'}
         </p>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div
+          className={cn(
+            'grid gap-3 sm:grid-cols-2 transition-opacity duration-200',
+            isFetchingMembers && !isSearchingMembers
+              ? 'opacity-50'
+              : 'opacity-100',
+          )}
+        >
           {members.map((m: MemberCard) => (
             <SuggestedMember
               key={m.id}

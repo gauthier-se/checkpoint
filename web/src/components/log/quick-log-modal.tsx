@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { PlayLogForm } from '@/components/games/play-log-form'
+import { cn } from '@/lib/utils'
 import {
   gameDetailQueryOptions,
   searchGamesQueryOptions,
@@ -47,7 +48,11 @@ export function QuickLogModal({ open, onOpenChange }: QuickLogModalProps) {
     }
   }, [open])
 
-  const { data: searchResults, isLoading: isSearching } = useQuery({
+  const {
+    data: searchResults,
+    isLoading: isSearching,
+    isFetching: isFetchingSearch,
+  } = useQuery({
     ...searchGamesQueryOptions(deferredQuery),
     enabled: isSearchActive && step === 'search',
   })
@@ -93,10 +98,20 @@ export function QuickLogModal({ open, onOpenChange }: QuickLogModalProps) {
                 placeholder="Search games..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                className="pl-9"
+                className="pl-9 pr-9"
               />
+              {isFetchingSearch && !isSearching && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <Loader2 className="size-4 animate-spin text-muted-foreground opacity-50" />
+                </div>
+              )}
             </div>
-            <div className="mt-2 max-h-[400px] overflow-y-auto">
+            <div
+              className={cn(
+                'mt-2 max-h-[400px] overflow-y-auto transition-opacity duration-200',
+                isFetchingSearch && !isSearching ? 'opacity-50' : 'opacity-100',
+              )}
+            >
               {isSearching && (
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="size-5 animate-spin text-muted-foreground" />

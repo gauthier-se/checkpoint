@@ -1,4 +1,4 @@
-import { queryOptions } from '@tanstack/react-query'
+import { keepPreviousData, queryOptions } from '@tanstack/react-query'
 import type { MemberCard, MembersResponse } from '@/types/member'
 import { apiFetch } from '@/services/api'
 
@@ -59,6 +59,7 @@ export function searchMembersQueryOptions(query: string) {
     },
     staleTime: 30 * 1000,
     enabled: query.length >= 2,
+    placeholderData: keepPreviousData,
   })
 }
 

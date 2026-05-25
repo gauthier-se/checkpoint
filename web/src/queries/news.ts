@@ -1,4 +1,4 @@
-import { queryOptions } from '@tanstack/react-query'
+import { keepPreviousData, queryOptions } from '@tanstack/react-query'
 import type {
   NewsArticle,
   NewsListSearchParams,
@@ -73,5 +73,6 @@ export function searchNewsQueryOptions(query: string, limit: number = 5) {
     },
     staleTime: 30 * 1000,
     enabled: query.length >= 2,
+    placeholderData: keepPreviousData,
   })
 }

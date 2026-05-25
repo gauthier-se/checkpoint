@@ -19,6 +19,7 @@ import {
 import { searchMembersQueryOptions } from '@/queries/members'
 import { searchNewsQueryOptions } from '@/queries/news'
 import { Badge } from '@/components/ui/badge'
+import { cn } from '@/lib/utils'
 
 type SearchTab = 'all' | 'games' | 'members' | 'news' | 'genres' | 'platforms'
 
@@ -40,17 +41,29 @@ export function SearchCommand({ open, onOpenChange }: SearchCommandProps) {
   const showGenres = tab === 'all' || tab === 'genres'
   const showPlatforms = tab === 'all' || tab === 'platforms'
 
-  const { data: games, isLoading: isLoadingGames } = useQuery({
+  const {
+    data: games,
+    isLoading: isLoadingGames,
+    isFetching: isFetchingGames,
+  } = useQuery({
     ...searchGamesQueryOptions(deferredQuery),
     enabled: isSearchActive && showGames,
   })
 
-  const { data: membersResponse, isLoading: isLoadingMembers } = useQuery({
+  const {
+    data: membersResponse,
+    isLoading: isLoadingMembers,
+    isFetching: isFetchingMembers,
+  } = useQuery({
     ...searchMembersQueryOptions(deferredQuery),
     enabled: isSearchActive && showMembers,
   })
 
-  const { data: news, isLoading: isLoadingNews } = useQuery({
+  const {
+    data: news,
+    isLoading: isLoadingNews,
+    isFetching: isFetchingNews,
+  } = useQuery({
     ...searchNewsQueryOptions(deferredQuery),
     enabled: isSearchActive && showNews,
   })
@@ -79,6 +92,12 @@ export function SearchCommand({ open, onOpenChange }: SearchCommandProps) {
     ((showGames && isLoadingGames) ||
       (showMembers && isLoadingMembers) ||
       (showNews && isLoadingNews))
+
+  const isFetching =
+    isSearchActive &&
+    ((showGames && isFetchingGames) ||
+      (showMembers && isFetchingMembers) ||
+      (showNews && isFetchingNews))
 
   const hasResults =
     (showGames && games && games.length > 0) ||
@@ -316,7 +335,12 @@ export function SearchCommand({ open, onOpenChange }: SearchCommandProps) {
             Platforms
           </TabsTrigger>
         </TabsList>
-        <CommandList>
+        <CommandList className="relative">
+          {isFetching && !isLoading && (
+            <div className="absolute right-4 top-4 z-10">
+              <Loader2 className="size-4 animate-spin text-muted-foreground opacity-50" />
+            </div>
+          )}
           {isLoading && (
             <div className="flex items-center justify-center py-6">
               <Loader2 className="size-5 animate-spin text-muted-foreground" />
@@ -333,28 +357,35 @@ export function SearchCommand({ open, onOpenChange }: SearchCommandProps) {
             </div>
           )}
 
-          <TabsContent value="all" className="mt-0">
-            {gamesResults}
-            {newsResults}
-            {membersResults}
-            {genresResults}
-            {platformsResults}
-          </TabsContent>
-          <TabsContent value="games" className="mt-0">
-            {gamesResults}
-          </TabsContent>
-          <TabsContent value="members" className="mt-0">
-            {membersResults}
-          </TabsContent>
-          <TabsContent value="news" className="mt-0">
-            {newsResults}
-          </TabsContent>
-          <TabsContent value="genres" className="mt-0">
-            {genresResults}
-          </TabsContent>
-          <TabsContent value="platforms" className="mt-0">
-            {platformsResults}
-          </TabsContent>
+          <div
+            className={cn(
+              'transition-opacity duration-200',
+              isFetching && !isLoading ? 'opacity-50' : 'opacity-100',
+            )}
+          >
+            <TabsContent value="all" className="mt-0">
+              {gamesResults}
+              {newsResults}
+              {membersResults}
+              {genresResults}
+              {platformsResults}
+            </TabsContent>
+            <TabsContent value="games" className="mt-0">
+              {gamesResults}
+            </TabsContent>
+            <TabsContent value="members" className="mt-0">
+              {membersResults}
+            </TabsContent>
+            <TabsContent value="news" className="mt-0">
+              {newsResults}
+            </TabsContent>
+            <TabsContent value="genres" className="mt-0">
+              {genresResults}
+            </TabsContent>
+            <TabsContent value="platforms" className="mt-0">
+              {platformsResults}
+            </TabsContent>
+          </div>
         </CommandList>
       </Tabs>
     </CommandDialog>
