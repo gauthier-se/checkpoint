@@ -3,6 +3,7 @@ package com.checkpoint.api.services;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -17,6 +18,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
@@ -33,7 +35,9 @@ import com.checkpoint.api.entities.Review;
 import com.checkpoint.api.entities.User;
 import com.checkpoint.api.entities.UserGamePlay;
 import com.checkpoint.api.entities.VideoGame;
+import com.checkpoint.api.enums.NotificationType;
 import com.checkpoint.api.enums.PlayStatus;
+import com.checkpoint.api.events.NotificationEvent;
 import com.checkpoint.api.exceptions.GameNotFoundException;
 import com.checkpoint.api.exceptions.PlayLogNotFoundException;
 import com.checkpoint.api.exceptions.ReviewAlreadyExistsException;
@@ -375,6 +379,103 @@ class ReviewServiceImplTest {
             // When / Then
             assertThatThrownBy(() -> reviewService.getPlayLogReview(testUser.getEmail(), playId))
                     .isInstanceOf(ReviewNotFoundException.class);
+        }
+    }
+
+    @Nested
+    @DisplayName("mention notifications")
+    class MentionNotifications {
+
+        private User mentionedUser() {
+            User other = new User();
+            other.setId(UUID.randomUUID());
+            other.setPseudo("otheruser");
+            other.setEmail("other@test.com");
+            return other;
+        }
+
+        private NotificationEvent captureMentionEvent() {
+            ArgumentCaptor<Object> captor = ArgumentCaptor.forClass(Object.class);
+            verify(eventPublisher, atLeastOnce()).publishEvent(captor.capture());
+            return captor.getAllValues().stream()
+                    .filter(NotificationEvent.class::isInstance)
+                    .map(NotificationEvent.class::cast)
+                    .findFirst()
+                    .orElseThrow(() -> new AssertionError("No MENTION notification event was published"));
+        }
+
+        @Test
+        @DisplayName("Should dispatch a MENTION notification when creating a review")
+        void createReview_shouldDispatchMention() {
+            // Given
+            User other = mentionedUser();
+            ReviewRequestDto requestDto = new ReviewRequestDto("Played with @otheruser", false);
+            when(userRepository.findByEmail(testUser.getEmail())).thenReturn(Optional.of(testUser));
+            when(userGamePlayRepository.findById(playId)).thenReturn(Optional.of(testPlayLog));
+            when(reviewRepository.existsByUserGamePlayId(playId)).thenReturn(false);
+
+            Review savedReview = new Review("Played with @otheruser", false, testUser, testGame, testPlayLog);
+            savedReview.setId(UUID.randomUUID());
+            when(reviewRepository.save(any(Review.class))).thenReturn(savedReview);
+            when(userRepository.findByPseudo("otheruser")).thenReturn(Optional.of(other));
+
+            // When
+            reviewService.createPlayLogReview(testUser.getEmail(), playId, requestDto);
+
+            // Then
+            NotificationEvent event = captureMentionEvent();
+            assertThat(event.getRecipientId()).isEqualTo(other.getId());
+            assertThat(event.getSenderId()).isEqualTo(testUser.getId());
+            assertThat(event.getType()).isEqualTo(NotificationType.MENTION);
+            assertThat(event.getReferenceId()).isEqualTo(savedReview.getId());
+        }
+
+        @Test
+        @DisplayName("Should dispatch a MENTION notification when updating a review")
+        void updateReview_shouldDispatchMention() {
+            // Given
+            User other = mentionedUser();
+            ReviewRequestDto requestDto = new ReviewRequestDto("Now mentioning @otheruser", false);
+            Review existingReview = new Review("Old content", false, testUser, testGame, testPlayLog);
+            existingReview.setId(UUID.randomUUID());
+
+            when(userRepository.findByEmail(testUser.getEmail())).thenReturn(Optional.of(testUser));
+            when(userGamePlayRepository.findById(playId)).thenReturn(Optional.of(testPlayLog));
+            when(reviewRepository.findByUserGamePlayId(playId)).thenReturn(Optional.of(existingReview));
+            when(reviewRepository.save(existingReview)).thenReturn(existingReview);
+            when(userRepository.findByPseudo("otheruser")).thenReturn(Optional.of(other));
+
+            // When
+            reviewService.updatePlayLogReview(testUser.getEmail(), playId, requestDto);
+
+            // Then
+            NotificationEvent event = captureMentionEvent();
+            assertThat(event.getRecipientId()).isEqualTo(other.getId());
+            assertThat(event.getType()).isEqualTo(NotificationType.MENTION);
+            assertThat(event.getReferenceId()).isEqualTo(existingReview.getId());
+        }
+
+        @Test
+        @DisplayName("Should not dispatch a MENTION notification for a self-mention")
+        void createReview_shouldNotDispatchSelfMention() {
+            // Given
+            ReviewRequestDto requestDto = new ReviewRequestDto("Note to @testuser", false);
+            when(userRepository.findByEmail(testUser.getEmail())).thenReturn(Optional.of(testUser));
+            when(userGamePlayRepository.findById(playId)).thenReturn(Optional.of(testPlayLog));
+            when(reviewRepository.existsByUserGamePlayId(playId)).thenReturn(false);
+
+            Review savedReview = new Review("Note to @testuser", false, testUser, testGame, testPlayLog);
+            savedReview.setId(UUID.randomUUID());
+            when(reviewRepository.save(any(Review.class))).thenReturn(savedReview);
+            when(userRepository.findByPseudo("testuser")).thenReturn(Optional.of(testUser));
+
+            // When
+            reviewService.createPlayLogReview(testUser.getEmail(), playId, requestDto);
+
+            // Then
+            ArgumentCaptor<Object> captor = ArgumentCaptor.forClass(Object.class);
+            verify(eventPublisher, atLeastOnce()).publishEvent(captor.capture());
+            assertThat(captor.getAllValues()).noneMatch(NotificationEvent.class::isInstance);
         }
     }
 }

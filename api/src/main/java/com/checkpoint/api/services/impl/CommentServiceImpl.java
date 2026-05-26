@@ -1,5 +1,6 @@
 package com.checkpoint.api.services.impl;
 
+import java.util.Set;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -29,6 +30,7 @@ import com.checkpoint.api.repositories.LikeRepository;
 import com.checkpoint.api.repositories.ReviewRepository;
 import com.checkpoint.api.repositories.UserRepository;
 import com.checkpoint.api.services.CommentService;
+import com.checkpoint.api.utils.MentionParser;
 
 /**
  * Implementation of {@link CommentService}.
@@ -91,6 +93,8 @@ public class CommentServiceImpl implements CommentService {
 
         log.info("User {} commented on review {}", user.getPseudo(), reviewId);
 
+        dispatchMentionNotifications(content, user.getId(), savedComment.getId());
+
         return commentMapper.toDto(savedComment);
     }
 
@@ -108,6 +112,8 @@ public class CommentServiceImpl implements CommentService {
         Comment savedComment = commentRepository.save(comment);
 
         log.info("User {} commented on list {}", user.getPseudo(), listId);
+
+        dispatchMentionNotifications(content, user.getId(), savedComment.getId());
 
         return commentMapper.toDto(savedComment);
     }
@@ -163,6 +169,8 @@ public class CommentServiceImpl implements CommentService {
                 parentComment.getUser().getId(), user.getId(),
                 NotificationType.COMMENT_REPLY, parentCommentId, message));
 
+        dispatchMentionNotifications(content, user.getId(), savedReply.getId());
+
         return commentMapper.toDto(savedReply);
     }
 
@@ -196,6 +204,8 @@ public class CommentServiceImpl implements CommentService {
 
         log.info("User {} updated comment {}", user.getPseudo(), commentId);
 
+        dispatchMentionNotifications(content, user.getId(), updatedComment.getId());
+
         return commentMapper.toDto(updatedComment);
     }
 
@@ -216,6 +226,30 @@ public class CommentServiceImpl implements CommentService {
         commentRepository.delete(comment);
 
         log.info("User {} deleted comment {}", user.getPseudo(), commentId);
+    }
+
+    /**
+     * Parses {@code @username} mentions from the given content and publishes a
+     * {@link NotificationType#MENTION} notification for each mentioned user that exists
+     * and is not the author. Unknown pseudos are silently ignored, and duplicate
+     * mentions of the same user produce a single notification (deduplicated by the
+     * {@link Set} of pseudos and, ultimately, by the notification service).
+     *
+     * @param content     the comment content to scan for mentions
+     * @param authorId    the comment author's ID (never notified about their own mention)
+     * @param referenceId the saved comment's ID, used as the notification reference
+     */
+    private void dispatchMentionNotifications(String content, UUID authorId, UUID referenceId) {
+        Set<String> mentioned = MentionParser.extractMentions(content);
+        for (String pseudo : mentioned) {
+            userRepository.findByPseudo(pseudo).ifPresent(target -> {
+                if (!target.getId().equals(authorId)) {
+                    eventPublisher.publishEvent(new NotificationEvent(
+                            target.getId(), authorId, NotificationType.MENTION,
+                            referenceId, "@" + pseudo + " mentioned you in a comment"));
+                }
+            });
+        }
     }
 
     /**

@@ -23,6 +23,7 @@ const preferencesSchema = z.object({
   commentReplyEnabled: z.boolean(),
   levelUpEnabled: z.boolean(),
   badgeUnlockedEnabled: z.boolean(),
+  mentionEnabled: z.boolean(),
 })
 
 const toggles = [
@@ -61,6 +62,11 @@ const toggles = [
     label: 'Badge unlocks',
     description: 'When you earn a new badge',
   },
+  {
+    name: 'mentionEnabled',
+    label: 'Mentions',
+    description: 'When someone @mentions you in a comment or review',
+  },
 ] as const
 
 interface NotificationPreferencesFormProps {
@@ -81,6 +87,7 @@ export function NotificationPreferencesForm({
       commentReplyEnabled: preferences.commentReplyEnabled,
       levelUpEnabled: preferences.levelUpEnabled,
       badgeUnlockedEnabled: preferences.badgeUnlockedEnabled,
+      mentionEnabled: preferences.mentionEnabled,
     },
     validators: {
       onSubmit: preferencesSchema,

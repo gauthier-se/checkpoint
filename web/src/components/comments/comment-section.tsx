@@ -5,9 +5,9 @@ import { toast } from 'sonner'
 
 import { CommentItem } from './comment-item'
 import type { CommentsResponse } from '@/types/comment'
+import { MentionTextarea } from '@/components/shared/mention-textarea'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
 import { useAuth } from '@/hooks/use-auth'
 import {
   listCommentsQueryOptions,
@@ -88,11 +88,11 @@ export function CommentSection({ targetType, targetId }: CommentSectionProps) {
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 space-y-2">
-              <Textarea
+              <MentionTextarea
                 placeholder="Write a comment..."
                 className="min-h-[80px] resize-y"
                 value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
+                onChange={setNewComment}
               />
               <div className="flex justify-end">
                 <Button

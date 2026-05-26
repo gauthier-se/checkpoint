@@ -79,6 +79,9 @@ public class NotificationPreferencesServiceImpl implements NotificationPreferenc
         if (dto.badgeUnlockedEnabled() != null) {
             preferences.setBadgeUnlockedEnabled(dto.badgeUnlockedEnabled());
         }
+        if (dto.mentionEnabled() != null) {
+            preferences.setMentionEnabled(dto.mentionEnabled());
+        }
 
         NotificationPreferences saved = preferencesRepository.save(preferences);
         onboardingService.markStepDone(userEmail, OnboardingSteps.NOTIFICATIONS);

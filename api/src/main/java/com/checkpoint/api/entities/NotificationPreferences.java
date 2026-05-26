@@ -50,6 +50,9 @@ public class NotificationPreferences {
     @Column(name = "badge_unlocked_enabled", nullable = false, columnDefinition = "BOOLEAN NOT NULL DEFAULT TRUE")
     private Boolean badgeUnlockedEnabled = true;
 
+    @Column(name = "mention_enabled", nullable = false, columnDefinition = "BOOLEAN NOT NULL DEFAULT TRUE")
+    private Boolean mentionEnabled = true;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -82,6 +85,7 @@ public class NotificationPreferences {
             case COMMENT_REPLY -> Boolean.TRUE.equals(commentReplyEnabled);
             case LEVEL_UP -> Boolean.TRUE.equals(levelUpEnabled);
             case BADGE_UNLOCKED -> Boolean.TRUE.equals(badgeUnlockedEnabled);
+            case MENTION -> Boolean.TRUE.equals(mentionEnabled);
         };
     }
 
@@ -155,6 +159,14 @@ public class NotificationPreferences {
 
     public void setBadgeUnlockedEnabled(Boolean badgeUnlockedEnabled) {
         this.badgeUnlockedEnabled = badgeUnlockedEnabled;
+    }
+
+    public Boolean getMentionEnabled() {
+        return mentionEnabled;
+    }
+
+    public void setMentionEnabled(Boolean mentionEnabled) {
+        this.mentionEnabled = mentionEnabled;
     }
 
     public LocalDateTime getCreatedAt() {

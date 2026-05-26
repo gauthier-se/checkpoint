@@ -131,7 +131,7 @@ class NotificationPreferencesServiceImplTest {
                     .thenAnswer(invocation -> invocation.getArgument(0));
 
             UpdateNotificationPreferencesDto dto = new UpdateNotificationPreferencesDto(
-                    false, null, null, null, false, null, null);
+                    false, null, null, null, false, null, null, null);
 
             // When
             NotificationPreferencesDto result = preferencesService.update("user@example.com", dto);
@@ -157,7 +157,7 @@ class NotificationPreferencesServiceImplTest {
                     .thenAnswer(invocation -> invocation.getArgument(0));
 
             UpdateNotificationPreferencesDto dto = new UpdateNotificationPreferencesDto(
-                    null, null, null, null, null, false, false);
+                    null, null, null, null, null, false, false, null);
 
             // When
             NotificationPreferencesDto result = preferencesService.update("user@example.com", dto);
@@ -178,7 +178,7 @@ class NotificationPreferencesServiceImplTest {
                     .thenAnswer(invocation -> invocation.getArgument(0));
 
             UpdateNotificationPreferencesDto dto = new UpdateNotificationPreferencesDto(
-                    false, null, null, null, null, null, null);
+                    false, null, null, null, null, null, null, null);
 
             // When
             NotificationPreferencesDto result = preferencesService.update("user@example.com", dto);
@@ -236,6 +236,19 @@ class NotificationPreferencesServiceImplTest {
             // Then
             assertThat(preferencesService.isEnabled(recipientId, NotificationType.LEVEL_UP)).isFalse();
             assertThat(preferencesService.isEnabled(recipientId, NotificationType.BADGE_UNLOCKED)).isTrue();
+        }
+
+        @Test
+        @DisplayName("should gate MENTION on its own flag")
+        void isEnabled_shouldGateMention() {
+            // Given
+            UUID recipientId = UUID.randomUUID();
+            NotificationPreferences prefs = new NotificationPreferences(user);
+            prefs.setMentionEnabled(false);
+            when(preferencesRepository.findByUserId(recipientId)).thenReturn(Optional.of(prefs));
+
+            // Then
+            assertThat(preferencesService.isEnabled(recipientId, NotificationType.MENTION)).isFalse();
         }
     }
 }

@@ -1,6 +1,7 @@
 package com.checkpoint.api.services.impl;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -19,6 +20,8 @@ import com.checkpoint.api.dto.catalog.ReviewResponseDto;
 import com.checkpoint.api.entities.Review;
 import com.checkpoint.api.entities.User;
 import com.checkpoint.api.entities.UserGamePlay;
+import com.checkpoint.api.enums.NotificationType;
+import com.checkpoint.api.events.NotificationEvent;
 import com.checkpoint.api.events.ReviewCreatedEvent;
 import com.checkpoint.api.events.UserActivityEvent;
 import com.checkpoint.api.exceptions.GameNotFoundException;
@@ -33,6 +36,7 @@ import com.checkpoint.api.repositories.UserGamePlayRepository;
 import com.checkpoint.api.repositories.UserRepository;
 import com.checkpoint.api.repositories.VideoGameRepository;
 import com.checkpoint.api.services.ReviewService;
+import com.checkpoint.api.utils.MentionParser;
 
 /**
  * Implementation of {@link ReviewService}.
@@ -136,6 +140,8 @@ public class ReviewServiceImpl implements ReviewService {
         eventPublisher.publishEvent(new ReviewCreatedEvent(user.getId()));
         eventPublisher.publishEvent(new UserActivityEvent(user.getId()));
 
+        dispatchMentionNotifications(request.content(), user.getId(), savedReview.getId());
+
         return reviewMapper.toDto(savedReview);
     }
 
@@ -156,6 +162,8 @@ public class ReviewServiceImpl implements ReviewService {
         log.info("Updated review for play log {} by user {}", playId, user.getPseudo());
 
         eventPublisher.publishEvent(new UserActivityEvent(user.getId()));
+
+        dispatchMentionNotifications(request.content(), user.getId(), savedReview.getId());
 
         return reviewMapper.toDto(savedReview);
     }
@@ -214,6 +222,30 @@ public class ReviewServiceImpl implements ReviewService {
         return reviews.getContent().stream()
                 .map(review -> toCardDto(review, viewer))
                 .toList();
+    }
+
+    /**
+     * Parses {@code @username} mentions from the given content and publishes a
+     * {@link NotificationType#MENTION} notification for each mentioned user that exists
+     * and is not the author. Unknown pseudos are silently ignored, and duplicate
+     * mentions of the same user produce a single notification (deduplicated by the
+     * {@link Set} of pseudos and, ultimately, by the notification service).
+     *
+     * @param content     the review content to scan for mentions
+     * @param authorId    the review author's ID (never notified about their own mention)
+     * @param referenceId the saved review's ID, used as the notification reference
+     */
+    private void dispatchMentionNotifications(String content, UUID authorId, UUID referenceId) {
+        Set<String> mentioned = MentionParser.extractMentions(content);
+        for (String pseudo : mentioned) {
+            userRepository.findByPseudo(pseudo).ifPresent(target -> {
+                if (!target.getId().equals(authorId)) {
+                    eventPublisher.publishEvent(new NotificationEvent(
+                            target.getId(), authorId, NotificationType.MENTION,
+                            referenceId, "@" + pseudo + " mentioned you in a review"));
+                }
+            });
+        }
     }
 
     /**

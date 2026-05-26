@@ -12,5 +12,6 @@ public record UpdateNotificationPreferencesDto(
         Boolean likeGameEnabled,
         Boolean commentReplyEnabled,
         Boolean levelUpEnabled,
-        Boolean badgeUnlockedEnabled
+        Boolean badgeUnlockedEnabled,
+        Boolean mentionEnabled
 ) {}

@@ -10,5 +10,6 @@ public enum NotificationType {
     LIKE_GAME,
     COMMENT_REPLY,
     LEVEL_UP,
-    BADGE_UNLOCKED
+    BADGE_UNLOCKED,
+    MENTION
 }

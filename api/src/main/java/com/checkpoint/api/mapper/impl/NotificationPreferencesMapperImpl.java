@@ -28,7 +28,8 @@ public class NotificationPreferencesMapperImpl implements NotificationPreference
                 preferences.getLikeGameEnabled(),
                 preferences.getCommentReplyEnabled(),
                 preferences.getLevelUpEnabled(),
-                preferences.getBadgeUnlockedEnabled()
+                preferences.getBadgeUnlockedEnabled(),
+                preferences.getMentionEnabled()
         );
     }
 }

@@ -8,6 +8,7 @@ export type NotificationType =
   | 'COMMENT_REPLY'
   | 'LEVEL_UP'
   | 'BADGE_UNLOCKED'
+  | 'MENTION'
 
 export type NotificationFilter = 'all' | 'unread' | NotificationType
 
@@ -19,6 +20,7 @@ export const NOTIFICATION_TYPES: ReadonlyArray<NotificationType> = [
   'COMMENT_REPLY',
   'LEVEL_UP',
   'BADGE_UNLOCKED',
+  'MENTION',
 ]
 
 export const NOTIFICATION_FILTERS: ReadonlyArray<NotificationFilter> = [
@@ -37,6 +39,7 @@ export const NOTIFICATION_FILTER_LABELS: Record<NotificationFilter, string> = {
   COMMENT_REPLY: 'Replies',
   LEVEL_UP: 'Level ups',
   BADGE_UNLOCKED: 'Badges',
+  MENTION: 'Mentions',
 }
 
 export interface Notification {

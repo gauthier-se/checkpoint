@@ -21,12 +21,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Textarea } from '@/components/ui/textarea'
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import { MentionText } from '@/components/shared/mention-text'
+import { MentionTextarea } from '@/components/shared/mention-textarea'
 import { useAuth } from '@/hooks/use-auth'
 import {
   commentRepliesQueryOptions,
@@ -263,10 +264,10 @@ export function CommentItem({
 
           {editingId === comment.id ? (
             <form onSubmit={handleSubmitEdit} className="mt-2 space-y-2">
-              <Textarea
+              <MentionTextarea
                 className="min-h-[60px] resize-y"
                 value={editContent}
-                onChange={(e) => setEditContent(e.target.value)}
+                onChange={setEditContent}
               />
               <div className="flex gap-2">
                 <Button
@@ -288,7 +289,7 @@ export function CommentItem({
             </form>
           ) : (
             <p className="mt-1 text-sm leading-relaxed whitespace-pre-line">
-              {comment.content}
+              <MentionText content={comment.content} />
             </p>
           )}
 
@@ -323,11 +324,11 @@ export function CommentItem({
           {/* Inline reply form */}
           {replyOpen && (
             <form onSubmit={handleSubmitReply} className="mt-2 space-y-2">
-              <Textarea
+              <MentionTextarea
                 placeholder="Write a reply..."
                 className="min-h-[60px] resize-y"
                 value={replyContent}
-                onChange={(e) => setReplyContent(e.target.value)}
+                onChange={setReplyContent}
               />
               <div className="flex gap-2">
                 <Button

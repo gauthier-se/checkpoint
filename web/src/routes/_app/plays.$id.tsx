@@ -23,6 +23,7 @@ import { gameDetailQueryOptions } from '@/queries/catalog'
 import { CommentSection } from '@/components/comments/comment-section'
 import { PlayLogDialog } from '@/components/games/play-log-dialog'
 import { ScoreStars } from '@/components/games/score-stars'
+import { MentionText } from '@/components/shared/mention-text'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -423,7 +424,7 @@ function ReviewBlock({
         </div>
       ) : (
         <p className="whitespace-pre-wrap text-sm leading-relaxed">
-          {review.content}
+          <MentionText content={review.content} />
         </p>
       )}
 

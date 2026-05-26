@@ -3,6 +3,8 @@ package com.checkpoint.api.services.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -436,6 +438,91 @@ class CommentServiceImplTest {
             // When / Then
             assertThatThrownBy(() -> commentService.deleteComment("test@test.com", comment.getId()))
                     .isInstanceOf(UnauthorizedCommentAccessException.class);
+        }
+    }
+
+    @Nested
+    @DisplayName("mention notifications")
+    class MentionNotifications {
+
+        private Comment stubSavedReviewComment(String content) {
+            when(userRepository.findByEmail("test@test.com")).thenReturn(Optional.of(testUser));
+            when(reviewRepository.findById(testReview.getId())).thenReturn(Optional.of(testReview));
+
+            Comment savedComment = Comment.onReview(content, testUser, testReview);
+            savedComment.setId(UUID.randomUUID());
+            when(commentRepository.save(any(Comment.class))).thenReturn(savedComment);
+
+            CommentResponseDto dto = new CommentResponseDto(
+                    savedComment.getId(), content,
+                    new CommentUserDto(testUser.getId(), testUser.getPseudo(), null),
+                    null, null, null, 0, 0, false);
+            when(commentMapper.toDto(savedComment)).thenReturn(dto);
+            return savedComment;
+        }
+
+        @Test
+        @DisplayName("should dispatch a MENTION notification for a valid mention")
+        void shouldDispatchMentionNotification() {
+            // Given
+            Comment savedComment = stubSavedReviewComment("Hey @otheruser nice review");
+            when(userRepository.findByPseudo("otheruser")).thenReturn(Optional.of(otherUser));
+
+            // When
+            commentService.addReviewComment("test@test.com", testReview.getId(), "Hey @otheruser nice review");
+
+            // Then
+            ArgumentCaptor<NotificationEvent> captor = ArgumentCaptor.forClass(NotificationEvent.class);
+            verify(eventPublisher).publishEvent(captor.capture());
+            NotificationEvent event = captor.getValue();
+            assertThat(event.getRecipientId()).isEqualTo(otherUser.getId());
+            assertThat(event.getSenderId()).isEqualTo(testUser.getId());
+            assertThat(event.getType()).isEqualTo(NotificationType.MENTION);
+            assertThat(event.getReferenceId()).isEqualTo(savedComment.getId());
+            assertThat(event.getMessage()).contains("@otheruser");
+        }
+
+        @Test
+        @DisplayName("should not notify when a user mentions themselves")
+        void shouldNotNotifyOnSelfMention() {
+            // Given
+            stubSavedReviewComment("Note to self @testuser");
+            when(userRepository.findByPseudo("testuser")).thenReturn(Optional.of(testUser));
+
+            // When
+            commentService.addReviewComment("test@test.com", testReview.getId(), "Note to self @testuser");
+
+            // Then
+            verify(eventPublisher, never()).publishEvent(any());
+        }
+
+        @Test
+        @DisplayName("should silently ignore mentions of an unknown pseudo")
+        void shouldIgnoreUnknownPseudo() {
+            // Given
+            stubSavedReviewComment("Hello @ghost");
+            when(userRepository.findByPseudo("ghost")).thenReturn(Optional.empty());
+
+            // When
+            commentService.addReviewComment("test@test.com", testReview.getId(), "Hello @ghost");
+
+            // Then
+            verify(eventPublisher, never()).publishEvent(any());
+        }
+
+        @Test
+        @DisplayName("should send only one notification for a duplicate mention")
+        void shouldDeduplicateMentions() {
+            // Given
+            stubSavedReviewComment("@otheruser @otheruser hi");
+            when(userRepository.findByPseudo("otheruser")).thenReturn(Optional.of(otherUser));
+
+            // When
+            commentService.addReviewComment("test@test.com", testReview.getId(), "@otheruser @otheruser hi");
+
+            // Then
+            verify(userRepository, times(1)).findByPseudo("otheruser");
+            verify(eventPublisher, times(1)).publishEvent(any(NotificationEvent.class));
         }
     }
 }

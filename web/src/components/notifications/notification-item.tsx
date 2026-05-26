@@ -23,6 +23,7 @@ export function getNotificationHref(
 ): string {
   switch (notification.type) {
     case 'FOLLOW':
+    case 'MENTION':
       return `/profile/${notification.senderPseudo}`
     case 'LIKE_REVIEW':
     case 'COMMENT_REPLY':

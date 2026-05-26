@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
-import { Textarea } from '@/components/ui/textarea'
+import { MentionTextarea } from '@/components/shared/mention-textarea'
 import { TagSelector } from '@/components/games/tag-selector'
 import { logPlay } from '@/queries/games'
 import { updatePlayLog } from '@/queries/plays'
@@ -394,12 +394,12 @@ export function PlayLogForm(props: PlayLogFormProps) {
             children={(field) => (
               <div className="flex flex-col gap-2">
                 <Label htmlFor="reviewContent">Review text</Label>
-                <Textarea
+                <MentionTextarea
                   id="reviewContent"
                   placeholder="What did you think about this playthrough?"
                   className="resize-y min-h-[80px]"
                   value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
+                  onChange={field.handleChange}
                 />
               </div>
             )}

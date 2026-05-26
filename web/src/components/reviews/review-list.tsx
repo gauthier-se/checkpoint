@@ -8,6 +8,7 @@ import type { ReviewsResponse } from '@/types/review'
 import { CommentSection } from '@/components/comments/comment-section'
 import { ReportReviewDialog } from '@/components/reviews/report-review-dialog'
 import { LikeButton } from '@/components/shared/like-button'
+import { MentionText } from '@/components/shared/mention-text'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -245,7 +246,7 @@ export function ReviewList({ gameId }: ReviewListProps) {
               ) : (
                 <div className="mt-3">
                   <p className="text-sm leading-relaxed whitespace-pre-line">
-                    {review.content}
+                    <MentionText content={review.content} />
                   </p>
                   {review.haveSpoilers && (
                     <Button
