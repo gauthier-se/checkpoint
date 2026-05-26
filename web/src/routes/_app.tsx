@@ -31,9 +31,13 @@ function AppLayout() {
 
   return (
     <OnboardingProvider>
-      <Header />
-      <Outlet />
-      <Footer onOpenKeymaps={openHelp} />
+      <div className="flex min-h-svh flex-col">
+        <Header />
+        <div className="flex-1">
+          <Outlet />
+        </div>
+        <Footer onOpenKeymaps={openHelp} />
+      </div>
       <KeyboardShortcutsDialog open={helpOpen} onOpenChange={setHelpOpen} />
       <OnboardingWizard />
     </OnboardingProvider>

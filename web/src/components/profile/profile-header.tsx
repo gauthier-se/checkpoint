@@ -1,4 +1,10 @@
-import { Calendar, Pencil, UserMinus, UserPlus } from 'lucide-react'
+import {
+  Calendar,
+  GitCompareArrows,
+  Pencil,
+  UserMinus,
+  UserPlus,
+} from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { XpProgressBar } from './xp-progress-bar'
@@ -95,23 +101,35 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
             </Button>
           )}
           {user && !profile.isOwner && (
-            <Button
-              variant={profile.isFollowing ? 'outline' : 'default'}
-              onClick={() => followMutation.mutate()}
-              disabled={followMutation.isPending}
-            >
-              {profile.isFollowing ? (
-                <>
-                  <UserMinus className="mr-2 size-4" />
-                  Unfollow
-                </>
-              ) : (
-                <>
-                  <UserPlus className="mr-2 size-4" />
-                  Follow
-                </>
-              )}
-            </Button>
+            <>
+              <Button variant="outline" asChild>
+                <Link
+                  to="/profile/$username/compare"
+                  params={{ username: profile.username }}
+                  search={{ page: 1 }}
+                >
+                  <GitCompareArrows className="mr-2 size-4" />
+                  Compare
+                </Link>
+              </Button>
+              <Button
+                variant={profile.isFollowing ? 'outline' : 'default'}
+                onClick={() => followMutation.mutate()}
+                disabled={followMutation.isPending}
+              >
+                {profile.isFollowing ? (
+                  <>
+                    <UserMinus className="mr-2 size-4" />
+                    Unfollow
+                  </>
+                ) : (
+                  <>
+                    <UserPlus className="mr-2 size-4" />
+                    Follow
+                  </>
+                )}
+              </Button>
+            </>
           )}
         </div>
       </div>

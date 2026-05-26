@@ -95,4 +95,41 @@ public interface UserGameRepository extends JpaRepository<UserGame, UUID> {
      * to weight games by status (COMPLETED, PLAYING…) when building the affinity profile.
      */
     List<UserGame> findAllByUserId(UUID userId);
+
+    /**
+     * Returns the IDs of video games that appear in both users' libraries.
+     * Used by the profile comparison feature to find games in common.
+     */
+    @Query("""
+            SELECT ug1.videoGame.id FROM UserGame ug1, UserGame ug2
+            WHERE ug1.videoGame.id = ug2.videoGame.id
+              AND ug1.user.id = :userId1
+              AND ug2.user.id = :userId2
+            """)
+    List<UUID> findCommonVideoGameIds(@Param("userId1") UUID userId1,
+                                      @Param("userId2") UUID userId2);
+
+    /**
+     * Returns the given user's library entries for the supplied video game IDs, with the
+     * video game eagerly fetched. Used by the profile comparison feature to resolve both
+     * users' statuses (and game metadata) for the common games in a single round-trip.
+     */
+    @Query("""
+            SELECT ug FROM UserGame ug
+            JOIN FETCH ug.videoGame
+            WHERE ug.user.id = :userId AND ug.videoGame.id IN :gameIds
+            """)
+    List<UserGame> findByUserIdAndVideoGameIdIn(@Param("userId") UUID userId,
+                                                @Param("gameIds") List<UUID> gameIds);
+
+    /**
+     * Counts the union of two users' libraries (distinct video games owned by either user).
+     * Used as the Jaccard denominator when computing the profile comparison affinity score.
+     */
+    @Query("""
+            SELECT COUNT(DISTINCT ug.videoGame.id) FROM UserGame ug
+            WHERE ug.user.id IN (:userId1, :userId2)
+            """)
+    long countDistinctGamesByUserIds(@Param("userId1") UUID userId1,
+                                     @Param("userId2") UUID userId2);
 }
