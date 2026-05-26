@@ -19,7 +19,9 @@ import com.checkpoint.api.dto.catalog.PagedResponseDto;
 import com.checkpoint.api.dto.catalog.ReviewResponseDto;
 import com.checkpoint.api.dto.collection.WishResponseDto;
 import com.checkpoint.api.dto.list.GameListCardDto;
+import com.checkpoint.api.dto.profile.ProfileComparisonDto;
 import com.checkpoint.api.dto.profile.UserProfileDto;
+import com.checkpoint.api.services.ProfileComparisonService;
 import com.checkpoint.api.services.ProfileService;
 
 /**
@@ -41,14 +43,18 @@ public class ProfileController {
     private static final String DEFAULT_SORT = "createdAt,desc";
 
     private final ProfileService profileService;
+    private final ProfileComparisonService profileComparisonService;
 
     /**
      * Constructs a new ProfileController.
      *
-     * @param profileService the profile service
+     * @param profileService           the profile service
+     * @param profileComparisonService the profile comparison service
      */
-    public ProfileController(ProfileService profileService) {
+    public ProfileController(ProfileService profileService,
+                             ProfileComparisonService profileComparisonService) {
         this.profileService = profileService;
+        this.profileComparisonService = profileComparisonService;
     }
 
     /**
@@ -157,6 +163,35 @@ public class ProfileController {
         Page<GameListCardDto> lists = profileService.getUserLists(username, pageable);
 
         return ResponseEntity.ok(PagedResponseDto.from(lists));
+    }
+
+    /**
+     * Compares the authenticated viewer's profile with the given user's profile.
+     * Requires authentication (enforced by the security configuration).
+     *
+     * @param username    the compared user's display name (pseudo)
+     * @param userDetails the authenticated viewer
+     * @param page        the page number for common games (0-based, default 0)
+     * @param size        the page size for common games (default 20, max 100)
+     * @return the profile comparison DTO
+     */
+    @GetMapping("/{username}/compare")
+    public ResponseEntity<ProfileComparisonDto> compareProfiles(
+            @PathVariable String username,
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(defaultValue = "" + DEFAULT_PAGE) int page,
+            @RequestParam(defaultValue = "" + DEFAULT_SIZE) int size) {
+
+        log.info("GET /api/users/{}/compare - viewer: {}", username, userDetails.getUsername());
+
+        int validatedSize = Math.min(Math.max(1, size), MAX_SIZE);
+        int validatedPage = Math.max(0, page);
+
+        Pageable pageable = PageRequest.of(validatedPage, validatedSize);
+        ProfileComparisonDto comparison = profileComparisonService.compare(
+                userDetails.getUsername(), username, pageable);
+
+        return ResponseEntity.ok(comparison);
     }
 
     /**

@@ -3,6 +3,7 @@ import type { FavoriteGame, UserProfile } from '@/types/profile'
 import type { ReviewsResponse } from '@/types/review'
 import type { Priority } from '@/types/collection'
 import type { PaginationMetadata } from '@/types/game'
+import type { GameStatus } from '@/types/library'
 import { apiFetch } from '@/services/api'
 
 export interface WishlistItem {
@@ -69,6 +70,49 @@ export const userWishlistQueryOptions = (
     queryFn: async (): Promise<WishlistResponse> => {
       const res = await apiFetch(
         `/api/users/${username}/wishlist?page=${page}&size=${size}`,
+      )
+      return res.json()
+    },
+    staleTime: 60 * 1000,
+  })
+}
+
+export interface CommonGameEntry {
+  videoGameId: string
+  title: string
+  coverUrl: string | null
+  releaseDate: string | null
+  viewerStatus: GameStatus
+  targetStatus: GameStatus
+  /** Viewer's rating on the 5-star scale (0.5–5.0), or null if unrated. */
+  viewerRating: number | null
+  /** Compared user's rating on the 5-star scale (0.5–5.0), or null if unrated. */
+  targetRating: number | null
+  /** Absolute difference between both ratings, or null if either is unrated. */
+  ratingDiff: number | null
+}
+
+export interface ProfileComparison {
+  affinityScore: number
+  commonGamesCount: number
+  viewerLibrarySize: number
+  targetLibrarySize: number
+  commonGames: {
+    content: Array<CommonGameEntry>
+    metadata: PaginationMetadata
+  }
+}
+
+export const userCompareQueryOptions = (
+  username: string,
+  page: number = 0,
+  size: number = 20,
+) => {
+  return queryOptions({
+    queryKey: ['users', username, 'compare', page, size],
+    queryFn: async (): Promise<ProfileComparison> => {
+      const res = await apiFetch(
+        `/api/users/${username}/compare?page=${page}&size=${size}`,
       )
       return res.json()
     },

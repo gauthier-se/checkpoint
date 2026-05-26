@@ -43,6 +43,17 @@ public interface RateRepository extends JpaRepository<Rate, UUID> {
     List<Rate> findByVideoGameIdAndUserIdIn(UUID videoGameId, List<UUID> userIds);
 
     /**
+     * Finds rates authored by any of the given users for any of the given video games.
+     * Used by the profile comparison feature to resolve both users' ratings for the
+     * games they have in common in a single round-trip.
+     *
+     * @param userIds list of user IDs
+     * @param videoGameIds list of video game IDs
+     * @return list of matching rates
+     */
+    List<Rate> findByUserIdInAndVideoGameIdIn(List<UUID> userIds, List<UUID> videoGameIds);
+
+    /**
      * Calculates the average rating for a video game.
      *
      * @param videoGameId the video game ID

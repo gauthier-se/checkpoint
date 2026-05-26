@@ -1,0 +1,99 @@
+meta {
+  name: Compare Profiles
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{baseUrl}}/api/users/:username/compare?page=0&size=20
+  body: none
+  auth: bearer
+}
+
+params:path {
+  username: gamer123
+}
+
+params:query {
+  ~page: 0
+  ~size: 20
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  # Compare Profiles
+
+  Compares the authenticated viewer's library and tastes with another user's profile.
+  Produces an affinity score (0–100), library-size summary, and the paginated list of
+  games both users have in common.
+
+  ## Path Parameters
+
+  - **username**: The compared user's display name (pseudo)
+
+  ## Query Parameters
+
+  - **page**: Page number for common games (0-based, default: 0)
+  - **size**: Page size for common games (default: 20, max: 100)
+
+  ## Authentication
+
+  Requires a valid JWT token in the `Authorization: Bearer` header.
+
+  ## Affinity score
+
+  - **Library overlap** (Jaccard, 60% weight): `commonCount / unionCount * 100`
+  - **Rating similarity** (40% weight): average absolute difference between both users'
+    5-star ratings (`score / 2`) for the games they both rated, capped at 4 points and
+    inverted to a 0–100 score. Omitted (the score falls back to the library overlap) when
+    no common game is rated by both users.
+
+  Ratings are returned on the 5-star display scale. `ratingDiff` is null when either user
+  has not rated the game. The common games are sorted by `ratingDiff` descending (nulls last).
+
+  ## Response (200 OK)
+
+  ```json
+  {
+    "affinityScore": 60,
+    "commonGamesCount": 2,
+    "viewerLibrarySize": 3,
+    "targetLibrarySize": 3,
+    "commonGames": {
+      "content": [
+        {
+          "videoGameId": "uuid",
+          "title": "Game A",
+          "coverUrl": "/covers/a.png",
+          "releaseDate": "2020-01-01",
+          "viewerStatus": "COMPLETED",
+          "targetStatus": "COMPLETED",
+          "viewerRating": 5.0,
+          "targetRating": 4.0,
+          "ratingDiff": 1.0
+        }
+      ],
+      "metadata": {
+        "page": 0,
+        "size": 20,
+        "totalElements": 2,
+        "totalPages": 1,
+        "first": true,
+        "last": true,
+        "hasNext": false,
+        "hasPrevious": false
+      }
+    }
+  }
+  ```
+
+  ## Error Responses
+
+  - **400 Bad Request**: Comparing with your own profile
+  - **401 Unauthorized**: No valid authentication
+  - **403 Forbidden**: Target profile is private and the viewer is not a follower
+  - **404 Not Found**: Target user does not exist
+}

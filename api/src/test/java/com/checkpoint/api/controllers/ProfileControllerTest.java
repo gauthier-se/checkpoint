@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -20,21 +21,27 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.checkpoint.api.dto.catalog.PagedResponseDto;
 import com.checkpoint.api.dto.catalog.ReviewResponseDto;
 import com.checkpoint.api.dto.catalog.ReviewUserDto;
 import com.checkpoint.api.dto.collection.WishResponseDto;
 import com.checkpoint.api.dto.profile.BadgeDto;
+import com.checkpoint.api.dto.profile.CommonGameEntryDto;
+import com.checkpoint.api.dto.profile.ProfileComparisonDto;
 import com.checkpoint.api.dto.profile.RecentPlayDto;
 import com.checkpoint.api.dto.profile.UserProfileDto;
+import com.checkpoint.api.enums.GameStatus;
 import com.checkpoint.api.exceptions.ProfilePrivateException;
 import com.checkpoint.api.exceptions.UserNotFoundException;
 import com.checkpoint.api.security.ApiAuthenticationEntryPoint;
 import com.checkpoint.api.security.JwtAuthenticationFilter;
+import com.checkpoint.api.services.ProfileComparisonService;
 import com.checkpoint.api.services.ProfileService;
 
 /**
@@ -49,6 +56,9 @@ class ProfileControllerTest {
 
     @MockitoBean
     private ProfileService profileService;
+
+    @MockitoBean
+    private ProfileComparisonService profileComparisonService;
 
     @MockitoBean
     private JwtAuthenticationFilter jwtAuthenticationFilter;
@@ -215,6 +225,95 @@ class ProfileControllerTest {
             // When / Then
             mockMvc.perform(get("/api/users/{username}/wishlist", "privateuser"))
                     .andExpect(status().isForbidden());
+        }
+    }
+
+    @Nested
+    @DisplayName("GET /api/users/{username}/compare")
+    class CompareProfiles {
+
+        @Test
+        @DisplayName("should return comparison for an authenticated viewer")
+        @WithMockUser(username = "viewer@example.com")
+        void compareProfiles_shouldReturnComparison() throws Exception {
+            // Given
+            UUID gameId = UUID.randomUUID();
+            CommonGameEntryDto entry = new CommonGameEntryDto(
+                    gameId, "Elden Ring", "/covers/elden.png", LocalDate.of(2022, 2, 25),
+                    GameStatus.COMPLETED, GameStatus.PLAYING, 5.0, 4.0, 1.0);
+            Page<CommonGameEntryDto> page = new PageImpl<>(
+                    List.of(entry), PageRequest.of(0, 20), 1);
+            ProfileComparisonDto comparison = new ProfileComparisonDto(
+                    71, 1, 4, 4, PagedResponseDto.from(page));
+
+            when(profileComparisonService.compare(
+                    eq("viewer@example.com"), eq("target"), any(Pageable.class)))
+                    .thenReturn(comparison);
+
+            // When / Then
+            mockMvc.perform(get("/api/users/{username}/compare", "target"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.affinityScore").value(71))
+                    .andExpect(jsonPath("$.commonGamesCount").value(1))
+                    .andExpect(jsonPath("$.viewerLibrarySize").value(4))
+                    .andExpect(jsonPath("$.targetLibrarySize").value(4))
+                    .andExpect(jsonPath("$.commonGames.content[0].title").value("Elden Ring"))
+                    .andExpect(jsonPath("$.commonGames.content[0].viewerStatus").value("COMPLETED"))
+                    .andExpect(jsonPath("$.commonGames.content[0].targetStatus").value("PLAYING"))
+                    .andExpect(jsonPath("$.commonGames.content[0].viewerRating").value(5.0))
+                    .andExpect(jsonPath("$.commonGames.content[0].targetRating").value(4.0))
+                    .andExpect(jsonPath("$.commonGames.content[0].ratingDiff").value(1.0))
+                    .andExpect(jsonPath("$.commonGames.metadata.totalElements").value(1));
+        }
+
+        @Test
+        @DisplayName("should return 400 when comparing with own profile")
+        @WithMockUser(username = "viewer@example.com")
+        void compareProfiles_shouldReturn400ForSelfCompare() throws Exception {
+            // Given
+            when(profileComparisonService.compare(
+                    eq("viewer@example.com"), eq("viewer"), any(Pageable.class)))
+                    .thenThrow(new IllegalArgumentException("Cannot compare a profile with itself"));
+
+            // When / Then
+            mockMvc.perform(get("/api/users/{username}/compare", "viewer"))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("should return 403 when target profile is private and viewer is not a follower")
+        @WithMockUser(username = "viewer@example.com")
+        void compareProfiles_shouldReturn403ForPrivateProfile() throws Exception {
+            // Given
+            when(profileComparisonService.compare(
+                    eq("viewer@example.com"), eq("privateuser"), any(Pageable.class)))
+                    .thenThrow(new ProfilePrivateException("privateuser"));
+
+            // When / Then
+            mockMvc.perform(get("/api/users/{username}/compare", "privateuser"))
+                    .andExpect(status().isForbidden());
+        }
+
+        @Test
+        @DisplayName("should return score 0 when users share no games")
+        @WithMockUser(username = "viewer@example.com")
+        void compareProfiles_shouldReturnZeroScoreWhenNoCommonGames() throws Exception {
+            // Given
+            Page<CommonGameEntryDto> empty = new PageImpl<>(
+                    List.of(), PageRequest.of(0, 20), 0);
+            ProfileComparisonDto comparison = new ProfileComparisonDto(
+                    0, 0, 3, 3, PagedResponseDto.from(empty));
+
+            when(profileComparisonService.compare(
+                    eq("viewer@example.com"), eq("target"), any(Pageable.class)))
+                    .thenReturn(comparison);
+
+            // When / Then
+            mockMvc.perform(get("/api/users/{username}/compare", "target"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.affinityScore").value(0))
+                    .andExpect(jsonPath("$.commonGamesCount").value(0))
+                    .andExpect(jsonPath("$.commonGames.content").isEmpty());
         }
     }
 }

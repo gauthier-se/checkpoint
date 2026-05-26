@@ -24,16 +24,21 @@ import jakarta.persistence.EntityManager;
 import com.checkpoint.api.entities.Badge;
 import com.checkpoint.api.entities.Like;
 import com.checkpoint.api.entities.Platform;
+import com.checkpoint.api.entities.Rate;
 import com.checkpoint.api.entities.Review;
 import com.checkpoint.api.entities.User;
+import com.checkpoint.api.entities.UserGame;
 import com.checkpoint.api.entities.UserGamePlay;
 import com.checkpoint.api.entities.VideoGame;
 import com.checkpoint.api.entities.Wish;
+import com.checkpoint.api.enums.GameStatus;
 import com.checkpoint.api.repositories.BadgeRepository;
 import com.checkpoint.api.repositories.LikeRepository;
 import com.checkpoint.api.repositories.PlatformRepository;
+import com.checkpoint.api.repositories.RateRepository;
 import com.checkpoint.api.repositories.ReviewRepository;
 import com.checkpoint.api.repositories.UserGamePlayRepository;
+import com.checkpoint.api.repositories.UserGameRepository;
 import com.checkpoint.api.repositories.UserRepository;
 import com.checkpoint.api.repositories.VideoGameRepository;
 import com.checkpoint.api.repositories.WishRepository;
@@ -83,6 +88,12 @@ class ProfileIntegrationTest {
     private LikeRepository likeRepository;
 
     @Autowired
+    private UserGameRepository userGameRepository;
+
+    @Autowired
+    private RateRepository rateRepository;
+
+    @Autowired
     private EntityManager entityManager;
 
     private User testUser;
@@ -97,6 +108,8 @@ class ProfileIntegrationTest {
         userGamePlayRepository.deleteAll();
         reviewRepository.deleteAll();
         wishRepository.deleteAll();
+        rateRepository.deleteAll();
+        userGameRepository.deleteAll();
         videoGameRepository.deleteAll();
         platformRepository.deleteAll();
         // Clear join tables and users before badges
@@ -371,6 +384,110 @@ class ProfileIntegrationTest {
 
             mockMvc.perform(get("/api/users/{username}/wishlist", "gamer123"))
                     .andExpect(status().isForbidden());
+        }
+    }
+
+    @Nested
+    @DisplayName("GET /api/users/{username}/compare")
+    class CompareProfiles {
+
+        /**
+         * Seeds overlapping libraries and ratings for both users.
+         * <ul>
+         *   <li>viewer (gamer123) library: A (COMPLETED), B (PLAYING), C (BACKLOG)</li>
+         *   <li>target (otheruser) library: A (COMPLETED), B (DROPPED), D (BACKLOG)</li>
+         *   <li>common games: A, B — union: A,B,C,D (4) — libraryScore = 2/4 = 50</li>
+         *   <li>ratings: A viewer 10/target 8 (5.0 vs 4.0, diff 1.0); B viewer 6 only</li>
+         * </ul>
+         * Affinity = round(0.6*50 + 0.4*(1 - 1.0/4)*100) = round(30 + 30) = 60.
+         */
+        private void seedComparableLibraries() {
+            VideoGame a = videoGameRepository.save(makeGame("Game A", "/covers/a.png"));
+            VideoGame b = videoGameRepository.save(makeGame("Game B", "/covers/b.png"));
+            VideoGame c = videoGameRepository.save(makeGame("Game C", "/covers/c.png"));
+            VideoGame d = videoGameRepository.save(makeGame("Game D", "/covers/d.png"));
+
+            userGameRepository.save(new UserGame(testUser, a, GameStatus.COMPLETED));
+            userGameRepository.save(new UserGame(testUser, b, GameStatus.PLAYING));
+            userGameRepository.save(new UserGame(testUser, c, GameStatus.BACKLOG));
+
+            userGameRepository.save(new UserGame(otherUser, a, GameStatus.COMPLETED));
+            userGameRepository.save(new UserGame(otherUser, b, GameStatus.DROPPED));
+            userGameRepository.save(new UserGame(otherUser, d, GameStatus.BACKLOG));
+
+            rateRepository.save(new Rate(testUser, a, 10));
+            rateRepository.save(new Rate(otherUser, a, 8));
+            rateRepository.save(new Rate(testUser, b, 6));
+
+            entityManager.flush();
+            entityManager.clear();
+        }
+
+        @Test
+        @DisplayName("should compute affinity, counts, and sorted common games")
+        @WithMockUser(username = "gamer@example.com")
+        void shouldReturnComparison() throws Exception {
+            seedComparableLibraries();
+
+            mockMvc.perform(get("/api/users/{username}/compare", "otheruser"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.affinityScore").value(60))
+                    .andExpect(jsonPath("$.commonGamesCount").value(2))
+                    .andExpect(jsonPath("$.viewerLibrarySize").value(3))
+                    .andExpect(jsonPath("$.targetLibrarySize").value(3))
+                    // Sorted by ratingDiff DESC NULLS LAST: Game A (1.0) then Game B (null)
+                    .andExpect(jsonPath("$.commonGames.content.length()").value(2))
+                    .andExpect(jsonPath("$.commonGames.content[0].title").value("Game A"))
+                    .andExpect(jsonPath("$.commonGames.content[0].viewerStatus").value("COMPLETED"))
+                    .andExpect(jsonPath("$.commonGames.content[0].targetStatus").value("COMPLETED"))
+                    .andExpect(jsonPath("$.commonGames.content[0].viewerRating").value(5.0))
+                    .andExpect(jsonPath("$.commonGames.content[0].targetRating").value(4.0))
+                    .andExpect(jsonPath("$.commonGames.content[0].ratingDiff").value(1.0))
+                    .andExpect(jsonPath("$.commonGames.content[1].title").value("Game B"))
+                    .andExpect(jsonPath("$.commonGames.content[1].viewerStatus").value("PLAYING"))
+                    .andExpect(jsonPath("$.commonGames.content[1].targetStatus").value("DROPPED"))
+                    .andExpect(jsonPath("$.commonGames.content[1].targetRating").doesNotExist())
+                    .andExpect(jsonPath("$.commonGames.content[1].ratingDiff").doesNotExist());
+        }
+
+        @Test
+        @DisplayName("should return 401 for an anonymous viewer")
+        void shouldReturn401ForAnonymousViewer() throws Exception {
+            mockMvc.perform(get("/api/users/{username}/compare", "otheruser"))
+                    .andExpect(status().isUnauthorized());
+        }
+
+        @Test
+        @DisplayName("should return 400 when comparing with own profile")
+        @WithMockUser(username = "gamer@example.com")
+        void shouldReturn400ForSelfCompare() throws Exception {
+            mockMvc.perform(get("/api/users/{username}/compare", "gamer123"))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("should return 403 when target is private and viewer is not a follower")
+        @WithMockUser(username = "gamer@example.com")
+        void shouldReturn403ForPrivateNonFollowedTarget() throws Exception {
+            // gamer123 does not follow otheruser (only the reverse follow exists)
+            otherUser.setIsPrivate(true);
+            userRepository.save(otherUser);
+
+            mockMvc.perform(get("/api/users/{username}/compare", "otheruser"))
+                    .andExpect(status().isForbidden());
+        }
+
+        @Test
+        @DisplayName("should allow comparison when target is private but viewer follows them")
+        @WithMockUser(username = "other@example.com")
+        void shouldAllowComparisonForPrivateFollowedTarget() throws Exception {
+            // otheruser follows gamer123 (seeded in setUp), so the private target is visible
+            testUser.setIsPrivate(true);
+            userRepository.save(testUser);
+
+            mockMvc.perform(get("/api/users/{username}/compare", "gamer123"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.affinityScore").exists());
         }
     }
 }
