@@ -25,6 +25,7 @@ import com.checkpoint.api.dto.profile.UpdateProfileDto;
 import com.checkpoint.api.entities.User;
 import com.checkpoint.api.exceptions.PseudoAlreadyExistsException;
 import com.checkpoint.api.exceptions.UserNotFoundException;
+import com.checkpoint.api.mapper.LikedGameMapper;
 import com.checkpoint.api.mapper.ProfileMapper;
 import com.checkpoint.api.mapper.ReviewMapper;
 import com.checkpoint.api.mapper.WishMapper;
@@ -73,6 +74,9 @@ class ProfileServiceImplTest {
     private WishMapper wishMapper;
 
     @Mock
+    private LikedGameMapper likedGameMapper;
+
+    @Mock
     private OnboardingService onboardingService;
 
     private ProfileServiceImpl profileService;
@@ -84,7 +88,7 @@ class ProfileServiceImplTest {
                 userGamePlayRepository, likeRepository,
                 gameListService, storageService,
                 profileMapper, reviewMapper, wishMapper,
-                onboardingService);
+                likedGameMapper, onboardingService);
     }
 
     private User createTestUser() {

@@ -2,6 +2,10 @@ package com.checkpoint.api.services;
 
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
+import com.checkpoint.api.dto.collection.LikedGameResponseDto;
 import com.checkpoint.api.dto.social.LikeResponseDto;
 
 /**
@@ -53,4 +57,14 @@ public interface LikeService {
      * @throws com.checkpoint.api.exceptions.GameNotFoundException if the video game does not exist
      */
     LikeResponseDto toggleGameLike(String userEmail, UUID videoGameId);
+
+    /**
+     * Returns the games the authenticated user has liked (top-level game likes), paginated.
+     * A "like" marks a game the user loves — distinct from the wishlist (games to buy).
+     *
+     * @param userEmail the authenticated user's email
+     * @param pageable  pagination and sort parameters
+     * @return a page of liked games
+     */
+    Page<LikedGameResponseDto> getLikedGames(String userEmail, Pageable pageable);
 }

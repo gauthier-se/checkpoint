@@ -7,6 +7,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -21,9 +23,14 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import jakarta.persistence.EntityManager;
 
+import com.checkpoint.api.dto.collection.LikedGameResponseDto;
 import com.checkpoint.api.dto.social.LikeResponseDto;
 import com.checkpoint.api.entities.Comment;
 import com.checkpoint.api.entities.GameList;
@@ -37,6 +44,7 @@ import com.checkpoint.api.exceptions.CommentNotFoundException;
 import com.checkpoint.api.exceptions.GameListNotFoundException;
 import com.checkpoint.api.exceptions.GameNotFoundException;
 import com.checkpoint.api.exceptions.ReviewNotFoundException;
+import com.checkpoint.api.mapper.LikedGameMapper;
 import com.checkpoint.api.repositories.CommentRepository;
 import com.checkpoint.api.repositories.GameListRepository;
 import com.checkpoint.api.repositories.LikeRepository;
@@ -74,6 +82,9 @@ class LikeServiceImplTest {
     @Mock
     private EntityManager entityManager;
 
+    @Mock
+    private LikedGameMapper likedGameMapper;
+
     private LikeServiceImpl likeService;
 
     private User user;
@@ -88,7 +99,7 @@ class LikeServiceImplTest {
         likeService = new LikeServiceImpl(
                 likeRepository, reviewRepository, gameListRepository,
                 commentRepository, userRepository, videoGameRepository,
-                eventPublisher, entityManager);
+                eventPublisher, entityManager, likedGameMapper);
 
         user = new User();
         user.setId(UUID.randomUUID());
@@ -422,6 +433,56 @@ class LikeServiceImplTest {
             // When / Then
             assertThatThrownBy(() -> likeService.toggleGameLike("user@example.com", unknownId))
                     .isInstanceOf(GameNotFoundException.class);
+        }
+    }
+
+    @Nested
+    @DisplayName("getLikedGames")
+    class GetLikedGames {
+
+        @Test
+        @DisplayName("should return the user's liked games mapped to DTOs")
+        void getLikedGames_shouldReturnMappedPage() {
+            // Given
+            Pageable pageable = PageRequest.of(0, 20);
+            Like like = Like.forVideoGame(user, videoGame);
+            like.setId(UUID.randomUUID());
+            Page<Like> likePage = new PageImpl<>(List.of(like), pageable, 1);
+
+            LikedGameResponseDto dto = new LikedGameResponseDto(
+                    like.getId(), videoGame.getId(), videoGame.getTitle(),
+                    null, null, LocalDateTime.now());
+
+            when(userRepository.findByEmail("user@example.com"))
+                    .thenReturn(Optional.of(user));
+            when(likeRepository.findGameLikesByUserId(user.getId(), pageable))
+                    .thenReturn(likePage);
+            when(likedGameMapper.toResponseDto(like)).thenReturn(dto);
+
+            // When
+            Page<LikedGameResponseDto> result = likeService.getLikedGames("user@example.com", pageable);
+
+            // Then
+            assertThat(result.getTotalElements()).isEqualTo(1);
+            assertThat(result.getContent()).containsExactly(dto);
+            verify(likeRepository).findGameLikesByUserId(user.getId(), pageable);
+        }
+
+        @Test
+        @DisplayName("should return an empty page when the user has no liked games")
+        void getLikedGames_shouldReturnEmptyPage() {
+            // Given
+            Pageable pageable = PageRequest.of(0, 20);
+            when(userRepository.findByEmail("user@example.com"))
+                    .thenReturn(Optional.of(user));
+            when(likeRepository.findGameLikesByUserId(user.getId(), pageable))
+                    .thenReturn(Page.empty(pageable));
+
+            // When
+            Page<LikedGameResponseDto> result = likeService.getLikedGames("user@example.com", pageable);
+
+            // Then
+            assertThat(result.getContent()).isEmpty();
         }
     }
 }

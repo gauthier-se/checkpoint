@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.checkpoint.api.dto.catalog.ReviewResponseDto;
+import com.checkpoint.api.dto.collection.LikedGameResponseDto;
 import com.checkpoint.api.dto.collection.WishResponseDto;
 import com.checkpoint.api.dto.list.GameListCardDto;
 import com.checkpoint.api.dto.onboarding.OnboardingSteps;
@@ -27,6 +28,7 @@ import com.checkpoint.api.entities.UserGamePlay;
 import com.checkpoint.api.exceptions.ProfilePrivateException;
 import com.checkpoint.api.exceptions.PseudoAlreadyExistsException;
 import com.checkpoint.api.exceptions.UserNotFoundException;
+import com.checkpoint.api.mapper.LikedGameMapper;
 import com.checkpoint.api.mapper.ProfileMapper;
 import com.checkpoint.api.mapper.ReviewMapper;
 import com.checkpoint.api.mapper.WishMapper;
@@ -63,6 +65,7 @@ public class ProfileServiceImpl implements ProfileService {
     private final ProfileMapper profileMapper;
     private final ReviewMapper reviewMapper;
     private final WishMapper wishMapper;
+    private final LikedGameMapper likedGameMapper;
     private final OnboardingService onboardingService;
 
     /**
@@ -78,6 +81,7 @@ public class ProfileServiceImpl implements ProfileService {
                                ProfileMapper profileMapper,
                                ReviewMapper reviewMapper,
                                WishMapper wishMapper,
+                               LikedGameMapper likedGameMapper,
                                OnboardingService onboardingService) {
         this.userRepository = userRepository;
         this.reviewRepository = reviewRepository;
@@ -89,6 +93,7 @@ public class ProfileServiceImpl implements ProfileService {
         this.profileMapper = profileMapper;
         this.reviewMapper = reviewMapper;
         this.wishMapper = wishMapper;
+        this.likedGameMapper = likedGameMapper;
         this.onboardingService = onboardingService;
     }
 
@@ -189,6 +194,22 @@ public class ProfileServiceImpl implements ProfileService {
 
         return wishRepository.findByUserPseudoWithVideoGame(username, pageable)
                 .map(wishMapper::toResponseDto);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Page<LikedGameResponseDto> getUserLikedGames(String username, String viewerEmail, Pageable pageable) {
+        log.info("Fetching liked games for user: {}", username);
+
+        User user = userRepository.findByPseudo(username)
+                .orElseThrow(() -> new UserNotFoundException(username));
+
+        enforcePrivacy(user, viewerEmail);
+
+        return likeRepository.findGameLikesByUserPseudo(username, pageable)
+                .map(likedGameMapper::toResponseDto);
     }
 
     /**

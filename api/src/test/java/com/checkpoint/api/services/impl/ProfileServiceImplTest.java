@@ -27,9 +27,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import com.checkpoint.api.dto.catalog.ReviewResponseDto;
+import com.checkpoint.api.dto.collection.LikedGameResponseDto;
 import com.checkpoint.api.dto.collection.WishResponseDto;
 import com.checkpoint.api.dto.profile.RecentPlayDto;
 import com.checkpoint.api.dto.profile.UserProfileDto;
+import com.checkpoint.api.entities.Like;
 import com.checkpoint.api.entities.Review;
 import com.checkpoint.api.entities.User;
 import com.checkpoint.api.entities.UserGamePlay;
@@ -37,6 +39,7 @@ import com.checkpoint.api.entities.VideoGame;
 import com.checkpoint.api.entities.Wish;
 import com.checkpoint.api.exceptions.ProfilePrivateException;
 import com.checkpoint.api.exceptions.UserNotFoundException;
+import com.checkpoint.api.mapper.LikedGameMapper;
 import com.checkpoint.api.mapper.ProfileMapper;
 import com.checkpoint.api.mapper.ReviewMapper;
 import com.checkpoint.api.mapper.WishMapper;
@@ -77,6 +80,9 @@ class ProfileServiceImplTest {
     private WishMapper wishMapper;
 
     @Mock
+    private LikedGameMapper likedGameMapper;
+
+    @Mock
     private GameListService gameListService;
 
     @Mock
@@ -98,7 +104,7 @@ class ProfileServiceImplTest {
                 userRepository, reviewRepository, wishRepository,
                 userGamePlayRepository, likeRepository,
                 gameListService, storageService, profileMapper, reviewMapper, wishMapper,
-                onboardingService);
+                likedGameMapper, onboardingService);
 
         profileUser = new User();
         profileUser.setId(UUID.randomUUID());
@@ -417,6 +423,68 @@ class ProfileServiceImplTest {
             // When / Then
             assertThatThrownBy(() -> profileService.getUserWishlist("gamer123", null, pageable))
                     .isInstanceOf(ProfilePrivateException.class);
+        }
+    }
+
+    @Nested
+    @DisplayName("getUserLikedGames")
+    class GetUserLikedGames {
+
+        @Test
+        @DisplayName("should return liked games for public profile")
+        void getUserLikedGames_shouldReturnLikedGamesForPublicProfile() {
+            // Given
+            Pageable pageable = PageRequest.of(0, 20);
+            VideoGame game = new VideoGame();
+            game.setId(UUID.randomUUID());
+            game.setTitle("Hollow Knight");
+            Like like = Like.forVideoGame(profileUser, game);
+            like.setId(UUID.randomUUID());
+            Page<Like> likePage = new PageImpl<>(List.of(like), pageable, 1);
+
+            LikedGameResponseDto dto = new LikedGameResponseDto(
+                    like.getId(), game.getId(), game.getTitle(), null, null, LocalDateTime.now());
+
+            when(userRepository.findByPseudo("gamer123"))
+                    .thenReturn(Optional.of(profileUser));
+            when(likeRepository.findGameLikesByUserPseudo("gamer123", pageable))
+                    .thenReturn(likePage);
+            when(likedGameMapper.toResponseDto(like)).thenReturn(dto);
+
+            // When
+            Page<LikedGameResponseDto> result =
+                    profileService.getUserLikedGames("gamer123", null, pageable);
+
+            // Then
+            assertThat(result.getContent()).containsExactly(dto);
+        }
+
+        @Test
+        @DisplayName("should throw ProfilePrivateException for private profile liked games")
+        void getUserLikedGames_shouldThrowForPrivateProfile() {
+            // Given
+            profileUser.setIsPrivate(true);
+            Pageable pageable = PageRequest.of(0, 20);
+
+            when(userRepository.findByPseudo("gamer123"))
+                    .thenReturn(Optional.of(profileUser));
+
+            // When / Then
+            assertThatThrownBy(() -> profileService.getUserLikedGames("gamer123", null, pageable))
+                    .isInstanceOf(ProfilePrivateException.class);
+        }
+
+        @Test
+        @DisplayName("should throw UserNotFoundException for unknown username")
+        void getUserLikedGames_shouldThrowForUnknownUser() {
+            // Given
+            Pageable pageable = PageRequest.of(0, 20);
+            when(userRepository.findByPseudo("ghost"))
+                    .thenReturn(Optional.empty());
+
+            // When / Then
+            assertThatThrownBy(() -> profileService.getUserLikedGames("ghost", null, pageable))
+                    .isInstanceOf(UserNotFoundException.class);
         }
     }
 }

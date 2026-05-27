@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -91,6 +93,41 @@ public interface LikeRepository extends JpaRepository<Like, UUID> {
               AND l.videoGame IS NOT NULL
             """)
     List<UUID> findVideoGameIdsByUser(@Param("userId") UUID userId);
+
+    /**
+     * Returns the authenticated user's top-level game likes (paginated), with the video game
+     * eagerly fetched. The {@code videoGame IS NOT NULL} guard is required because {@link Like}
+     * is polymorphic (it may instead point at a review, list, or comment). Ordering is driven
+     * by the supplied {@link Pageable} (the API defaults to {@code createdAt,desc}).
+     *
+     * @param userId   the user ID
+     * @param pageable pagination and sort parameters
+     * @return a page of game likes
+     */
+    @Query("""
+            SELECT l FROM Like l
+            JOIN FETCH l.videoGame
+            WHERE l.user.id = :userId
+              AND l.videoGame IS NOT NULL
+            """)
+    Page<Like> findGameLikesByUserId(@Param("userId") UUID userId, Pageable pageable);
+
+    /**
+     * Returns a user's top-level game likes by pseudo (paginated), with the video game eagerly
+     * fetched. Used by the public profile endpoint. Same polymorphic guard and ordering rules
+     * as {@link #findGameLikesByUserId}.
+     *
+     * @param pseudo   the user's pseudo
+     * @param pageable pagination and sort parameters
+     * @return a page of game likes
+     */
+    @Query("""
+            SELECT l FROM Like l
+            JOIN FETCH l.videoGame
+            WHERE l.user.pseudo = :pseudo
+              AND l.videoGame IS NOT NULL
+            """)
+    Page<Like> findGameLikesByUserPseudo(@Param("pseudo") String pseudo, Pageable pageable);
 
     /**
      * Counts the number of likes for a comment.

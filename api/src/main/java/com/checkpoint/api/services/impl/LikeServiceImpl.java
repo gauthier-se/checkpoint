@@ -8,11 +8,14 @@ import org.hibernate.search.mapper.orm.session.SearchSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.persistence.EntityManager;
 
+import com.checkpoint.api.dto.collection.LikedGameResponseDto;
 import com.checkpoint.api.dto.social.LikeResponseDto;
 import com.checkpoint.api.entities.Comment;
 import com.checkpoint.api.entities.GameList;
@@ -27,6 +30,7 @@ import com.checkpoint.api.exceptions.CommentNotFoundException;
 import com.checkpoint.api.exceptions.GameListNotFoundException;
 import com.checkpoint.api.exceptions.GameNotFoundException;
 import com.checkpoint.api.exceptions.ReviewNotFoundException;
+import com.checkpoint.api.mapper.LikedGameMapper;
 import com.checkpoint.api.repositories.CommentRepository;
 import com.checkpoint.api.repositories.GameListRepository;
 import com.checkpoint.api.repositories.LikeRepository;
@@ -53,6 +57,7 @@ public class LikeServiceImpl implements LikeService {
     private final VideoGameRepository videoGameRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final EntityManager entityManager;
+    private final LikedGameMapper likedGameMapper;
 
     /**
      * Constructs a new LikeServiceImpl.
@@ -65,6 +70,7 @@ public class LikeServiceImpl implements LikeService {
      * @param videoGameRepository the video game repository
      * @param eventPublisher      the application event publisher
      * @param entityManager       the JPA entity manager (used to refresh search index)
+     * @param likedGameMapper     the liked-game mapper
      */
     public LikeServiceImpl(LikeRepository likeRepository,
                            ReviewRepository reviewRepository,
@@ -73,7 +79,8 @@ public class LikeServiceImpl implements LikeService {
                            UserRepository userRepository,
                            VideoGameRepository videoGameRepository,
                            ApplicationEventPublisher eventPublisher,
-                           EntityManager entityManager) {
+                           EntityManager entityManager,
+                           LikedGameMapper likedGameMapper) {
         this.likeRepository = likeRepository;
         this.reviewRepository = reviewRepository;
         this.gameListRepository = gameListRepository;
@@ -82,6 +89,7 @@ public class LikeServiceImpl implements LikeService {
         this.videoGameRepository = videoGameRepository;
         this.eventPublisher = eventPublisher;
         this.entityManager = entityManager;
+        this.likedGameMapper = likedGameMapper;
     }
 
     /**
@@ -218,6 +226,21 @@ public class LikeServiceImpl implements LikeService {
             log.info("User {} liked game {}", user.getPseudo(), videoGameId);
             return new LikeResponseDto(true, likesCount);
         }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public Page<LikedGameResponseDto> getLikedGames(String userEmail, Pageable pageable) {
+        log.debug("Fetching liked games for user {} - page: {}, size: {}",
+                userEmail, pageable.getPageNumber(), pageable.getPageSize());
+
+        User user = getUserByEmail(userEmail);
+
+        return likeRepository.findGameLikesByUserId(user.getId(), pageable)
+                .map(likedGameMapper::toResponseDto);
     }
 
     /**

@@ -5,6 +5,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.checkpoint.api.dto.catalog.ReviewResponseDto;
+import com.checkpoint.api.dto.collection.LikedGameResponseDto;
 import com.checkpoint.api.dto.collection.WishResponseDto;
 import com.checkpoint.api.dto.list.GameListCardDto;
 import com.checkpoint.api.dto.profile.ProfileUpdatedDto;
@@ -50,6 +51,18 @@ public interface ProfileService {
      * @return a page of wish DTOs
      */
     Page<WishResponseDto> getUserWishlist(String username, String viewerEmail, Pageable pageable);
+
+    /**
+     * Retrieves a paginated list of games the given user has liked.
+     * Throws {@link com.checkpoint.api.exceptions.ProfilePrivateException} if the profile
+     * is private and the viewer is not the owner.
+     *
+     * @param username    the profile owner's username (pseudo)
+     * @param viewerEmail the authenticated viewer's email, or null if anonymous
+     * @param pageable    pagination parameters
+     * @return a page of liked game DTOs
+     */
+    Page<LikedGameResponseDto> getUserLikedGames(String username, String viewerEmail, Pageable pageable);
 
     /**
      * Retrieves a paginated list of public game lists for the given user.

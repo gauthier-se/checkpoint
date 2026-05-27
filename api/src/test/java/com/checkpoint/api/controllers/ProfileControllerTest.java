@@ -30,6 +30,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import com.checkpoint.api.dto.catalog.PagedResponseDto;
 import com.checkpoint.api.dto.catalog.ReviewResponseDto;
 import com.checkpoint.api.dto.catalog.ReviewUserDto;
+import com.checkpoint.api.dto.collection.LikedGameResponseDto;
 import com.checkpoint.api.dto.collection.WishResponseDto;
 import com.checkpoint.api.dto.profile.BadgeDto;
 import com.checkpoint.api.dto.profile.CommonGameEntryDto;
@@ -225,6 +226,56 @@ class ProfileControllerTest {
             // When / Then
             mockMvc.perform(get("/api/users/{username}/wishlist", "privateuser"))
                     .andExpect(status().isForbidden());
+        }
+    }
+
+    @Nested
+    @DisplayName("GET /api/users/{username}/likes")
+    class GetUserLikedGames {
+
+        @Test
+        @DisplayName("should return paginated liked games for public profile")
+        void getUserLikedGames_shouldReturnPaginatedLikes() throws Exception {
+            // Given
+            LikedGameResponseDto liked = new LikedGameResponseDto(
+                    UUID.randomUUID(), UUID.randomUUID(),
+                    "Hollow Knight", "https://example.com/cover.jpg",
+                    LocalDate.of(2017, 2, 24), LocalDateTime.now()
+            );
+            Page<LikedGameResponseDto> page = new PageImpl<>(List.of(liked));
+
+            when(profileService.getUserLikedGames(eq("testuser"), isNull(), any(Pageable.class)))
+                    .thenReturn(page);
+
+            // When / Then
+            mockMvc.perform(get("/api/users/{username}/likes", "testuser"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content[0].title").value("Hollow Knight"))
+                    .andExpect(jsonPath("$.metadata.totalElements").value(1));
+        }
+
+        @Test
+        @DisplayName("should return 403 for private profile liked games")
+        void getUserLikedGames_shouldReturn403ForPrivateProfile() throws Exception {
+            // Given
+            when(profileService.getUserLikedGames(eq("privateuser"), isNull(), any(Pageable.class)))
+                    .thenThrow(new ProfilePrivateException("privateuser"));
+
+            // When / Then
+            mockMvc.perform(get("/api/users/{username}/likes", "privateuser"))
+                    .andExpect(status().isForbidden());
+        }
+
+        @Test
+        @DisplayName("should return 404 for unknown user")
+        void getUserLikedGames_shouldReturn404ForUnknownUser() throws Exception {
+            // Given
+            when(profileService.getUserLikedGames(eq("ghost"), isNull(), any(Pageable.class)))
+                    .thenThrow(new UserNotFoundException("ghost"));
+
+            // When / Then
+            mockMvc.perform(get("/api/users/{username}/likes", "ghost"))
+                    .andExpect(status().isNotFound());
         }
     }
 

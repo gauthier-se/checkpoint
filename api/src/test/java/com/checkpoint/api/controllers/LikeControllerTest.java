@@ -1,11 +1,16 @@
 package com.checkpoint.api.controllers;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 import org.junit.jupiter.api.DisplayName;
@@ -14,10 +19,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.checkpoint.api.dto.collection.LikedGameResponseDto;
 import com.checkpoint.api.dto.social.LikeResponseDto;
 import com.checkpoint.api.exceptions.CommentNotFoundException;
 import com.checkpoint.api.exceptions.GameListNotFoundException;
@@ -271,6 +280,48 @@ class LikeControllerTest {
             mockMvc.perform(post("/api/me/games/{videoGameId}/like", videoGameId))
                     .andExpect(status().isNotFound())
                     .andExpect(jsonPath("$.status").value(404));
+        }
+    }
+
+    @Nested
+    @DisplayName("GET /api/me/likes")
+    class GetLikedGames {
+
+        @Test
+        @DisplayName("should return the user's liked games as a paginated response")
+        @WithMockUser(username = "user@example.com")
+        void getLikedGames_shouldReturnPaginatedLikes() throws Exception {
+            // Given
+            LikedGameResponseDto dto = new LikedGameResponseDto(
+                    UUID.randomUUID(), UUID.randomUUID(), "Elden Ring",
+                    "https://example.com/cover.jpg", LocalDate.of(2022, 2, 25), LocalDateTime.now());
+            Page<LikedGameResponseDto> page = new PageImpl<>(List.of(dto));
+
+            when(likeService.getLikedGames(eq("user@example.com"), any(Pageable.class)))
+                    .thenReturn(page);
+
+            // When / Then
+            mockMvc.perform(get("/api/me/likes"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content").isArray())
+                    .andExpect(jsonPath("$.content[0].title").value("Elden Ring"))
+                    .andExpect(jsonPath("$.metadata.totalElements").value(1));
+        }
+
+        @Test
+        @DisplayName("should return an empty page when the user has no liked games")
+        @WithMockUser(username = "user@example.com")
+        void getLikedGames_shouldReturnEmptyPage() throws Exception {
+            // Given
+            when(likeService.getLikedGames(eq("user@example.com"), any(Pageable.class)))
+                    .thenReturn(new PageImpl<>(List.of()));
+
+            // When / Then
+            mockMvc.perform(get("/api/me/likes")
+                            .param("page", "0")
+                            .param("size", "20"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content").isArray());
         }
     }
 }

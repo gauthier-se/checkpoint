@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.checkpoint.api.dto.catalog.PagedResponseDto;
 import com.checkpoint.api.dto.catalog.ReviewResponseDto;
+import com.checkpoint.api.dto.collection.LikedGameResponseDto;
 import com.checkpoint.api.dto.collection.WishResponseDto;
 import com.checkpoint.api.dto.list.GameListCardDto;
 import com.checkpoint.api.dto.profile.ProfileComparisonDto;
@@ -136,6 +137,37 @@ public class ProfileController {
         Page<WishResponseDto> wishlist = profileService.getUserWishlist(username, viewerEmail, pageable);
 
         return ResponseEntity.ok(PagedResponseDto.from(wishlist));
+    }
+
+    /**
+     * Returns a paginated list of games the given user has liked.
+     *
+     * @param username    the user's display name (pseudo)
+     * @param userDetails the authenticated user, or null if anonymous
+     * @param page        the page number (0-based, default 0)
+     * @param size        the page size (default 20, max 100)
+     * @param sort        the sort criteria (e.g., "createdAt,desc")
+     * @return paginated list of liked game DTOs
+     */
+    @GetMapping("/{username}/likes")
+    public ResponseEntity<PagedResponseDto<LikedGameResponseDto>> getUserLikedGames(
+            @PathVariable String username,
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(defaultValue = "" + DEFAULT_PAGE) int page,
+            @RequestParam(defaultValue = "" + DEFAULT_SIZE) int size,
+            @RequestParam(defaultValue = DEFAULT_SORT) String sort) {
+
+        log.info("GET /api/users/{}/likes - page: {}, size: {}", username, page, size);
+
+        String viewerEmail = userDetails != null ? userDetails.getUsername() : null;
+        int validatedSize = Math.min(Math.max(1, size), MAX_SIZE);
+        int validatedPage = Math.max(0, page);
+
+        Pageable pageable = createPageable(validatedPage, validatedSize, sort);
+        Page<LikedGameResponseDto> likedGames = profileService.getUserLikedGames(
+                username, viewerEmail, pageable);
+
+        return ResponseEntity.ok(PagedResponseDto.from(likedGames));
     }
 
     /**
