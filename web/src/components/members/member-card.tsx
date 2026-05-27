@@ -1,4 +1,4 @@
-import { Link } from '@tanstack/react-router'
+import { Link, useRouter } from '@tanstack/react-router'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { UserMinus, UserPlus } from 'lucide-react'
 import type { MemberCard as MemberCardType } from '@/types/member'
@@ -14,11 +14,16 @@ interface MemberCardProps {
 export function MemberCard({ member }: MemberCardProps) {
   const { user } = useAuth()
   const queryClient = useQueryClient()
+  const router = useRouter()
 
   const followMutation = useMutation({
     mutationFn: () => toggleFollowMutation(member.id),
     onSuccess: () => {
+      // Refresh both data sources this card appears in: react-query lists (e.g.
+      // the home "suggested members" useQuery) and router loaders (e.g. the
+      // /members/all page, which renders from loader data, not react-query).
       void queryClient.invalidateQueries({ queryKey: ['members'] })
+      void router.invalidate()
     },
   })
 

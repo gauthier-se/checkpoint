@@ -35,7 +35,10 @@ export function OnboardingProvider({
     persistStep(next)
   }, [])
 
-  // Auto-open when an unboarded user first hits a protected route.
+  // Auto-open when an unboarded user first hits a protected route. Keyed on the
+  // user only (deliberately NOT on `isOpen`): dismissing the wizard sets
+  // `isOpen` to false, and depending on it here would immediately re-run this
+  // effect and reopen it. It stays closed until a full reload or a new sign-in.
   useEffect(() => {
     if (!user) return
     if (user.onboardingCompletedAt) {
@@ -49,18 +52,15 @@ export function OnboardingProvider({
       setIsOpen(true)
       return
     }
-    if (!isOpen) {
-      const persisted = readPersistedStep()
-      if (persisted) {
-        setStepState(persisted)
-      } else {
-        setStepState('welcome')
-        persistStep('welcome')
-      }
-      setIsOpen(true)
+    const persisted = readPersistedStep()
+    if (persisted) {
+      setStepState(persisted)
+    } else {
+      setStepState('welcome')
+      persistStep('welcome')
     }
-    // Keyed on the user — opening is a one-shot decision per session.
-  }, [user?.id, user?.onboardingCompletedAt, isOpen])
+    setIsOpen(true)
+  }, [user?.id, user?.onboardingCompletedAt])
 
   const value = useMemo(
     () => ({ isOpen, step, open, close, setStep }),

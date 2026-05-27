@@ -1,10 +1,10 @@
 import { useQueryClient } from '@tanstack/react-query'
+import { useNavigate } from '@tanstack/react-router'
 import { PartyPopper } from 'lucide-react'
 import { toast } from 'sonner'
 import { clearPersistedStep } from '../onboarding-store'
 import { StepFrame } from '../step-frame'
 import { Button } from '@/components/ui/button'
-import { authQueryOptions } from '@/hooks/use-auth'
 import { completeOnboarding } from '@/queries/onboarding'
 import { isApiError } from '@/services/api'
 
@@ -14,14 +14,19 @@ interface DoneStepProps {
 
 export function DoneStep({ onClose }: DoneStepProps) {
   const queryClient = useQueryClient()
+  const navigate = useNavigate()
 
   const handleFinish = async () => {
     try {
       await completeOnboarding()
       clearPersistedStep()
-      await queryClient.invalidateQueries({
-        queryKey: authQueryOptions.queryKey,
-      })
+      // Refetch everything: the auth query (so the wizard sees the completed
+      // user and unmounts) and the dashboard's personalized queries (feed,
+      // recommendations, friends activity…), which were loaded empty before the
+      // user followed people and picked favorites during onboarding. Without
+      // this the home page stays blank until a manual refresh.
+      await queryClient.invalidateQueries()
+      await navigate({ to: '/' })
       onClose()
     } catch (err) {
       toast.error(
