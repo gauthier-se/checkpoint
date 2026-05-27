@@ -10,31 +10,41 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.checkpoint.api.dto.catalog.ReviewResponseDto;
+import com.checkpoint.api.dto.collection.BacklogResponseDto;
 import com.checkpoint.api.dto.collection.LikedGameResponseDto;
+import com.checkpoint.api.dto.collection.UserGameResponseDto;
 import com.checkpoint.api.dto.collection.WishResponseDto;
 import com.checkpoint.api.dto.list.GameListCardDto;
 import com.checkpoint.api.dto.onboarding.OnboardingSteps;
+import com.checkpoint.api.dto.playlog.GamePlayLogResponseDto;
 import com.checkpoint.api.dto.profile.ProfileUpdatedDto;
 import com.checkpoint.api.dto.profile.RecentPlayDto;
 import com.checkpoint.api.dto.profile.UpdateProfileDto;
 import com.checkpoint.api.dto.profile.UserProfileDto;
+import com.checkpoint.api.entities.Backlog;
 import com.checkpoint.api.entities.User;
 import com.checkpoint.api.entities.UserGamePlay;
 import com.checkpoint.api.exceptions.ProfilePrivateException;
 import com.checkpoint.api.exceptions.PseudoAlreadyExistsException;
 import com.checkpoint.api.exceptions.UserNotFoundException;
+import com.checkpoint.api.mapper.BacklogMapper;
+import com.checkpoint.api.mapper.GamePlayLogMapper;
 import com.checkpoint.api.mapper.LikedGameMapper;
 import com.checkpoint.api.mapper.ProfileMapper;
 import com.checkpoint.api.mapper.ReviewMapper;
+import com.checkpoint.api.mapper.UserGameMapper;
 import com.checkpoint.api.mapper.WishMapper;
+import com.checkpoint.api.repositories.BacklogRepository;
 import com.checkpoint.api.repositories.LikeRepository;
 import com.checkpoint.api.repositories.ReviewRepository;
 import com.checkpoint.api.repositories.UserGamePlayRepository;
+import com.checkpoint.api.repositories.UserGameRepository;
 import com.checkpoint.api.repositories.UserRepository;
 import com.checkpoint.api.repositories.WishRepository;
 import com.checkpoint.api.services.GameListService;
@@ -60,12 +70,17 @@ public class ProfileServiceImpl implements ProfileService {
     private final WishRepository wishRepository;
     private final UserGamePlayRepository userGamePlayRepository;
     private final LikeRepository likeRepository;
+    private final UserGameRepository userGameRepository;
+    private final BacklogRepository backlogRepository;
     private final GameListService gameListService;
     private final StorageService storageService;
     private final ProfileMapper profileMapper;
     private final ReviewMapper reviewMapper;
     private final WishMapper wishMapper;
     private final LikedGameMapper likedGameMapper;
+    private final UserGameMapper userGameMapper;
+    private final BacklogMapper backlogMapper;
+    private final GamePlayLogMapper gamePlayLogMapper;
     private final OnboardingService onboardingService;
 
     /**
@@ -76,24 +91,34 @@ public class ProfileServiceImpl implements ProfileService {
                                WishRepository wishRepository,
                                UserGamePlayRepository userGamePlayRepository,
                                LikeRepository likeRepository,
+                               UserGameRepository userGameRepository,
+                               BacklogRepository backlogRepository,
                                GameListService gameListService,
                                StorageService storageService,
                                ProfileMapper profileMapper,
                                ReviewMapper reviewMapper,
                                WishMapper wishMapper,
                                LikedGameMapper likedGameMapper,
+                               UserGameMapper userGameMapper,
+                               BacklogMapper backlogMapper,
+                               GamePlayLogMapper gamePlayLogMapper,
                                OnboardingService onboardingService) {
         this.userRepository = userRepository;
         this.reviewRepository = reviewRepository;
         this.wishRepository = wishRepository;
         this.userGamePlayRepository = userGamePlayRepository;
         this.likeRepository = likeRepository;
+        this.userGameRepository = userGameRepository;
+        this.backlogRepository = backlogRepository;
         this.gameListService = gameListService;
         this.storageService = storageService;
         this.profileMapper = profileMapper;
         this.reviewMapper = reviewMapper;
         this.wishMapper = wishMapper;
         this.likedGameMapper = likedGameMapper;
+        this.userGameMapper = userGameMapper;
+        this.backlogMapper = backlogMapper;
+        this.gamePlayLogMapper = gamePlayLogMapper;
         this.onboardingService = onboardingService;
     }
 
@@ -210,6 +235,65 @@ public class ProfileServiceImpl implements ProfileService {
 
         return likeRepository.findGameLikesByUserPseudo(username, pageable)
                 .map(likedGameMapper::toResponseDto);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Page<UserGameResponseDto> getUserLibrary(String username, String viewerEmail, Pageable pageable) {
+        log.info("Fetching library for user: {}", username);
+
+        User user = userRepository.findByPseudo(username)
+                .orElseThrow(() -> new UserNotFoundException(username));
+
+        enforcePrivacy(user, viewerEmail);
+
+        return userGameRepository.findByUserIdWithVideoGame(user.getId(), pageable)
+                .map(userGameMapper::toResponseDto);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Page<BacklogResponseDto> getUserBacklog(String username, String viewerEmail, Pageable pageable) {
+        log.info("Fetching backlog for user: {}", username);
+
+        User user = userRepository.findByPseudo(username)
+                .orElseThrow(() -> new UserNotFoundException(username));
+
+        enforcePrivacy(user, viewerEmail);
+
+        // Priority sorting is handled by dedicated queries (the JPQL CASE ordering cannot be
+        // expressed through Pageable's Sort); fall back to the default date sort otherwise.
+        Sort.Order priorityOrder = pageable.getSort().getOrderFor("priority");
+        if (priorityOrder != null) {
+            Pageable unsortedPage = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
+            Page<Backlog> page = priorityOrder.isAscending()
+                    ? backlogRepository.findByUserIdWithVideoGameOrderByPriorityAsc(user.getId(), unsortedPage)
+                    : backlogRepository.findByUserIdWithVideoGameOrderByPriorityDesc(user.getId(), unsortedPage);
+            return page.map(backlogMapper::toResponseDto);
+        }
+
+        return backlogRepository.findByUserIdWithVideoGame(user.getId(), pageable)
+                .map(backlogMapper::toResponseDto);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Page<GamePlayLogResponseDto> getUserPlayLog(String username, String viewerEmail, Pageable pageable) {
+        log.info("Fetching play log for user: {}", username);
+
+        User user = userRepository.findByPseudo(username)
+                .orElseThrow(() -> new UserNotFoundException(username));
+
+        enforcePrivacy(user, viewerEmail);
+
+        return userGamePlayRepository.findByUserId(user.getId(), pageable)
+                .map(gamePlayLogMapper::toDto);
     }
 
     /**

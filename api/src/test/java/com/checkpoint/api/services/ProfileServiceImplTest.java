@@ -25,13 +25,18 @@ import com.checkpoint.api.dto.profile.UpdateProfileDto;
 import com.checkpoint.api.entities.User;
 import com.checkpoint.api.exceptions.PseudoAlreadyExistsException;
 import com.checkpoint.api.exceptions.UserNotFoundException;
+import com.checkpoint.api.mapper.BacklogMapper;
+import com.checkpoint.api.mapper.GamePlayLogMapper;
 import com.checkpoint.api.mapper.LikedGameMapper;
 import com.checkpoint.api.mapper.ProfileMapper;
 import com.checkpoint.api.mapper.ReviewMapper;
+import com.checkpoint.api.mapper.UserGameMapper;
 import com.checkpoint.api.mapper.WishMapper;
+import com.checkpoint.api.repositories.BacklogRepository;
 import com.checkpoint.api.repositories.LikeRepository;
 import com.checkpoint.api.repositories.ReviewRepository;
 import com.checkpoint.api.repositories.UserGamePlayRepository;
+import com.checkpoint.api.repositories.UserGameRepository;
 import com.checkpoint.api.repositories.UserRepository;
 import com.checkpoint.api.repositories.WishRepository;
 import com.checkpoint.api.services.impl.ProfileServiceImpl;
@@ -59,6 +64,12 @@ class ProfileServiceImplTest {
     private LikeRepository likeRepository;
 
     @Mock
+    private UserGameRepository userGameRepository;
+
+    @Mock
+    private BacklogRepository backlogRepository;
+
+    @Mock
     private GameListService gameListService;
 
     @Mock
@@ -77,6 +88,15 @@ class ProfileServiceImplTest {
     private LikedGameMapper likedGameMapper;
 
     @Mock
+    private UserGameMapper userGameMapper;
+
+    @Mock
+    private BacklogMapper backlogMapper;
+
+    @Mock
+    private GamePlayLogMapper gamePlayLogMapper;
+
+    @Mock
     private OnboardingService onboardingService;
 
     private ProfileServiceImpl profileService;
@@ -86,9 +106,11 @@ class ProfileServiceImplTest {
         profileService = new ProfileServiceImpl(
                 userRepository, reviewRepository, wishRepository,
                 userGamePlayRepository, likeRepository,
+                userGameRepository, backlogRepository,
                 gameListService, storageService,
                 profileMapper, reviewMapper, wishMapper,
-                likedGameMapper, onboardingService);
+                likedGameMapper, userGameMapper, backlogMapper, gamePlayLogMapper,
+                onboardingService);
     }
 
     private User createTestUser() {

@@ -25,28 +25,42 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import com.checkpoint.api.dto.catalog.ReviewResponseDto;
+import com.checkpoint.api.dto.collection.BacklogResponseDto;
 import com.checkpoint.api.dto.collection.LikedGameResponseDto;
+import com.checkpoint.api.dto.collection.UserGameResponseDto;
 import com.checkpoint.api.dto.collection.WishResponseDto;
+import com.checkpoint.api.dto.playlog.GamePlayLogResponseDto;
 import com.checkpoint.api.dto.profile.RecentPlayDto;
 import com.checkpoint.api.dto.profile.UserProfileDto;
+import com.checkpoint.api.entities.Backlog;
 import com.checkpoint.api.entities.Like;
 import com.checkpoint.api.entities.Review;
 import com.checkpoint.api.entities.User;
+import com.checkpoint.api.entities.UserGame;
 import com.checkpoint.api.entities.UserGamePlay;
 import com.checkpoint.api.entities.VideoGame;
 import com.checkpoint.api.entities.Wish;
+import com.checkpoint.api.enums.GameStatus;
+import com.checkpoint.api.enums.PlayStatus;
+import com.checkpoint.api.enums.Priority;
 import com.checkpoint.api.exceptions.ProfilePrivateException;
 import com.checkpoint.api.exceptions.UserNotFoundException;
+import com.checkpoint.api.mapper.BacklogMapper;
+import com.checkpoint.api.mapper.GamePlayLogMapper;
 import com.checkpoint.api.mapper.LikedGameMapper;
 import com.checkpoint.api.mapper.ProfileMapper;
 import com.checkpoint.api.mapper.ReviewMapper;
+import com.checkpoint.api.mapper.UserGameMapper;
 import com.checkpoint.api.mapper.WishMapper;
 import com.checkpoint.api.mapper.impl.ProfileMapperImpl;
+import com.checkpoint.api.repositories.BacklogRepository;
 import com.checkpoint.api.repositories.LikeRepository;
 import com.checkpoint.api.repositories.ReviewRepository;
 import com.checkpoint.api.repositories.UserGamePlayRepository;
+import com.checkpoint.api.repositories.UserGameRepository;
 import com.checkpoint.api.repositories.UserRepository;
 import com.checkpoint.api.repositories.WishRepository;
 import com.checkpoint.api.services.GameListService;
@@ -74,6 +88,12 @@ class ProfileServiceImplTest {
     private LikeRepository likeRepository;
 
     @Mock
+    private UserGameRepository userGameRepository;
+
+    @Mock
+    private BacklogRepository backlogRepository;
+
+    @Mock
     private ReviewMapper reviewMapper;
 
     @Mock
@@ -81,6 +101,15 @@ class ProfileServiceImplTest {
 
     @Mock
     private LikedGameMapper likedGameMapper;
+
+    @Mock
+    private UserGameMapper userGameMapper;
+
+    @Mock
+    private BacklogMapper backlogMapper;
+
+    @Mock
+    private GamePlayLogMapper gamePlayLogMapper;
 
     @Mock
     private GameListService gameListService;
@@ -103,8 +132,9 @@ class ProfileServiceImplTest {
         profileService = new ProfileServiceImpl(
                 userRepository, reviewRepository, wishRepository,
                 userGamePlayRepository, likeRepository,
+                userGameRepository, backlogRepository,
                 gameListService, storageService, profileMapper, reviewMapper, wishMapper,
-                likedGameMapper, onboardingService);
+                likedGameMapper, userGameMapper, backlogMapper, gamePlayLogMapper, onboardingService);
 
         profileUser = new User();
         profileUser.setId(UUID.randomUUID());
@@ -484,6 +514,202 @@ class ProfileServiceImplTest {
 
             // When / Then
             assertThatThrownBy(() -> profileService.getUserLikedGames("ghost", null, pageable))
+                    .isInstanceOf(UserNotFoundException.class);
+        }
+    }
+
+    @Nested
+    @DisplayName("getUserLibrary")
+    class GetUserLibrary {
+
+        @Test
+        @DisplayName("should return library for public profile")
+        void getUserLibrary_shouldReturnLibraryForPublicProfile() {
+            // Given
+            Pageable pageable = PageRequest.of(0, 20);
+            UserGame userGame = new UserGame();
+            userGame.setId(UUID.randomUUID());
+            Page<UserGame> libraryPage = new PageImpl<>(List.of(userGame), pageable, 1);
+
+            UserGameResponseDto dto = new UserGameResponseDto(
+                    userGame.getId(), UUID.randomUUID(), "Celeste", null, null,
+                    GameStatus.COMPLETED, LocalDateTime.now(), LocalDateTime.now(), null);
+
+            when(userRepository.findByPseudo("gamer123"))
+                    .thenReturn(Optional.of(profileUser));
+            when(userGameRepository.findByUserIdWithVideoGame(profileUser.getId(), pageable))
+                    .thenReturn(libraryPage);
+            when(userGameMapper.toResponseDto(userGame)).thenReturn(dto);
+
+            // When
+            Page<UserGameResponseDto> result =
+                    profileService.getUserLibrary("gamer123", null, pageable);
+
+            // Then
+            assertThat(result.getContent()).containsExactly(dto);
+        }
+
+        @Test
+        @DisplayName("should throw ProfilePrivateException for private profile library")
+        void getUserLibrary_shouldThrowForPrivateProfile() {
+            // Given
+            profileUser.setIsPrivate(true);
+            Pageable pageable = PageRequest.of(0, 20);
+
+            when(userRepository.findByPseudo("gamer123"))
+                    .thenReturn(Optional.of(profileUser));
+
+            // When / Then
+            assertThatThrownBy(() -> profileService.getUserLibrary("gamer123", null, pageable))
+                    .isInstanceOf(ProfilePrivateException.class);
+        }
+
+        @Test
+        @DisplayName("should throw UserNotFoundException for unknown username")
+        void getUserLibrary_shouldThrowForUnknownUser() {
+            // Given
+            Pageable pageable = PageRequest.of(0, 20);
+            when(userRepository.findByPseudo("ghost"))
+                    .thenReturn(Optional.empty());
+
+            // When / Then
+            assertThatThrownBy(() -> profileService.getUserLibrary("ghost", null, pageable))
+                    .isInstanceOf(UserNotFoundException.class);
+        }
+    }
+
+    @Nested
+    @DisplayName("getUserBacklog")
+    class GetUserBacklog {
+
+        @Test
+        @DisplayName("should return backlog for public profile with default sort")
+        void getUserBacklog_shouldReturnBacklogForPublicProfile() {
+            // Given
+            Pageable pageable = PageRequest.of(0, 20);
+            Backlog backlog = new Backlog();
+            backlog.setId(UUID.randomUUID());
+            Page<Backlog> backlogPage = new PageImpl<>(List.of(backlog), pageable, 1);
+
+            BacklogResponseDto dto = new BacklogResponseDto(
+                    backlog.getId(), UUID.randomUUID(), "Hades", null, null,
+                    Priority.HIGH, LocalDateTime.now());
+
+            when(userRepository.findByPseudo("gamer123"))
+                    .thenReturn(Optional.of(profileUser));
+            when(backlogRepository.findByUserIdWithVideoGame(profileUser.getId(), pageable))
+                    .thenReturn(backlogPage);
+            when(backlogMapper.toResponseDto(backlog)).thenReturn(dto);
+
+            // When
+            Page<BacklogResponseDto> result =
+                    profileService.getUserBacklog("gamer123", null, pageable);
+
+            // Then
+            assertThat(result.getContent()).containsExactly(dto);
+        }
+
+        @Test
+        @DisplayName("should use priority-ordered query when sorting by priority")
+        void getUserBacklog_shouldUsePriorityQueryWhenSortingByPriority() {
+            // Given
+            Pageable pageable = PageRequest.of(0, 20, Sort.by(Sort.Direction.DESC, "priority"));
+            Backlog backlog = new Backlog();
+            backlog.setId(UUID.randomUUID());
+            Page<Backlog> backlogPage = new PageImpl<>(List.of(backlog), PageRequest.of(0, 20), 1);
+
+            BacklogResponseDto dto = new BacklogResponseDto(
+                    backlog.getId(), UUID.randomUUID(), "Hades", null, null,
+                    Priority.HIGH, LocalDateTime.now());
+
+            when(userRepository.findByPseudo("gamer123"))
+                    .thenReturn(Optional.of(profileUser));
+            when(backlogRepository.findByUserIdWithVideoGameOrderByPriorityDesc(
+                    eq(profileUser.getId()), any(Pageable.class)))
+                    .thenReturn(backlogPage);
+            when(backlogMapper.toResponseDto(backlog)).thenReturn(dto);
+
+            // When
+            Page<BacklogResponseDto> result =
+                    profileService.getUserBacklog("gamer123", null, pageable);
+
+            // Then
+            assertThat(result.getContent()).containsExactly(dto);
+        }
+
+        @Test
+        @DisplayName("should throw ProfilePrivateException for private profile backlog")
+        void getUserBacklog_shouldThrowForPrivateProfile() {
+            // Given
+            profileUser.setIsPrivate(true);
+            Pageable pageable = PageRequest.of(0, 20);
+
+            when(userRepository.findByPseudo("gamer123"))
+                    .thenReturn(Optional.of(profileUser));
+
+            // When / Then
+            assertThatThrownBy(() -> profileService.getUserBacklog("gamer123", null, pageable))
+                    .isInstanceOf(ProfilePrivateException.class);
+        }
+    }
+
+    @Nested
+    @DisplayName("getUserPlayLog")
+    class GetUserPlayLog {
+
+        @Test
+        @DisplayName("should return play log for public profile")
+        void getUserPlayLog_shouldReturnPlayLogForPublicProfile() {
+            // Given
+            Pageable pageable = PageRequest.of(0, 20);
+            UserGamePlay play = new UserGamePlay();
+            play.setId(UUID.randomUUID());
+            Page<UserGamePlay> playPage = new PageImpl<>(List.of(play), pageable, 1);
+
+            GamePlayLogResponseDto dto = new GamePlayLogResponseDto(
+                    play.getId(), UUID.randomUUID(), "Stardew Valley", null, null, null, null,
+                    PlayStatus.COMPLETED, false, 1200, null, null, null,
+                    LocalDateTime.now(), LocalDateTime.now(), false, null, null, List.of());
+
+            when(userRepository.findByPseudo("gamer123"))
+                    .thenReturn(Optional.of(profileUser));
+            when(userGamePlayRepository.findByUserId(profileUser.getId(), pageable))
+                    .thenReturn(playPage);
+            when(gamePlayLogMapper.toDto(play)).thenReturn(dto);
+
+            // When
+            Page<GamePlayLogResponseDto> result =
+                    profileService.getUserPlayLog("gamer123", null, pageable);
+
+            // Then
+            assertThat(result.getContent()).containsExactly(dto);
+        }
+
+        @Test
+        @DisplayName("should throw ProfilePrivateException for private profile play log")
+        void getUserPlayLog_shouldThrowForPrivateProfile() {
+            // Given
+            profileUser.setIsPrivate(true);
+            Pageable pageable = PageRequest.of(0, 20);
+
+            when(userRepository.findByPseudo("gamer123"))
+                    .thenReturn(Optional.of(profileUser));
+
+            // When / Then
+            assertThatThrownBy(() -> profileService.getUserPlayLog("gamer123", null, pageable))
+                    .isInstanceOf(ProfilePrivateException.class);
+        }
+
+        @Test
+        @DisplayName("should throw UserNotFoundException for unknown username")
+        void getUserPlayLog_shouldThrowForUnknownUser() {
+            // Given
+            Pageable pageable = PageRequest.of(0, 20);
+            when(userRepository.findByPseudo("ghost"))
+                    .thenReturn(Optional.empty());
+
+            // When / Then
+            assertThatThrownBy(() -> profileService.getUserPlayLog("ghost", null, pageable))
                     .isInstanceOf(UserNotFoundException.class);
         }
     }

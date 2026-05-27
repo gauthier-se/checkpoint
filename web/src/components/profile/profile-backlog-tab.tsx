@@ -1,0 +1,91 @@
+import { useQuery } from '@tanstack/react-query'
+import { Archive, Lock } from 'lucide-react'
+import type { UserProfile } from '@/types/profile'
+import { userBacklogQueryOptions } from '@/queries/profile'
+import { CollectionGameCard } from '@/components/collection/collection-game-card'
+import { PriorityBadge } from '@/components/collection/priority-badge'
+import { PaginationNav } from '@/components/shared/pagination-nav'
+
+interface ProfileBacklogTabProps {
+  profile: UserProfile
+  page: number
+}
+
+export function ProfileBacklogTab({ profile, page }: ProfileBacklogTabProps) {
+  const apiPage = Math.max(0, page - 1)
+  const { data, isLoading, isError } = useQuery(
+    userBacklogQueryOptions(profile.username, apiPage),
+  )
+
+  if (profile.isPrivate && !profile.isOwner) {
+    return (
+      <div className="flex flex-col items-center gap-3 py-12 text-center">
+        <Lock className="text-muted-foreground size-12" />
+        <p className="text-muted-foreground text-lg">This profile is private</p>
+      </div>
+    )
+  }
+
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+        {Array.from({ length: 10 }).map((_, i) => (
+          <div key={i} className="flex flex-col gap-2 rounded-lg border p-3">
+            <div className="bg-muted aspect-[3/4] animate-pulse rounded-md" />
+            <div className="bg-muted h-4 w-3/4 animate-pulse rounded" />
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  if (isError || !data) {
+    return (
+      <div className="flex flex-col items-center gap-3 py-12 text-center">
+        <Archive className="text-muted-foreground size-12" />
+        <p className="text-muted-foreground text-lg">Unable to load backlog</p>
+      </div>
+    )
+  }
+
+  if (data.content.length === 0) {
+    return (
+      <div className="flex flex-col items-center gap-3 py-12 text-center">
+        <Archive className="text-muted-foreground size-12" />
+        <p className="text-muted-foreground text-lg">No games in backlog</p>
+      </div>
+    )
+  }
+
+  return (
+    <>
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+        {data.content.map((game) => (
+          <CollectionGameCard
+            key={game.id}
+            videoGameId={game.videoGameId}
+            title={game.title}
+            coverUrl={game.coverUrl}
+            releaseDate={game.releaseDate}
+          >
+            <div className="mt-1 flex flex-wrap items-center gap-1.5">
+              <PriorityBadge priority={game.priority} />
+            </div>
+          </CollectionGameCard>
+        ))}
+      </div>
+      <PaginationNav
+        page={page}
+        totalPages={data.metadata.totalPages}
+        hasNext={data.metadata.hasNext}
+        hasPrevious={data.metadata.hasPrevious}
+        hideWhenSinglePage
+        className="pt-6 pb-4"
+        linkProps={(target) => ({
+          to: '.',
+          search: { tab: 'backlog', page: target },
+        })}
+      />
+    </>
+  )
+}

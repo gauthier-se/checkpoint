@@ -1,0 +1,73 @@
+meta {
+  name: Get User Library
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{baseUrl}}/api/users/:username/library
+  body: none
+  auth: none
+}
+
+params:path {
+  username: gamer123
+}
+
+params:query {
+  ~page: 0
+  ~size: 20
+  ~sort: createdAt,desc
+}
+
+docs {
+  # Get User Library
+
+  Retrieves a paginated list of games in the user's library.
+  Returns 403 Forbidden if the profile is private and the viewer is not the owner.
+
+  ## Path Parameters
+
+  - **username**: The user's display name (pseudo)
+
+  ## Query Parameters
+
+  - **page**: Page number (0-based, default: 0)
+  - **size**: Page size (default: 20, max: 100)
+  - **sort**: Sort criteria (default: "createdAt,desc")
+
+  ## Response (200 OK)
+
+  ```json
+  {
+    "content": [
+      {
+        "id": "uuid",
+        "videoGameId": "uuid",
+        "title": "Celeste",
+        "coverUrl": "https://example.com/cover.jpg",
+        "releaseDate": "2018-01-25",
+        "status": "COMPLETED",
+        "addedAt": "2025-03-01T10:00:00",
+        "updatedAt": "2025-03-02T10:00:00",
+        "notes": null
+      }
+    ],
+    "metadata": {
+      "page": 0,
+      "size": 20,
+      "totalElements": 1,
+      "totalPages": 1,
+      "first": true,
+      "last": true,
+      "hasNext": false,
+      "hasPrevious": false
+    }
+  }
+  ```
+
+  ## Error Responses
+
+  - **403 Forbidden**: Profile is private
+  - **404 Not Found**: User does not exist
+}

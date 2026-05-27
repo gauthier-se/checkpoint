@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import { GameCardHoverActions } from '@/components/games/game-card-hover-actions'
+import { Card, CardContent, CardFooter } from '@/components/ui/card'
 
 interface CollectionGameCardProps {
   videoGameId: string
@@ -17,13 +18,13 @@ export function CollectionGameCard({
   children,
 }: CollectionGameCardProps) {
   return (
-    <div className="group relative flex flex-col gap-2 rounded-lg border bg-card p-3 text-card-foreground shadow-sm transition-shadow hover:shadow-md">
+    <Card className="group relative gap-2 p-3 transition-shadow hover:shadow-md">
       <Link
         to="/games/$gameId"
         params={{ gameId: videoGameId }}
         className="block"
       >
-        <div className="relative aspect-[3/4] overflow-hidden rounded-md bg-muted">
+        <CardContent className="relative aspect-[3/4] overflow-hidden rounded-md bg-muted p-0">
           {coverUrl ? (
             <img
               src={coverUrl}
@@ -45,12 +46,14 @@ export function CollectionGameCard({
             )}
           </div>
           <GameCardHoverActions gameId={videoGameId} />
-        </div>
+        </CardContent>
       </Link>
-      <h3 className="text-sm font-semibold leading-tight line-clamp-2">
-        {title}
-      </h3>
-      {children}
-    </div>
+      <CardFooter className="flex-1 flex-col items-stretch gap-2 p-0">
+        <h3 className="text-sm font-semibold leading-tight line-clamp-2">
+          {title}
+        </h3>
+        {children}
+      </CardFooter>
+    </Card>
   )
 }

@@ -30,14 +30,19 @@ import org.springframework.test.web.servlet.MockMvc;
 import com.checkpoint.api.dto.catalog.PagedResponseDto;
 import com.checkpoint.api.dto.catalog.ReviewResponseDto;
 import com.checkpoint.api.dto.catalog.ReviewUserDto;
+import com.checkpoint.api.dto.collection.BacklogResponseDto;
 import com.checkpoint.api.dto.collection.LikedGameResponseDto;
+import com.checkpoint.api.dto.collection.UserGameResponseDto;
 import com.checkpoint.api.dto.collection.WishResponseDto;
+import com.checkpoint.api.dto.playlog.GamePlayLogResponseDto;
 import com.checkpoint.api.dto.profile.BadgeDto;
 import com.checkpoint.api.dto.profile.CommonGameEntryDto;
 import com.checkpoint.api.dto.profile.ProfileComparisonDto;
 import com.checkpoint.api.dto.profile.RecentPlayDto;
 import com.checkpoint.api.dto.profile.UserProfileDto;
 import com.checkpoint.api.enums.GameStatus;
+import com.checkpoint.api.enums.PlayStatus;
+import com.checkpoint.api.enums.Priority;
 import com.checkpoint.api.exceptions.ProfilePrivateException;
 import com.checkpoint.api.exceptions.UserNotFoundException;
 import com.checkpoint.api.security.ApiAuthenticationEntryPoint;
@@ -275,6 +280,159 @@ class ProfileControllerTest {
 
             // When / Then
             mockMvc.perform(get("/api/users/{username}/likes", "ghost"))
+                    .andExpect(status().isNotFound());
+        }
+    }
+
+    @Nested
+    @DisplayName("GET /api/users/{username}/library")
+    class GetUserLibrary {
+
+        @Test
+        @DisplayName("should return paginated library for public profile")
+        void getUserLibrary_shouldReturnPaginatedLibrary() throws Exception {
+            // Given
+            UserGameResponseDto game = new UserGameResponseDto(
+                    UUID.randomUUID(), UUID.randomUUID(),
+                    "Celeste", "https://example.com/celeste.jpg",
+                    LocalDate.of(2018, 1, 25), GameStatus.COMPLETED,
+                    LocalDateTime.now(), LocalDateTime.now(), null
+            );
+            Page<UserGameResponseDto> page = new PageImpl<>(List.of(game));
+
+            when(profileService.getUserLibrary(eq("testuser"), isNull(), any(Pageable.class)))
+                    .thenReturn(page);
+
+            // When / Then
+            mockMvc.perform(get("/api/users/{username}/library", "testuser"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content[0].title").value("Celeste"))
+                    .andExpect(jsonPath("$.metadata.totalElements").value(1));
+        }
+
+        @Test
+        @DisplayName("should return 403 for private profile library")
+        void getUserLibrary_shouldReturn403ForPrivateProfile() throws Exception {
+            // Given
+            when(profileService.getUserLibrary(eq("privateuser"), isNull(), any(Pageable.class)))
+                    .thenThrow(new ProfilePrivateException("privateuser"));
+
+            // When / Then
+            mockMvc.perform(get("/api/users/{username}/library", "privateuser"))
+                    .andExpect(status().isForbidden());
+        }
+
+        @Test
+        @DisplayName("should return 404 for unknown user")
+        void getUserLibrary_shouldReturn404ForUnknownUser() throws Exception {
+            // Given
+            when(profileService.getUserLibrary(eq("ghost"), isNull(), any(Pageable.class)))
+                    .thenThrow(new UserNotFoundException("ghost"));
+
+            // When / Then
+            mockMvc.perform(get("/api/users/{username}/library", "ghost"))
+                    .andExpect(status().isNotFound());
+        }
+    }
+
+    @Nested
+    @DisplayName("GET /api/users/{username}/backlog")
+    class GetUserBacklog {
+
+        @Test
+        @DisplayName("should return paginated backlog for public profile")
+        void getUserBacklog_shouldReturnPaginatedBacklog() throws Exception {
+            // Given
+            BacklogResponseDto game = new BacklogResponseDto(
+                    UUID.randomUUID(), UUID.randomUUID(),
+                    "Hades", "https://example.com/hades.jpg",
+                    LocalDate.of(2020, 9, 17), Priority.HIGH, LocalDateTime.now()
+            );
+            Page<BacklogResponseDto> page = new PageImpl<>(List.of(game));
+
+            when(profileService.getUserBacklog(eq("testuser"), isNull(), any(Pageable.class)))
+                    .thenReturn(page);
+
+            // When / Then
+            mockMvc.perform(get("/api/users/{username}/backlog", "testuser"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content[0].title").value("Hades"))
+                    .andExpect(jsonPath("$.metadata.totalElements").value(1));
+        }
+
+        @Test
+        @DisplayName("should return 403 for private profile backlog")
+        void getUserBacklog_shouldReturn403ForPrivateProfile() throws Exception {
+            // Given
+            when(profileService.getUserBacklog(eq("privateuser"), isNull(), any(Pageable.class)))
+                    .thenThrow(new ProfilePrivateException("privateuser"));
+
+            // When / Then
+            mockMvc.perform(get("/api/users/{username}/backlog", "privateuser"))
+                    .andExpect(status().isForbidden());
+        }
+
+        @Test
+        @DisplayName("should return 404 for unknown user")
+        void getUserBacklog_shouldReturn404ForUnknownUser() throws Exception {
+            // Given
+            when(profileService.getUserBacklog(eq("ghost"), isNull(), any(Pageable.class)))
+                    .thenThrow(new UserNotFoundException("ghost"));
+
+            // When / Then
+            mockMvc.perform(get("/api/users/{username}/backlog", "ghost"))
+                    .andExpect(status().isNotFound());
+        }
+    }
+
+    @Nested
+    @DisplayName("GET /api/users/{username}/plays")
+    class GetUserPlayLog {
+
+        @Test
+        @DisplayName("should return paginated play log for public profile")
+        void getUserPlayLog_shouldReturnPaginatedPlayLog() throws Exception {
+            // Given
+            GamePlayLogResponseDto play = new GamePlayLogResponseDto(
+                    UUID.randomUUID(), UUID.randomUUID(),
+                    "Stardew Valley", "https://example.com/stardew.jpg",
+                    LocalDate.of(2016, 2, 26), null, null,
+                    PlayStatus.COMPLETED, false, 1200, null, null, null,
+                    LocalDateTime.now(), LocalDateTime.now(), false, null, null, List.of()
+            );
+            Page<GamePlayLogResponseDto> page = new PageImpl<>(List.of(play));
+
+            when(profileService.getUserPlayLog(eq("testuser"), isNull(), any(Pageable.class)))
+                    .thenReturn(page);
+
+            // When / Then
+            mockMvc.perform(get("/api/users/{username}/plays", "testuser"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content[0].title").value("Stardew Valley"))
+                    .andExpect(jsonPath("$.metadata.totalElements").value(1));
+        }
+
+        @Test
+        @DisplayName("should return 403 for private profile play log")
+        void getUserPlayLog_shouldReturn403ForPrivateProfile() throws Exception {
+            // Given
+            when(profileService.getUserPlayLog(eq("privateuser"), isNull(), any(Pageable.class)))
+                    .thenThrow(new ProfilePrivateException("privateuser"));
+
+            // When / Then
+            mockMvc.perform(get("/api/users/{username}/plays", "privateuser"))
+                    .andExpect(status().isForbidden());
+        }
+
+        @Test
+        @DisplayName("should return 404 for unknown user")
+        void getUserPlayLog_shouldReturn404ForUnknownUser() throws Exception {
+            // Given
+            when(profileService.getUserPlayLog(eq("ghost"), isNull(), any(Pageable.class)))
+                    .thenThrow(new UserNotFoundException("ghost"));
+
+            // When / Then
+            mockMvc.perform(get("/api/users/{username}/plays", "ghost"))
                     .andExpect(status().isNotFound());
         }
     }

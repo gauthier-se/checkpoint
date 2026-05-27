@@ -4,23 +4,11 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query'
-import { Link } from '@tanstack/react-router'
-import {
-  BookOpen,
-  Calendar,
-  Clock,
-  ExternalLink,
-  Gamepad2,
-  MessageSquare,
-  RefreshCw,
-  Star,
-  Tag,
-  Trash2,
-} from 'lucide-react'
-import type { PlayLogListResponse, PlayStatus } from '@/types/collection'
+import { BookOpen, Trash2 } from 'lucide-react'
+import type { PlayLogListResponse } from '@/types/collection'
 import { CollectionPagination } from '@/components/collection/collection-pagination'
 import { EmptyState } from '@/components/collection/empty-state'
-import { Badge } from '@/components/ui/badge'
+import { JournalEntry } from '@/components/collection/journal-entry'
 import { Button } from '@/components/ui/button'
 import { apiFetch } from '@/services/api'
 
@@ -36,39 +24,6 @@ export function playLogQuery(page: number) {
       )
       return res.json()
     },
-  })
-}
-
-const PLAY_STATUS_LABELS: Record<PlayStatus, string> = {
-  ARE_PLAYING: 'Playing',
-  PLAYED: 'Played',
-  COMPLETED: 'Completed',
-  RETIRED: 'Retired',
-  SHELVED: 'Shelved',
-  ABANDONED: 'Abandoned',
-}
-
-const PLAY_STATUS_COLORS: Record<PlayStatus, string> = {
-  ARE_PLAYING: 'bg-blue-500/15 text-blue-400 border-blue-500/20',
-  PLAYED: 'bg-violet-500/15 text-violet-400 border-violet-500/20',
-  COMPLETED: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20',
-  RETIRED: 'bg-slate-500/15 text-slate-400 border-slate-500/20',
-  SHELVED: 'bg-amber-500/15 text-amber-400 border-amber-500/20',
-  ABANDONED: 'bg-red-500/15 text-red-400 border-red-500/20',
-}
-
-function formatTimePlayed(minutes: number): string {
-  if (minutes < 60) return `${minutes}m`
-  const hours = Math.floor(minutes / 60)
-  const mins = minutes % 60
-  return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`
-}
-
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
   })
 }
 
@@ -111,8 +66,8 @@ export function PlayLogTab({ page }: PlayLogTabProps) {
     return (
       <EmptyState
         icon={<BookOpen className="size-12" />}
-        title="Unable to load play log"
-        description="The play log feature is not available yet. Check back soon!"
+        title="Unable to load journal"
+        description="The journal feature is not available yet. Check back soon!"
       />
     )
   }
@@ -121,7 +76,7 @@ export function PlayLogTab({ page }: PlayLogTabProps) {
     return (
       <EmptyState
         icon={<BookOpen className="size-12" />}
-        title="Your play log is empty"
+        title="Your journal is empty"
         description="Start logging your play sessions to build a diary of your gaming journey!"
         actionLabel="Browse Games"
         actionTo="/games"
@@ -133,133 +88,10 @@ export function PlayLogTab({ page }: PlayLogTabProps) {
     <div>
       <div className="space-y-3">
         {data.content.map((entry) => (
-          <div
+          <JournalEntry
             key={entry.id}
-            className="group flex items-start gap-4 rounded-lg border bg-card p-4 shadow-sm transition-shadow hover:shadow-md"
-          >
-            {/* Cover */}
-            <Link
-              to="/games/$gameId"
-              params={{ gameId: entry.videoGameId }}
-              className="shrink-0"
-            >
-              <div className="h-24 w-16 overflow-hidden rounded-md bg-muted">
-                {entry.coverUrl ? (
-                  <img
-                    src={entry.coverUrl}
-                    alt={entry.title}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center bg-secondary">
-                    <Gamepad2 className="size-4 text-muted-foreground" />
-                  </div>
-                )}
-              </div>
-            </Link>
-
-            {/* Info */}
-            <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-              <div className="flex items-start justify-between gap-2">
-                <span className="flex min-w-0 items-baseline gap-1.5">
-                  <Link
-                    to="/games/$gameId"
-                    params={{ gameId: entry.videoGameId }}
-                    className="font-semibold leading-tight hover:underline line-clamp-1"
-                  >
-                    {entry.title}
-                  </Link>
-                  {entry.releaseDate && (
-                    <span className="shrink-0 text-xs text-muted-foreground">
-                      ({new Date(entry.releaseDate).getFullYear()})
-                    </span>
-                  )}
-                </span>
-                <div className="flex shrink-0 items-center gap-1.5">
-                  <Badge
-                    className={`${PLAY_STATUS_COLORS[entry.status]} text-[11px]`}
-                  >
-                    {PLAY_STATUS_LABELS[entry.status]}
-                  </Badge>
-                  {entry.isReplay && (
-                    <Badge variant="outline" className="gap-1 text-[11px]">
-                      <RefreshCw className="size-2.5" />
-                      Replay
-                    </Badge>
-                  )}
-                  {entry.score != null && (
-                    <Badge
-                      variant="secondary"
-                      className="gap-1 text-[11px] bg-yellow-500/10 text-yellow-600 hover:bg-yellow-500/20"
-                    >
-                      <Star className="size-2.5 fill-current" />
-                      {(entry.score / 2).toFixed(1)}
-                    </Badge>
-                  )}
-                </div>
-              </div>
-
-              {/* Metadata row */}
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                {entry.platformName && (
-                  <span className="flex items-center gap-1">
-                    <Gamepad2 className="size-3" />
-                    {entry.platformName}
-                  </span>
-                )}
-                {entry.timePlayed != null && entry.timePlayed > 0 && (
-                  <span className="flex items-center gap-1">
-                    <Clock className="size-3" />
-                    {formatTimePlayed(entry.timePlayed)}
-                  </span>
-                )}
-                {entry.startDate && (
-                  <span className="flex items-center gap-1">
-                    <Calendar className="size-3" />
-                    {formatDate(entry.startDate)}
-                    {entry.endDate && ` — ${formatDate(entry.endDate)}`}
-                  </span>
-                )}
-              </div>
-
-              {/* Tag chips */}
-              {entry.tags.length > 0 && (
-                <div className="flex flex-wrap gap-1 mt-1">
-                  {entry.tags.map((tag) => (
-                    <Badge
-                      key={tag.id}
-                      variant="outline"
-                      className="gap-1 text-[11px] text-muted-foreground"
-                    >
-                      <Tag className="size-2.5" />
-                      {tag.name}
-                    </Badge>
-                  ))}
-                </div>
-              )}
-
-              {/* Review preview */}
-              {entry.hasReview && entry.reviewPreview && (
-                <div className="mt-1.5 flex items-start gap-1.5 text-xs text-muted-foreground italic bg-muted/30 p-2 rounded-md border border-muted">
-                  <MessageSquare className="size-3.5 mt-0.5 shrink-0" />
-                  <span className="line-clamp-2">"{entry.reviewPreview}"</span>
-                </div>
-              )}
-            </div>
-
-            {/* Hover actions */}
-            <div className="flex shrink-0 flex-col gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-              <Button
-                asChild
-                variant="ghost"
-                size="sm"
-                className="h-7 gap-1 text-xs"
-              >
-                <Link to="/plays/$id" params={{ id: entry.id }}>
-                  <ExternalLink className="size-3" />
-                  View
-                </Link>
-              </Button>
+            entry={entry}
+            actions={
               <Button
                 variant="ghost"
                 size="sm"
@@ -270,12 +102,12 @@ export function PlayLogTab({ page }: PlayLogTabProps) {
                 <Trash2 className="size-3" />
                 Delete
               </Button>
-            </div>
-          </div>
+            }
+          />
         ))}
       </div>
       <CollectionPagination
-        tab="playlog"
+        tab="journal"
         page={page}
         totalPages={data.metadata.totalPages}
         hasNext={data.metadata.hasNext}

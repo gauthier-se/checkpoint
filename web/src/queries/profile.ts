@@ -1,9 +1,14 @@
 import { queryOptions } from '@tanstack/react-query'
 import type { FavoriteGame, UserProfile } from '@/types/profile'
 import type { ReviewsResponse } from '@/types/review'
-import type { Priority } from '@/types/collection'
+import type {
+  BacklogListResponse,
+  LikedGameListResponse,
+  PlayLogListResponse,
+  Priority,
+} from '@/types/collection'
 import type { PaginationMetadata } from '@/types/game'
-import type { GameStatus } from '@/types/library'
+import type { GameStatus, LibraryResponse } from '@/types/library'
 import { apiFetch } from '@/services/api'
 
 export interface WishlistItem {
@@ -70,6 +75,74 @@ export const userWishlistQueryOptions = (
     queryFn: async (): Promise<WishlistResponse> => {
       const res = await apiFetch(
         `/api/users/${username}/wishlist?page=${page}&size=${size}`,
+      )
+      return res.json()
+    },
+    staleTime: 60 * 1000,
+  })
+}
+
+export const userLibraryQueryOptions = (
+  username: string,
+  page: number = 0,
+  size: number = 20,
+) => {
+  return queryOptions({
+    queryKey: ['users', username, 'library', page, size],
+    queryFn: async (): Promise<LibraryResponse> => {
+      const res = await apiFetch(
+        `/api/users/${username}/library?page=${page}&size=${size}`,
+      )
+      return res.json()
+    },
+    staleTime: 60 * 1000,
+  })
+}
+
+export const userBacklogQueryOptions = (
+  username: string,
+  page: number = 0,
+  size: number = 20,
+) => {
+  return queryOptions({
+    queryKey: ['users', username, 'backlog', page, size],
+    queryFn: async (): Promise<BacklogListResponse> => {
+      const res = await apiFetch(
+        `/api/users/${username}/backlog?page=${page}&size=${size}`,
+      )
+      return res.json()
+    },
+    staleTime: 60 * 1000,
+  })
+}
+
+export const userJournalQueryOptions = (
+  username: string,
+  page: number = 0,
+  size: number = 20,
+) => {
+  return queryOptions({
+    queryKey: ['users', username, 'plays', page, size],
+    queryFn: async (): Promise<PlayLogListResponse> => {
+      const res = await apiFetch(
+        `/api/users/${username}/plays?page=${page}&size=${size}&sort=updatedAt,desc`,
+      )
+      return res.json()
+    },
+    staleTime: 60 * 1000,
+  })
+}
+
+export const userLikedGamesQueryOptions = (
+  username: string,
+  page: number = 0,
+  size: number = 20,
+) => {
+  return queryOptions({
+    queryKey: ['users', username, 'likes', page, size],
+    queryFn: async (): Promise<LikedGameListResponse> => {
+      const res = await apiFetch(
+        `/api/users/${username}/likes?page=${page}&size=${size}`,
       )
       return res.json()
     },

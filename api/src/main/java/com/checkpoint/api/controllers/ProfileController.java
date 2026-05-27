@@ -17,9 +17,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.checkpoint.api.dto.catalog.PagedResponseDto;
 import com.checkpoint.api.dto.catalog.ReviewResponseDto;
+import com.checkpoint.api.dto.collection.BacklogResponseDto;
 import com.checkpoint.api.dto.collection.LikedGameResponseDto;
+import com.checkpoint.api.dto.collection.UserGameResponseDto;
 import com.checkpoint.api.dto.collection.WishResponseDto;
 import com.checkpoint.api.dto.list.GameListCardDto;
+import com.checkpoint.api.dto.playlog.GamePlayLogResponseDto;
 import com.checkpoint.api.dto.profile.ProfileComparisonDto;
 import com.checkpoint.api.dto.profile.UserProfileDto;
 import com.checkpoint.api.services.ProfileComparisonService;
@@ -168,6 +171,96 @@ public class ProfileController {
                 username, viewerEmail, pageable);
 
         return ResponseEntity.ok(PagedResponseDto.from(likedGames));
+    }
+
+    /**
+     * Returns a paginated list of games in the given user's library.
+     *
+     * @param username    the user's display name (pseudo)
+     * @param userDetails the authenticated user, or null if anonymous
+     * @param page        the page number (0-based, default 0)
+     * @param size        the page size (default 20, max 100)
+     * @param sort        the sort criteria (e.g., "createdAt,desc")
+     * @return paginated list of user-game DTOs
+     */
+    @GetMapping("/{username}/library")
+    public ResponseEntity<PagedResponseDto<UserGameResponseDto>> getUserLibrary(
+            @PathVariable String username,
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(defaultValue = "" + DEFAULT_PAGE) int page,
+            @RequestParam(defaultValue = "" + DEFAULT_SIZE) int size,
+            @RequestParam(defaultValue = DEFAULT_SORT) String sort) {
+
+        log.info("GET /api/users/{}/library - page: {}, size: {}", username, page, size);
+
+        String viewerEmail = userDetails != null ? userDetails.getUsername() : null;
+        int validatedSize = Math.min(Math.max(1, size), MAX_SIZE);
+        int validatedPage = Math.max(0, page);
+
+        Pageable pageable = createPageable(validatedPage, validatedSize, sort);
+        Page<UserGameResponseDto> library = profileService.getUserLibrary(username, viewerEmail, pageable);
+
+        return ResponseEntity.ok(PagedResponseDto.from(library));
+    }
+
+    /**
+     * Returns a paginated list of games in the given user's backlog.
+     *
+     * @param username    the user's display name (pseudo)
+     * @param userDetails the authenticated user, or null if anonymous
+     * @param page        the page number (0-based, default 0)
+     * @param size        the page size (default 20, max 100)
+     * @param sort        the sort criteria (e.g., "createdAt,desc" or "priority,desc")
+     * @return paginated list of backlog DTOs
+     */
+    @GetMapping("/{username}/backlog")
+    public ResponseEntity<PagedResponseDto<BacklogResponseDto>> getUserBacklog(
+            @PathVariable String username,
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(defaultValue = "" + DEFAULT_PAGE) int page,
+            @RequestParam(defaultValue = "" + DEFAULT_SIZE) int size,
+            @RequestParam(defaultValue = DEFAULT_SORT) String sort) {
+
+        log.info("GET /api/users/{}/backlog - page: {}, size: {}", username, page, size);
+
+        String viewerEmail = userDetails != null ? userDetails.getUsername() : null;
+        int validatedSize = Math.min(Math.max(1, size), MAX_SIZE);
+        int validatedPage = Math.max(0, page);
+
+        Pageable pageable = createPageable(validatedPage, validatedSize, sort);
+        Page<BacklogResponseDto> backlog = profileService.getUserBacklog(username, viewerEmail, pageable);
+
+        return ResponseEntity.ok(PagedResponseDto.from(backlog));
+    }
+
+    /**
+     * Returns a paginated list of the given user's play log (journal) entries.
+     *
+     * @param username    the user's display name (pseudo)
+     * @param userDetails the authenticated user, or null if anonymous
+     * @param page        the page number (0-based, default 0)
+     * @param size        the page size (default 20, max 100)
+     * @param sort        the sort criteria (e.g., "updatedAt,desc")
+     * @return paginated list of play log DTOs
+     */
+    @GetMapping("/{username}/plays")
+    public ResponseEntity<PagedResponseDto<GamePlayLogResponseDto>> getUserPlayLog(
+            @PathVariable String username,
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(defaultValue = "" + DEFAULT_PAGE) int page,
+            @RequestParam(defaultValue = "" + DEFAULT_SIZE) int size,
+            @RequestParam(defaultValue = "updatedAt,desc") String sort) {
+
+        log.info("GET /api/users/{}/plays - page: {}, size: {}", username, page, size);
+
+        String viewerEmail = userDetails != null ? userDetails.getUsername() : null;
+        int validatedSize = Math.min(Math.max(1, size), MAX_SIZE);
+        int validatedPage = Math.max(0, page);
+
+        Pageable pageable = createPageable(validatedPage, validatedSize, sort);
+        Page<GamePlayLogResponseDto> plays = profileService.getUserPlayLog(username, viewerEmail, pageable);
+
+        return ResponseEntity.ok(PagedResponseDto.from(plays));
     }
 
     /**

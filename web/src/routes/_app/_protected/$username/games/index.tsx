@@ -1,13 +1,16 @@
-import { Link, createFileRoute } from '@tanstack/react-router'
-import { Archive, BookOpen, Heart, Library, Tag } from 'lucide-react'
+import { createFileRoute } from '@tanstack/react-router'
+import { Archive, BookOpen, Heart, Library, Tag, ThumbsUp } from 'lucide-react'
 import type { CollectionTab } from '@/types/collection'
 import { BacklogTab, backlogQuery } from '@/components/collection/backlog-tab'
 import { LibraryTab, libraryQuery } from '@/components/collection/library-tab'
+import { LikedTab, likedGamesQuery } from '@/components/collection/liked-tab'
 import { PlayLogTab, playLogQuery } from '@/components/collection/play-log-tab'
+import { TagsTab } from '@/components/collection/tags-tab'
 import {
   WishlistTab,
   wishlistQuery,
 } from '@/components/collection/wishlist-tab'
+import { userTagGamesQueryOptions, userTagsQueryOptions } from '@/queries/tags'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 // Search params
@@ -16,12 +19,15 @@ const VALID_TABS: Array<CollectionTab> = [
   'library',
   'wishlist',
   'backlog',
-  'playlog',
+  'journal',
+  'tags',
+  'liked',
 ]
 
 type GamesSearchParams = {
   tab: CollectionTab
   page: number
+  tagName?: string
 }
 
 // Route
@@ -34,10 +40,18 @@ export const Route = createFileRoute('/_app/_protected/$username/games/')({
       ? (rawTab as CollectionTab)
       : 'library'
     const page = Math.max(1, Math.floor(Number(search.page ?? 1)) || 1)
-    return { tab, page }
+    const tagName =
+      typeof search.tagName === 'string' && search.tagName.length > 0
+        ? search.tagName
+        : undefined
+    return { tab, page, tagName }
   },
-  loaderDeps: ({ search: { tab, page } }) => ({ tab, page }),
-  loader: async ({ context, deps: { tab, page } }) => {
+  loaderDeps: ({ search: { tab, page, tagName } }) => ({ tab, page, tagName }),
+  loader: async ({
+    context,
+    params: { username },
+    deps: { tab, page, tagName },
+  }) => {
     // Prefetch data for the active tab; wrapped in try/catch so
     // missing API endpoints (not yet merged) don't crash navigation
     try {
@@ -51,8 +65,25 @@ export const Route = createFileRoute('/_app/_protected/$username/games/')({
         case 'backlog':
           await context.queryClient.ensureQueryData(backlogQuery(page))
           break
-        case 'playlog':
+        case 'journal':
           await context.queryClient.ensureQueryData(playLogQuery(page))
+          break
+        case 'liked':
+          await context.queryClient.ensureQueryData(likedGamesQuery(page))
+          break
+        case 'tags':
+          await context.queryClient.ensureQueryData(
+            userTagsQueryOptions(username),
+          )
+          if (tagName) {
+            void context.queryClient.prefetchQuery(
+              userTagGamesQueryOptions(
+                username,
+                tagName,
+                Math.max(0, page - 1),
+              ),
+            )
+          }
           break
       }
     } catch {
@@ -71,18 +102,16 @@ const TAB_CONFIG: Array<{
   { value: 'library', label: 'Library', icon: <Library className="size-4" /> },
   { value: 'wishlist', label: 'Wishlist', icon: <Heart className="size-4" /> },
   { value: 'backlog', label: 'Backlog', icon: <Archive className="size-4" /> },
-  {
-    value: 'playlog',
-    label: 'Play Log',
-    icon: <BookOpen className="size-4" />,
-  },
+  { value: 'journal', label: 'Journal', icon: <BookOpen className="size-4" /> },
+  { value: 'tags', label: 'Tags', icon: <Tag className="size-4" /> },
+  { value: 'liked', label: 'Liked', icon: <ThumbsUp className="size-4" /> },
 ]
 
 // Page
 
 function UserGamesPage() {
   const { username } = Route.useParams()
-  const { tab, page } = Route.useSearch()
+  const { tab, page, tagName } = Route.useSearch()
   const navigate = Route.useNavigate()
 
   function onTabChange(newTab: string) {
@@ -93,17 +122,7 @@ function UserGamesPage() {
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-10">
-      <div className="mb-8 flex items-center justify-between">
-        <h1 className="text-3xl font-bold">My Games</h1>
-        <Link
-          to="/$username/tags"
-          params={{ username }}
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <Tag className="size-4" />
-          Manage Tags
-        </Link>
-      </div>
+      <h1 className="mb-8 text-3xl font-bold">My Games</h1>
 
       <Tabs value={tab} onValueChange={onTabChange}>
         <TabsList variant="line" className="mb-6 w-full justify-start">
@@ -127,8 +146,29 @@ function UserGamesPage() {
           <BacklogTab page={tab === 'backlog' ? page : 1} />
         </TabsContent>
 
-        <TabsContent value="playlog">
-          <PlayLogTab page={tab === 'playlog' ? page : 1} />
+        <TabsContent value="journal">
+          <PlayLogTab page={tab === 'journal' ? page : 1} />
+        </TabsContent>
+
+        <TabsContent value="tags">
+          <TagsTab
+            username={username}
+            isOwner
+            selectedTag={tab === 'tags' ? tagName : undefined}
+            page={tab === 'tags' ? page : 1}
+            tagLinkProps={(name) => ({
+              to: '.',
+              search: { tab: 'tags', tagName: name, page: 1 },
+            })}
+            pageLinkProps={(target) => ({
+              to: '.',
+              search: { tab: 'tags', tagName, page: target },
+            })}
+          />
+        </TabsContent>
+
+        <TabsContent value="liked">
+          <LikedTab page={tab === 'liked' ? page : 1} />
         </TabsContent>
       </Tabs>
     </main>

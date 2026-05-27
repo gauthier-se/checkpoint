@@ -1,0 +1,83 @@
+meta {
+  name: Get User Play Log
+  type: http
+  seq: 11
+}
+
+get {
+  url: {{baseUrl}}/api/users/:username/plays
+  body: none
+  auth: none
+}
+
+params:path {
+  username: gamer123
+}
+
+params:query {
+  ~page: 0
+  ~size: 20
+  ~sort: updatedAt,desc
+}
+
+docs {
+  # Get User Play Log (Journal)
+
+  Retrieves a paginated list of the user's play log (journal) entries.
+  Returns 403 Forbidden if the profile is private and the viewer is not the owner.
+
+  ## Path Parameters
+
+  - **username**: The user's display name (pseudo)
+
+  ## Query Parameters
+
+  - **page**: Page number (0-based, default: 0)
+  - **size**: Page size (default: 20, max: 100)
+  - **sort**: Sort criteria (default: "updatedAt,desc")
+
+  ## Response (200 OK)
+
+  ```json
+  {
+    "content": [
+      {
+        "id": "uuid",
+        "videoGameId": "uuid",
+        "title": "Stardew Valley",
+        "coverUrl": "https://example.com/cover.jpg",
+        "releaseDate": "2016-02-26",
+        "platformId": "uuid",
+        "platformName": "PC",
+        "status": "COMPLETED",
+        "isReplay": false,
+        "timePlayed": 1200,
+        "startDate": "2025-01-01",
+        "endDate": "2025-02-01",
+        "ownership": "OWNED",
+        "createdAt": "2025-03-01T10:00:00",
+        "updatedAt": "2025-03-02T10:00:00",
+        "hasReview": true,
+        "reviewPreview": "A cozy farming sim...",
+        "score": 9,
+        "tags": []
+      }
+    ],
+    "metadata": {
+      "page": 0,
+      "size": 20,
+      "totalElements": 1,
+      "totalPages": 1,
+      "first": true,
+      "last": true,
+      "hasNext": false,
+      "hasPrevious": false
+    }
+  }
+  ```
+
+  ## Error Responses
+
+  - **403 Forbidden**: Profile is private
+  - **404 Not Found**: User does not exist
+}

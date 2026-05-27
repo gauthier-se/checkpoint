@@ -71,5 +71,26 @@ export interface PlayLogListResponse {
   metadata: PaginationMetadata
 }
 
+// Liked games
+export interface LikedGameResponse {
+  id: string
+  videoGameId: string
+  title: string
+  coverUrl: string | null
+  releaseDate: string | null
+  likedAt: string
+}
+
+export interface LikedGameListResponse {
+  content: Array<LikedGameResponse>
+  metadata: PaginationMetadata
+}
+
 // Shared
-export type CollectionTab = 'library' | 'wishlist' | 'backlog' | 'playlog'
+export type CollectionTab =
+  | 'library'
+  | 'wishlist'
+  | 'backlog'
+  | 'journal'
+  | 'tags'
+  | 'liked'

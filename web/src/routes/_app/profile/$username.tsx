@@ -1,38 +1,69 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useSuspenseQuery } from '@tanstack/react-query'
-import { Heart, List, MessageSquare, Tag, Users } from 'lucide-react'
-import type { UserProfile } from '@/types/profile'
 import {
+  Archive,
+  BookOpen,
+  Heart,
+  Library,
+  List,
+  MessageSquare,
+  Tag,
+  ThumbsUp,
+  Users,
+} from 'lucide-react'
+import {
+  userBacklogQueryOptions,
   userFollowingQueryOptions,
+  userJournalQueryOptions,
+  userLibraryQueryOptions,
+  userLikedGamesQueryOptions,
   userProfileQueryOptions,
   userReviewsQueryOptions,
   userWishlistQueryOptions,
 } from '@/queries/profile'
 import { userListsQueryOptions } from '@/queries/lists'
-import { userTagsQueryOptions } from '@/queries/tags'
+import { userTagGamesQueryOptions, userTagsQueryOptions } from '@/queries/tags'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ProfileHeader } from '@/components/profile/profile-header'
 import { ProfileReviewsTab } from '@/components/profile/profile-reviews-tab'
 import { ProfileWishlistTab } from '@/components/profile/profile-wishlist-tab'
 import { ProfileFollowingTab } from '@/components/profile/profile-following-tab'
 import { ProfileListsTab } from '@/components/profile/profile-lists-tab'
-import { ProfileTagsTab } from '@/components/profile/profile-tags-tab'
+import { ProfileLibraryTab } from '@/components/profile/profile-library-tab'
+import { ProfileBacklogTab } from '@/components/profile/profile-backlog-tab'
+import { ProfileJournalTab } from '@/components/profile/profile-journal-tab'
+import { ProfileLikedTab } from '@/components/profile/profile-liked-tab'
+import { TagsTab } from '@/components/collection/tags-tab'
 
 // Search params
 
-type ProfileTab = 'reviews' | 'wishlist' | 'lists' | 'tags' | 'following'
+type ProfileTab =
+  | 'library'
+  | 'wishlist'
+  | 'backlog'
+  | 'journal'
+  | 'tags'
+  | 'liked'
+  | 'reviews'
+  | 'lists'
+  | 'following'
 
 const VALID_TABS: Array<ProfileTab> = [
-  'reviews',
+  'library',
   'wishlist',
-  'lists',
+  'backlog',
+  'journal',
   'tags',
+  'liked',
+  'reviews',
+  'lists',
   'following',
 ]
 
 type ProfileSearchParams = {
   tab: ProfileTab
   page: number
+  tagName?: string
 }
 
 // Route
@@ -40,15 +71,23 @@ type ProfileSearchParams = {
 export const Route = createFileRoute('/_app/profile/$username')({
   component: UserProfilePage,
   validateSearch: (search: Record<string, unknown>): ProfileSearchParams => {
-    const rawTab = String(search.tab ?? 'reviews')
+    const rawTab = String(search.tab ?? 'library')
     const tab = VALID_TABS.includes(rawTab as ProfileTab)
       ? (rawTab as ProfileTab)
-      : 'reviews'
+      : 'library'
     const page = Math.max(1, Math.floor(Number(search.page ?? 1)) || 1)
-    return { tab, page }
+    const tagName =
+      typeof search.tagName === 'string' && search.tagName.length > 0
+        ? search.tagName
+        : undefined
+    return { tab, page, tagName }
   },
-  loaderDeps: ({ search: { tab, page } }) => ({ tab, page }),
-  loader: async ({ params: { username }, context, deps: { tab, page } }) => {
+  loaderDeps: ({ search: { tab, page, tagName } }) => ({ tab, page, tagName }),
+  loader: async ({
+    params: { username },
+    context,
+    deps: { tab, page, tagName },
+  }) => {
     const profile = await context.queryClient.ensureQueryData(
       userProfileQueryOptions(username),
     )
@@ -57,9 +96,9 @@ export const Route = createFileRoute('/_app/profile/$username')({
     const apiPage = Math.max(0, page - 1)
     try {
       switch (tab) {
-        case 'reviews':
+        case 'library':
           void context.queryClient.prefetchQuery(
-            userReviewsQueryOptions(username, apiPage),
+            userLibraryQueryOptions(username, apiPage),
           )
           break
         case 'wishlist':
@@ -67,13 +106,38 @@ export const Route = createFileRoute('/_app/profile/$username')({
             userWishlistQueryOptions(username, apiPage),
           )
           break
-        case 'lists':
+        case 'backlog':
           void context.queryClient.prefetchQuery(
-            userListsQueryOptions(username, apiPage),
+            userBacklogQueryOptions(username, apiPage),
+          )
+          break
+        case 'journal':
+          void context.queryClient.prefetchQuery(
+            userJournalQueryOptions(username, apiPage),
+          )
+          break
+        case 'liked':
+          void context.queryClient.prefetchQuery(
+            userLikedGamesQueryOptions(username, apiPage),
           )
           break
         case 'tags':
           void context.queryClient.prefetchQuery(userTagsQueryOptions(username))
+          if (tagName) {
+            void context.queryClient.prefetchQuery(
+              userTagGamesQueryOptions(username, tagName, apiPage),
+            )
+          }
+          break
+        case 'reviews':
+          void context.queryClient.prefetchQuery(
+            userReviewsQueryOptions(username, apiPage),
+          )
+          break
+        case 'lists':
+          void context.queryClient.prefetchQuery(
+            userListsQueryOptions(username, apiPage),
+          )
           break
         case 'following':
           void context.queryClient.prefetchQuery(
@@ -96,26 +160,18 @@ const TAB_CONFIG: Array<{
   label: string
   icon: React.ReactNode
 }> = [
+  { value: 'library', label: 'Library', icon: <Library className="size-4" /> },
+  { value: 'wishlist', label: 'Wishlist', icon: <Heart className="size-4" /> },
+  { value: 'backlog', label: 'Backlog', icon: <Archive className="size-4" /> },
+  { value: 'journal', label: 'Journal', icon: <BookOpen className="size-4" /> },
+  { value: 'tags', label: 'Tags', icon: <Tag className="size-4" /> },
+  { value: 'liked', label: 'Liked', icon: <ThumbsUp className="size-4" /> },
   {
     value: 'reviews',
     label: 'Reviews',
     icon: <MessageSquare className="size-4" />,
   },
-  {
-    value: 'wishlist',
-    label: 'Wishlist',
-    icon: <Heart className="size-4" />,
-  },
-  {
-    value: 'lists',
-    label: 'Lists',
-    icon: <List className="size-4" />,
-  },
-  {
-    value: 'tags',
-    label: 'Tags',
-    icon: <Tag className="size-4" />,
-  },
+  { value: 'lists', label: 'Lists', icon: <List className="size-4" /> },
   {
     value: 'following',
     label: 'Following',
@@ -128,7 +184,7 @@ const TAB_CONFIG: Array<{
 function UserProfilePage() {
   const { username } = Route.useParams()
   const { data: profile } = useSuspenseQuery(userProfileQueryOptions(username))
-  const { tab, page } = Route.useSearch()
+  const { tab, page, tagName } = Route.useSearch()
   const navigate = Route.useNavigate()
 
   function onTabChange(newTab: string) {
@@ -151,10 +207,10 @@ function UserProfilePage() {
           ))}
         </TabsList>
 
-        <TabsContent value="reviews">
-          <ProfileReviewsTab
+        <TabsContent value="library">
+          <ProfileLibraryTab
             profile={profile}
-            page={tab === 'reviews' ? page : 1}
+            page={tab === 'library' ? page : 1}
           />
         </TabsContent>
 
@@ -165,15 +221,57 @@ function UserProfilePage() {
           />
         </TabsContent>
 
+        <TabsContent value="backlog">
+          <ProfileBacklogTab
+            profile={profile}
+            page={tab === 'backlog' ? page : 1}
+          />
+        </TabsContent>
+
+        <TabsContent value="journal">
+          <ProfileJournalTab
+            profile={profile}
+            page={tab === 'journal' ? page : 1}
+          />
+        </TabsContent>
+
+        <TabsContent value="tags">
+          <TagsTab
+            username={profile.username}
+            isOwner={profile.isOwner}
+            isPrivate={profile.isPrivate}
+            selectedTag={tab === 'tags' ? tagName : undefined}
+            page={tab === 'tags' ? page : 1}
+            tagLinkProps={(name) => ({
+              to: '.',
+              search: { tab: 'tags', tagName: name, page: 1 },
+            })}
+            pageLinkProps={(target) => ({
+              to: '.',
+              search: { tab: 'tags', tagName, page: target },
+            })}
+          />
+        </TabsContent>
+
+        <TabsContent value="liked">
+          <ProfileLikedTab
+            profile={profile}
+            page={tab === 'liked' ? page : 1}
+          />
+        </TabsContent>
+
+        <TabsContent value="reviews">
+          <ProfileReviewsTab
+            profile={profile}
+            page={tab === 'reviews' ? page : 1}
+          />
+        </TabsContent>
+
         <TabsContent value="lists">
           <ProfileListsTab
             profile={profile}
             page={tab === 'lists' ? page : 1}
           />
-        </TabsContent>
-
-        <TabsContent value="tags">
-          <ProfileTagsTab profile={profile} />
         </TabsContent>
 
         <TabsContent value="following">
