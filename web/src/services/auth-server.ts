@@ -27,6 +27,6 @@ export const fetchCurrentUserServerFn = createServerFn({
 // context is present — a bare `getRequestHeader` call from within a react-query
 // queryFn does not. Runs only on the server; the handler is stripped from the
 // client bundle by the Start compiler.
-export const getRequestCookieServerFn = createServerFn({ method: 'GET' }).handler(
-  (): string => getRequestHeader('cookie') ?? '',
-)
+export const getRequestCookieServerFn = createServerFn({
+  method: 'GET',
+}).handler((): string => getRequestHeader('cookie') ?? '')
