@@ -1,6 +1,6 @@
 import type { PaginationMetadata } from './game'
 
-export type GameStatus = 'BACKLOG' | 'PLAYING' | 'COMPLETED' | 'DROPPED'
+export type GameStatus = 'PLAYING' | 'COMPLETED' | 'DROPPED'
 
 export interface UserGameResponse {
   id: string

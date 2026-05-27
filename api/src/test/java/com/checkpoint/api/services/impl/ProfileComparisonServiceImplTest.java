@@ -92,7 +92,7 @@ class ProfileComparisonServiceImplTest {
                 .thenReturn(List.of(
                         userGame(viewer, g1, GameStatus.COMPLETED),
                         userGame(viewer, g2, GameStatus.PLAYING),
-                        userGame(viewer, g3, GameStatus.BACKLOG)));
+                        userGame(viewer, g3, GameStatus.PLAYING)));
         when(userGameRepository.findByUserIdAndVideoGameIdIn(target.getId(), commonIds))
                 .thenReturn(List.of(
                         userGame(target, g1, GameStatus.COMPLETED),

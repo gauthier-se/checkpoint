@@ -75,10 +75,10 @@ class UserGameCollectionControllerTest {
             // Given
             UUID videoGameId = UUID.randomUUID();
             UUID userGameId = UUID.randomUUID();
-            UserGameRequestDto request = new UserGameRequestDto(videoGameId, GameStatus.BACKLOG, null);
+            UserGameRequestDto request = new UserGameRequestDto(videoGameId, GameStatus.PLAYING, null);
             UserGameResponseDto response = new UserGameResponseDto(
                     userGameId, videoGameId, "The Witcher 3", "cover.jpg",
-                    LocalDate.of(2015, 5, 19), GameStatus.BACKLOG,
+                    LocalDate.of(2015, 5, 19), GameStatus.PLAYING,
                     LocalDateTime.now(), LocalDateTime.now(), null);
 
             when(userGameCollectionService.addGameToLibrary(eq("user@example.com"), any(UserGameRequestDto.class)))
@@ -92,7 +92,7 @@ class UserGameCollectionControllerTest {
                     .andExpect(jsonPath("$.id").value(userGameId.toString()))
                     .andExpect(jsonPath("$.videoGameId").value(videoGameId.toString()))
                     .andExpect(jsonPath("$.title").value("The Witcher 3"))
-                    .andExpect(jsonPath("$.status").value("BACKLOG"))
+                    .andExpect(jsonPath("$.status").value("PLAYING"))
                     .andExpect(jsonPath("$.notes").doesNotExist());
         }
 

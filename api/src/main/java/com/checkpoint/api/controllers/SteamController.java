@@ -68,8 +68,8 @@ public class SteamController {
     }
 
     /**
-     * Imports the authenticated user's owned Steam games into their CheckPoint library
-     * with status {@code BACKLOG}. Returns counts of total/imported/skipped/unmatched.
+     * Imports the authenticated user's owned Steam games into their dedicated backlog
+     * with priority {@code MEDIUM}. Returns counts of total/imported/skipped/unmatched.
      *
      * @param userDetails the authenticated user
      * @return the sync summary

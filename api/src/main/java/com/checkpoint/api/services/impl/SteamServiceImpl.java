@@ -25,16 +25,16 @@ import com.checkpoint.api.dto.steam.SteamAccountDto;
 import com.checkpoint.api.dto.steam.SteamOwnedGameDto;
 import com.checkpoint.api.dto.steam.SteamPlayerSummaryDto;
 import com.checkpoint.api.dto.steam.SteamSyncSummaryDto;
+import com.checkpoint.api.entities.Backlog;
 import com.checkpoint.api.entities.User;
-import com.checkpoint.api.entities.UserGame;
 import com.checkpoint.api.entities.VideoGame;
-import com.checkpoint.api.enums.GameStatus;
+import com.checkpoint.api.enums.Priority;
 import com.checkpoint.api.exceptions.InvalidSteamIdException;
 import com.checkpoint.api.exceptions.SteamAccountNotLinkedException;
 import com.checkpoint.api.exceptions.SteamApiException;
 import com.checkpoint.api.exceptions.SteamLibraryPrivateException;
 import com.checkpoint.api.exceptions.UserNotFoundException;
-import com.checkpoint.api.repositories.UserGameRepository;
+import com.checkpoint.api.repositories.BacklogRepository;
 import com.checkpoint.api.repositories.UserRepository;
 import com.checkpoint.api.repositories.VideoGameRepository;
 import com.checkpoint.api.services.GameImportService;
@@ -67,7 +67,7 @@ public class SteamServiceImpl implements SteamService {
     private final SteamApiClient steamApiClient;
     private final IgdbApiClient igdbApiClient;
     private final VideoGameRepository videoGameRepository;
-    private final UserGameRepository userGameRepository;
+    private final BacklogRepository backlogRepository;
     private final GameImportService gameImportService;
     private final OnboardingService onboardingService;
 
@@ -75,14 +75,14 @@ public class SteamServiceImpl implements SteamService {
                             SteamApiClient steamApiClient,
                             IgdbApiClient igdbApiClient,
                             VideoGameRepository videoGameRepository,
-                            UserGameRepository userGameRepository,
+                            BacklogRepository backlogRepository,
                             GameImportService gameImportService,
                             OnboardingService onboardingService) {
         this.userRepository = userRepository;
         this.steamApiClient = steamApiClient;
         this.igdbApiClient = igdbApiClient;
         this.videoGameRepository = videoGameRepository;
-        this.userGameRepository = userGameRepository;
+        this.backlogRepository = backlogRepository;
         this.gameImportService = gameImportService;
         this.onboardingService = onboardingService;
     }
@@ -278,16 +278,18 @@ public class SteamServiceImpl implements SteamService {
                 .map(VideoGame::getId)
                 .toList();
         Set<UUID> existingVideoGameIds = new HashSet<>(
-                userGameRepository.findExistingVideoGameIds(user.getId(), resolvedVideoGameIds));
+                backlogRepository.findExistingVideoGameIds(user.getId(), resolvedVideoGameIds));
 
-        List<UserGame> toAdd = new ArrayList<>();
+        List<Backlog> toAdd = new ArrayList<>();
         for (VideoGame game : resolvedGames) {
             if (!existingVideoGameIds.contains(game.getId())) {
-                toAdd.add(new UserGame(user, game, GameStatus.BACKLOG));
+                Backlog backlog = new Backlog(user, game);
+                backlog.setPriority(Priority.MEDIUM);
+                toAdd.add(backlog);
             }
         }
         if (!toAdd.isEmpty()) {
-            userGameRepository.saveAll(toAdd);
+            backlogRepository.saveAll(toAdd);
         }
 
         int imported = toAdd.size();

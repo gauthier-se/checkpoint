@@ -1,8 +1,9 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
+import { useQuery } from '@tanstack/react-query'
 import { Users } from 'lucide-react'
-import type { FeedItemType, FeedResponse, FeedTab } from '@/types/feed'
+import type { FeedItemType, FeedTab } from '@/types/feed'
 import { FEED_ITEM_TYPES } from '@/types/feed'
-import { FeedList } from '@/components/feed/feed-list'
+import { FeedList, FeedListSkeleton } from '@/components/feed/feed-list'
 import { FeedPagination } from '@/components/feed/feed-pagination'
 import { FEED_TAB_OPTIONS, FeedTabs } from '@/components/feed/feed-tabs'
 import { OnboardingChecklist } from '@/components/onboarding/onboarding-checklist'
@@ -29,18 +30,27 @@ export const Route = createFileRoute('/_app/_protected/feed/')({
     }
   },
   loaderDeps: ({ search }) => search,
-  loader: async ({ deps, context }): Promise<FeedResponse> => {
-    return context.queryClient.ensureQueryData(
-      feedQueryOptions(deps.page - 1, PAGE_SIZE, deps.type),
-    )
+  loader: async ({ deps, context }) => {
+    // Best-effort SSR prefetch only. The feed is a protected endpoint; on a hard
+    // refresh the server-side request may not be authenticated, so swallow the
+    // error rather than 500 — the component's useQuery refetches on the client
+    // (where the session cookie is always present).
+    try {
+      await context.queryClient.ensureQueryData(
+        feedQueryOptions(deps.page - 1, PAGE_SIZE, deps.type),
+      )
+    } catch {
+      // Handled client-side by useQuery.
+    }
   },
   component: RouteComponent,
 })
 
 function RouteComponent() {
-  const data = Route.useLoaderData()
   const { page, type } = Route.useSearch()
   const navigate = Route.useNavigate()
+  const feedQuery = useQuery(feedQueryOptions(page - 1, PAGE_SIZE, type))
+  const data = feedQuery.data
 
   function handleTabChange(value: FeedTab) {
     // Reset to the first page whenever the filter changes.
@@ -69,7 +79,9 @@ function RouteComponent() {
         <Separator />
         <FeedTabs value={type ?? 'all'} onValueChange={handleTabChange} />
 
-        {data.content.length > 0 ? (
+        {!data ? (
+          <FeedListSkeleton />
+        ) : data.content.length > 0 ? (
           <>
             <FeedList items={data.content} />
             <FeedPagination

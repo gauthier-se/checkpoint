@@ -1,5 +1,7 @@
 package com.checkpoint.api.repositories;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -28,6 +30,18 @@ public interface BacklogRepository extends JpaRepository<Backlog, UUID> {
      * Finds a backlog entry by user ID and video game ID.
      */
     Optional<Backlog> findByUserIdAndVideoGameId(UUID userId, UUID videoGameId);
+
+    /**
+     * Returns the IDs of every video game from {@code videoGameIds} that is already
+     * in the given user's backlog. Used by the Steam library sync to skip duplicates
+     * in a single round-trip.
+     */
+    @Query("""
+            SELECT b.videoGame.id FROM Backlog b
+            WHERE b.user.id = :userId AND b.videoGame.id IN :videoGameIds
+            """)
+    List<UUID> findExistingVideoGameIds(@Param("userId") UUID userId,
+                                        @Param("videoGameIds") Collection<UUID> videoGameIds);
 
     /**
      * Returns all games in a user's backlog (paginated), with video game eagerly fetched.

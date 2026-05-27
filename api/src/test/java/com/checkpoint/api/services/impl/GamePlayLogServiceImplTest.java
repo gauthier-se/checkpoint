@@ -563,7 +563,7 @@ class GamePlayLogServiceImplTest {
         @DisplayName("should update existing library entry status without touching notes")
         void shouldUpdateExistingLibraryEntryStatusOnly() {
             // Given
-            UserGame existing = new UserGame(testUser, testGame, GameStatus.BACKLOG);
+            UserGame existing = new UserGame(testUser, testGame, GameStatus.PLAYING);
             existing.setNotes("my note");
             stubLogPlayHappyPath(testRequestDto);
             when(userGameRepository.findByUserIdAndVideoGameId(testUser.getId(), testGame.getId()))

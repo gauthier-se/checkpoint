@@ -32,16 +32,16 @@ import com.checkpoint.api.dto.steam.SteamAccountDto;
 import com.checkpoint.api.dto.steam.SteamOwnedGameDto;
 import com.checkpoint.api.dto.steam.SteamPlayerSummaryDto;
 import com.checkpoint.api.dto.steam.SteamSyncSummaryDto;
+import com.checkpoint.api.entities.Backlog;
 import com.checkpoint.api.entities.User;
-import com.checkpoint.api.entities.UserGame;
 import com.checkpoint.api.entities.VideoGame;
-import com.checkpoint.api.enums.GameStatus;
+import com.checkpoint.api.enums.Priority;
 import com.checkpoint.api.exceptions.InvalidSteamIdException;
 import com.checkpoint.api.exceptions.SteamAccountNotLinkedException;
 import com.checkpoint.api.exceptions.SteamApiException;
 import com.checkpoint.api.exceptions.SteamLibraryPrivateException;
 import com.checkpoint.api.exceptions.UserNotFoundException;
-import com.checkpoint.api.repositories.UserGameRepository;
+import com.checkpoint.api.repositories.BacklogRepository;
 import com.checkpoint.api.repositories.UserRepository;
 import com.checkpoint.api.repositories.VideoGameRepository;
 import com.checkpoint.api.services.GameImportService;
@@ -69,7 +69,7 @@ class SteamServiceImplTest {
     private VideoGameRepository videoGameRepository;
 
     @Mock
-    private UserGameRepository userGameRepository;
+    private BacklogRepository backlogRepository;
 
     @Mock
     private GameImportService gameImportService;
@@ -367,11 +367,11 @@ class SteamServiceImplTest {
 
         assertThat(result).isEqualTo(new SteamSyncSummaryDto(0, 0, 0, 0));
         verify(igdbApiClient, never()).findIgdbIdsForSteamAppIds(anyList());
-        verify(userGameRepository, never()).saveAll(any());
+        verify(backlogRepository, never()).saveAll(any());
     }
 
     @Test
-    @DisplayName("syncSteamLibrary imports missing games and adds matched games to the library with BACKLOG status")
+    @DisplayName("syncSteamLibrary imports missing games and adds matched games to the backlog with MEDIUM priority")
     void syncSteamLibrary_matchesAndImportsHappyPath() {
         user.setSteamId(STEAM_ID);
         when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
@@ -392,7 +392,7 @@ class SteamServiceImplTest {
                 .thenReturn(List.of(existingLocal))                 // pre-import check
                 .thenReturn(List.of(existingLocal, importedAfter)); // post-import resolution
 
-        when(userGameRepository.findExistingVideoGameIds(eq(user.getId()), anyCollection()))
+        when(backlogRepository.findExistingVideoGameIds(eq(user.getId()), anyCollection()))
                 .thenReturn(List.of());
 
         SteamSyncSummaryDto result = steamService.syncSteamLibrary(EMAIL);
@@ -400,18 +400,18 @@ class SteamServiceImplTest {
         assertThat(result).isEqualTo(new SteamSyncSummaryDto(3, 2, 0, 1));
         verify(gameImportService).importGamesByIds(List.of(2000L));
 
-        ArgumentCaptor<List<UserGame>> captor = ArgumentCaptor.forClass(List.class);
-        verify(userGameRepository).saveAll(captor.capture());
-        List<UserGame> saved = captor.getValue();
+        ArgumentCaptor<List<Backlog>> captor = ArgumentCaptor.forClass(List.class);
+        verify(backlogRepository).saveAll(captor.capture());
+        List<Backlog> saved = captor.getValue();
         assertThat(saved).hasSize(2);
-        assertThat(saved).allMatch(ug -> ug.getStatus() == GameStatus.BACKLOG);
-        assertThat(saved).allMatch(ug -> ug.getUser() == user);
-        assertThat(saved.stream().map(ug -> ug.getVideoGame().getIgdbId()))
+        assertThat(saved).allMatch(b -> b.getPriority() == Priority.MEDIUM);
+        assertThat(saved).allMatch(b -> b.getUser() == user);
+        assertThat(saved.stream().map(b -> b.getVideoGame().getIgdbId()))
                 .containsExactlyInAnyOrder(1000L, 2000L);
     }
 
     @Test
-    @DisplayName("syncSteamLibrary skips games already in the user's library and does not override their status")
+    @DisplayName("syncSteamLibrary skips games already in the user's backlog and does not override their priority")
     void syncSteamLibrary_skipsGamesAlreadyInCollection() {
         user.setSteamId(STEAM_ID);
         when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
@@ -427,8 +427,8 @@ class SteamServiceImplTest {
         VideoGame g2 = videoGameWith(2000L);
         // Both games already exist locally — no IGDB import needed.
         when(videoGameRepository.findAllByIgdbIdIn(anyCollection())).thenReturn(List.of(g1, g2));
-        // g1 is already in the library; g2 is new.
-        when(userGameRepository.findExistingVideoGameIds(eq(user.getId()), anyCollection()))
+        // g1 is already in the backlog; g2 is new.
+        when(backlogRepository.findExistingVideoGameIds(eq(user.getId()), anyCollection()))
                 .thenReturn(List.of(g1.getId()));
 
         SteamSyncSummaryDto result = steamService.syncSteamLibrary(EMAIL);
@@ -436,9 +436,9 @@ class SteamServiceImplTest {
         assertThat(result).isEqualTo(new SteamSyncSummaryDto(2, 1, 1, 0));
         verify(gameImportService, never()).importGamesByIds(any());
 
-        ArgumentCaptor<List<UserGame>> captor = ArgumentCaptor.forClass(List.class);
-        verify(userGameRepository).saveAll(captor.capture());
-        List<UserGame> saved = captor.getValue();
+        ArgumentCaptor<List<Backlog>> captor = ArgumentCaptor.forClass(List.class);
+        verify(backlogRepository).saveAll(captor.capture());
+        List<Backlog> saved = captor.getValue();
         assertThat(saved).hasSize(1);
         assertThat(saved.get(0).getVideoGame().getIgdbId()).isEqualTo(2000L);
     }
@@ -483,6 +483,6 @@ class SteamServiceImplTest {
 
         assertThat(result).isEqualTo(new SteamSyncSummaryDto(2, 0, 0, 2));
         verify(gameImportService, never()).importGamesByIds(any());
-        verify(userGameRepository, never()).saveAll(any());
+        verify(backlogRepository, never()).saveAll(any());
     }
 }

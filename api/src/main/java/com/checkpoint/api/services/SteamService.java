@@ -61,10 +61,10 @@ public interface SteamService {
     Optional<SteamAccountDto> getLinkedAccount(String steamId);
 
     /**
-     * Imports every owned Steam game into the authenticated user's CheckPoint library with
-     * status {@code BACKLOG}, matching Steam appIds to IGDB game IDs via the IGDB
-     * {@code /external_games} endpoint. Games already in the user's library are skipped
-     * (their status is preserved); games not present in IGDB are counted as unmatched.
+     * Imports every owned Steam game into the authenticated user's dedicated backlog with
+     * priority {@code MEDIUM}, matching Steam appIds to IGDB game IDs via the IGDB
+     * {@code /external_games} endpoint. Games already in the user's backlog are skipped
+     * (their priority is preserved); games not present in IGDB are counted as unmatched.
      *
      * @param userEmail the authenticated user's email
      * @return per-bucket counts describing the outcome of the sync

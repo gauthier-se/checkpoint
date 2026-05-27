@@ -22,7 +22,7 @@ import jakarta.persistence.UniqueConstraint;
 
 /**
  * Association entity between User and VideoGame for the user's personal game library.
- * A user can add a game to their collection with a specific status (BACKLOG, PLAYING, COMPLETED, DROPPED).
+ * A user can add a game to their collection with a specific status (PLAYING, COMPLETED, DROPPED).
  * Each user–game pair is unique.
  */
 @Entity

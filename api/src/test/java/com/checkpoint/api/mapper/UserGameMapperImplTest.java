@@ -71,7 +71,7 @@ class UserGameMapperImplTest {
         VideoGame videoGame = new VideoGame("Unknown Game", null, null);
         videoGame.setId(UUID.randomUUID());
 
-        UserGame userGame = new UserGame(user, videoGame, GameStatus.BACKLOG);
+        UserGame userGame = new UserGame(user, videoGame, GameStatus.PLAYING);
         userGame.setId(UUID.randomUUID());
         userGame.setCreatedAt(LocalDateTime.now());
         userGame.setUpdatedAt(LocalDateTime.now());
@@ -83,7 +83,7 @@ class UserGameMapperImplTest {
         assertThat(result.title()).isEqualTo("Unknown Game");
         assertThat(result.coverUrl()).isNull();
         assertThat(result.releaseDate()).isNull();
-        assertThat(result.status()).isEqualTo(GameStatus.BACKLOG);
+        assertThat(result.status()).isEqualTo(GameStatus.PLAYING);
         assertThat(result.notes()).isNull();
     }
 }

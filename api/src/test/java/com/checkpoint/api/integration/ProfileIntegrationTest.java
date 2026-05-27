@@ -394,8 +394,8 @@ class ProfileIntegrationTest {
         /**
          * Seeds overlapping libraries and ratings for both users.
          * <ul>
-         *   <li>viewer (gamer123) library: A (COMPLETED), B (PLAYING), C (BACKLOG)</li>
-         *   <li>target (otheruser) library: A (COMPLETED), B (DROPPED), D (BACKLOG)</li>
+         *   <li>viewer (gamer123) library: A (COMPLETED), B (PLAYING), C (PLAYING)</li>
+         *   <li>target (otheruser) library: A (COMPLETED), B (DROPPED), D (PLAYING)</li>
          *   <li>common games: A, B — union: A,B,C,D (4) — libraryScore = 2/4 = 50</li>
          *   <li>ratings: A viewer 10/target 8 (5.0 vs 4.0, diff 1.0); B viewer 6 only</li>
          * </ul>
@@ -409,11 +409,11 @@ class ProfileIntegrationTest {
 
             userGameRepository.save(new UserGame(testUser, a, GameStatus.COMPLETED));
             userGameRepository.save(new UserGame(testUser, b, GameStatus.PLAYING));
-            userGameRepository.save(new UserGame(testUser, c, GameStatus.BACKLOG));
+            userGameRepository.save(new UserGame(testUser, c, GameStatus.PLAYING));
 
             userGameRepository.save(new UserGame(otherUser, a, GameStatus.COMPLETED));
             userGameRepository.save(new UserGame(otherUser, b, GameStatus.DROPPED));
-            userGameRepository.save(new UserGame(otherUser, d, GameStatus.BACKLOG));
+            userGameRepository.save(new UserGame(otherUser, d, GameStatus.PLAYING));
 
             rateRepository.save(new Rate(testUser, a, 10));
             rateRepository.save(new Rate(otherUser, a, 8));

@@ -78,14 +78,14 @@ class UserGameCollectionServiceImplTest {
         testGame.setId(UUID.randomUUID());
         testGame.setCoverUrl("cover.jpg");
 
-        testUserGame = new UserGame(testUser, testGame, GameStatus.BACKLOG);
+        testUserGame = new UserGame(testUser, testGame, GameStatus.PLAYING);
         testUserGame.setId(UUID.randomUUID());
         testUserGame.setCreatedAt(LocalDateTime.now());
         testUserGame.setUpdatedAt(LocalDateTime.now());
 
         testResponseDto = new UserGameResponseDto(
                 testUserGame.getId(), testGame.getId(), testGame.getTitle(),
-                testGame.getCoverUrl(), testGame.getReleaseDate(), GameStatus.BACKLOG,
+                testGame.getCoverUrl(), testGame.getReleaseDate(), GameStatus.PLAYING,
                 testUserGame.getCreatedAt(), testUserGame.getUpdatedAt(), null);
     }
 
@@ -97,7 +97,7 @@ class UserGameCollectionServiceImplTest {
         @DisplayName("should add game to library successfully")
         void shouldAddGameSuccessfully() {
             // Given
-            UserGameRequestDto request = new UserGameRequestDto(testGame.getId(), GameStatus.BACKLOG, null);
+            UserGameRequestDto request = new UserGameRequestDto(testGame.getId(), GameStatus.PLAYING, null);
 
             when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(testUser));
             when(videoGameRepository.findById(testGame.getId())).thenReturn(Optional.of(testGame));
@@ -111,13 +111,13 @@ class UserGameCollectionServiceImplTest {
             // Then
             assertThat(result.videoGameId()).isEqualTo(testGame.getId());
             assertThat(result.title()).isEqualTo("The Witcher 3");
-            assertThat(result.status()).isEqualTo(GameStatus.BACKLOG);
+            assertThat(result.status()).isEqualTo(GameStatus.PLAYING);
 
             ArgumentCaptor<UserGame> captor = ArgumentCaptor.forClass(UserGame.class);
             verify(userGameRepository).save(captor.capture());
             assertThat(captor.getValue().getUser()).isEqualTo(testUser);
             assertThat(captor.getValue().getVideoGame()).isEqualTo(testGame);
-            assertThat(captor.getValue().getStatus()).isEqualTo(GameStatus.BACKLOG);
+            assertThat(captor.getValue().getStatus()).isEqualTo(GameStatus.PLAYING);
             assertThat(captor.getValue().getNotes()).isNull();
         }
 
@@ -165,7 +165,7 @@ class UserGameCollectionServiceImplTest {
         void shouldThrowWhenVideoGameNotFound() {
             // Given
             UUID unknownGameId = UUID.randomUUID();
-            UserGameRequestDto request = new UserGameRequestDto(unknownGameId, GameStatus.BACKLOG, null);
+            UserGameRequestDto request = new UserGameRequestDto(unknownGameId, GameStatus.PLAYING, null);
 
             when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(testUser));
             when(videoGameRepository.findById(unknownGameId)).thenReturn(Optional.empty());
@@ -180,7 +180,7 @@ class UserGameCollectionServiceImplTest {
         @DisplayName("should throw IllegalArgumentException when user not found")
         void shouldThrowWhenUserNotFound() {
             // Given
-            UserGameRequestDto request = new UserGameRequestDto(testGame.getId(), GameStatus.BACKLOG, null);
+            UserGameRequestDto request = new UserGameRequestDto(testGame.getId(), GameStatus.PLAYING, null);
             when(userRepository.findByEmail("unknown@example.com")).thenReturn(Optional.empty());
 
             // When / Then

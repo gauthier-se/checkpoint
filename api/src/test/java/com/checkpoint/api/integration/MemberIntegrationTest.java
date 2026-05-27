@@ -116,7 +116,7 @@ class MemberIntegrationTest {
         userGameRepository.save(new UserGame(viewer, game1, GameStatus.PLAYING));
         userGameRepository.save(new UserGame(popularUser, game1, GameStatus.COMPLETED));
         userGameRepository.save(new UserGame(quietUser, game1, GameStatus.PLAYING));
-        userGameRepository.save(new UserGame(quietUser, game2, GameStatus.BACKLOG));
+        userGameRepository.save(new UserGame(quietUser, game2, GameStatus.PLAYING));
 
         entityManager.flush();
         entityManager.clear();

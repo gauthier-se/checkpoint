@@ -545,9 +545,8 @@ public class DatabaseSeeder implements ApplicationRunner {
     private GameStatus mapPlayToGameStatus(PlayStatus playStatus) {
         return switch (playStatus) {
             case COMPLETED, PLAYED -> GameStatus.COMPLETED;
-            case ARE_PLAYING -> GameStatus.PLAYING;
+            case ARE_PLAYING, SHELVED -> GameStatus.PLAYING;
             case ABANDONED, RETIRED -> GameStatus.DROPPED;
-            case SHELVED -> GameStatus.BACKLOG;
         };
     }
 

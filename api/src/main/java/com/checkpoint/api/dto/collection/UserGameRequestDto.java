@@ -11,7 +11,7 @@ import jakarta.validation.constraints.Size;
  * Request DTO for adding a game to or updating a game in the user's collection.
  *
  * @param videoGameId the ID of the video game to add
- * @param status      the status to assign (BACKLOG, PLAYING, COMPLETED, DROPPED)
+ * @param status      the status to assign (PLAYING, COMPLETED, DROPPED)
  * @param notes       optional private notes (max 2000 characters); null clears the field
  */
 public record UserGameRequestDto(

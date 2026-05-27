@@ -33,7 +33,10 @@ describe('apiFetch', () => {
     const [url, init] = fetchMock.mock.calls[0]
     expect(url).toBe('/api/auth/register')
     expect(init?.method).toBe('POST')
-    expect(init?.headers).toEqual({ 'Content-Type': 'application/json' })
+    // Headers are normalized into a `Headers` instance before being forwarded.
+    expect(new Headers(init?.headers).get('content-type')).toBe(
+      'application/json',
+    )
     expect(init?.body).toBe(JSON.stringify({ pseudo: 'alice' }))
     expect(init?.credentials).toBe('include')
   })

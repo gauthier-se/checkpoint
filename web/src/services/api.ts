@@ -1,3 +1,5 @@
+import { getRequestCookieServerFn } from '@/services/auth-server'
+
 /**
  * Typed error thrown by `apiFetch` whenever the server returns a non-2xx
  * response, or the fetch itself fails (network error).
@@ -44,7 +46,9 @@ interface ServerErrorResponse {
  * auth cookies scoped to the web origin, which is required for SSR auth.
  *
  * Server-side: uses `API_INTERNAL_URL` for direct API calls (Node fetch
- * requires absolute URLs).
+ * requires absolute URLs) and forwards the incoming SSR request's auth cookie —
+ * Node's fetch has no browser cookie jar, so `credentials: 'include'` alone
+ * sends nothing and any protected endpoint hit from a loader would 401.
  *
  * On `!res.ok`, parses the API's `ErrorResponse` JSON body and throws an
  * {@link ApiError}. On network failure, throws `ApiError { status: 0 }`.
@@ -55,13 +59,20 @@ export async function apiFetch(
   path: string,
   init?: RequestInit,
 ): Promise<Response> {
-  const base =
-    typeof window === 'undefined' ? (process.env.API_INTERNAL_URL ?? '') : ''
+  const isServer = typeof window === 'undefined'
+  const base = isServer ? (process.env.API_INTERNAL_URL ?? '') : ''
+
+  const headers = new Headers(init?.headers)
+  if (isServer && !headers.has('cookie')) {
+    const cookie = await getRequestCookieServerFn()
+    if (cookie) headers.set('cookie', cookie)
+  }
 
   let res: Response
   try {
     res = await fetch(`${base}${path}`, {
       ...init,
+      headers,
       credentials: 'include',
     })
   } catch {
