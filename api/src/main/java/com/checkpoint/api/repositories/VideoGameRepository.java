@@ -138,8 +138,8 @@ public interface VideoGameRepository extends JpaRepository<VideoGame, UUID>, Vid
      * Pre-filters the catalog to games sharing at least one genre or company with the
      * user's taste profile, excluding any DLC and any game the user already has a
      * relationship with — library ({@code UserGame}), wishlist ({@code Wish}),
-     * favorites ({@code Favorite}), or a top-level game-like ({@code Like}). Returns
-     * only IDs so the caller can apply an upper bound via
+     * favorites ({@code Favorite}), backlog ({@code Backlog}), or a top-level game-like
+     * ({@code Like}). Returns only IDs so the caller can apply an upper bound via
      * {@link org.springframework.data.domain.Pageable} without hitting Hibernate's
      * JOIN FETCH + first/max in-memory pagination caveat — load the entities in a
      * second pass through {@link #findAllByIdInWithRelationships}.
@@ -171,6 +171,9 @@ public interface VideoGameRepository extends JpaRepository<VideoGame, UUID>, Vid
               AND vg.id NOT IN (
                   SELECT l.videoGame.id FROM Like l WHERE l.user.id = :userId AND l.videoGame IS NOT NULL
               )
+              AND vg.id NOT IN (
+                  SELECT b.videoGame.id FROM Backlog b WHERE b.user.id = :userId
+              )
             GROUP BY vg.id
             """)
     List<UUID> findCandidateIdsForRecommendation(
@@ -184,9 +187,10 @@ public interface VideoGameRepository extends JpaRepository<VideoGame, UUID>, Vid
      * least one genre or company with it — excluding the seed game itself and any DLC
      * ({@code parentGame IS NULL}). When the viewer is authenticated, also excludes any
      * game they already have a relationship with — library ({@code UserGame}), wishlist
-     * ({@code Wish}), favorites ({@code Favorite}), or a top-level game-like
-     * ({@code Like}). Anonymous callers pass a sentinel {@code viewerId} that matches no
-     * user, so the four {@code NOT IN} clauses leave every game in place.
+     * ({@code Wish}), favorites ({@code Favorite}), backlog ({@code Backlog}), or a
+     * top-level game-like ({@code Like}). Anonymous callers pass a sentinel
+     * {@code viewerId} that matches no user, so the five {@code NOT IN} clauses leave
+     * every game in place.
      *
      * <p>Item-to-item counterpart of {@link #findCandidateIdsForRecommendation}. Returns
      * only IDs so the caller can cap the pool via {@link Pageable} and hydrate the
@@ -217,6 +221,9 @@ public interface VideoGameRepository extends JpaRepository<VideoGame, UUID>, Vid
               )
               AND vg.id NOT IN (
                   SELECT l.videoGame.id FROM Like l WHERE l.user.id = :viewerId AND l.videoGame IS NOT NULL
+              )
+              AND vg.id NOT IN (
+                  SELECT b.videoGame.id FROM Backlog b WHERE b.user.id = :viewerId
               )
             GROUP BY vg.id
             """)
