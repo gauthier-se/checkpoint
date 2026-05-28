@@ -51,7 +51,6 @@ import { Route as AppProtectedSettingsAppearanceRouteImport } from './routes/_ap
 import { Route as AppProtectedListsNewRouteImport } from './routes/_app/_protected/lists/new'
 import { Route as AppProtectedGamesPopularWithFriendsRouteImport } from './routes/_app/_protected/games/popular-with-friends'
 import { Route as AppProtectedUsernameTagsIndexRouteImport } from './routes/_app/_protected/$username/tags/index'
-import { Route as AppProfileUsernameTagsTagNameRouteImport } from './routes/_app/profile_.$username.tags.$tagName'
 import { Route as AppProtectedListsListIdEditRouteImport } from './routes/_app/_protected/lists/$listId/edit'
 
 const AuthRoute = AuthRouteImport.update({
@@ -273,12 +272,6 @@ const AppProtectedUsernameTagsIndexRoute =
     path: '/$username/tags/',
     getParentRoute: () => AppProtectedRoute,
   } as any)
-const AppProfileUsernameTagsTagNameRoute =
-  AppProfileUsernameTagsTagNameRouteImport.update({
-    id: '/profile_/$username/tags/$tagName',
-    path: '/profile/$username/tags/$tagName',
-    getParentRoute: () => AppRoute,
-  } as any)
 const AppProtectedListsListIdEditRoute =
   AppProtectedListsListIdEditRouteImport.update({
     id: '/lists/$listId/edit',
@@ -326,7 +319,6 @@ export interface FileRoutesByFullPath {
   '/feed/': typeof AppProtectedFeedIndexRoute
   '/settings/': typeof AppProtectedSettingsIndexRoute
   '/lists/$listId/edit': typeof AppProtectedListsListIdEditRoute
-  '/profile/$username/tags/$tagName': typeof AppProfileUsernameTagsTagNameRoute
   '/$username/tags/': typeof AppProtectedUsernameTagsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -368,7 +360,6 @@ export interface FileRoutesByTo {
   '/feed': typeof AppProtectedFeedIndexRoute
   '/settings': typeof AppProtectedSettingsIndexRoute
   '/lists/$listId/edit': typeof AppProtectedListsListIdEditRoute
-  '/profile/$username/tags/$tagName': typeof AppProfileUsernameTagsTagNameRoute
   '/$username/tags': typeof AppProtectedUsernameTagsIndexRoute
 }
 export interface FileRoutesById {
@@ -415,7 +406,6 @@ export interface FileRoutesById {
   '/_app/_protected/feed/': typeof AppProtectedFeedIndexRoute
   '/_app/_protected/settings/': typeof AppProtectedSettingsIndexRoute
   '/_app/_protected/lists/$listId/edit': typeof AppProtectedListsListIdEditRoute
-  '/_app/profile_/$username/tags/$tagName': typeof AppProfileUsernameTagsTagNameRoute
   '/_app/_protected/$username/tags/': typeof AppProtectedUsernameTagsIndexRoute
 }
 export interface FileRouteTypes {
@@ -460,7 +450,6 @@ export interface FileRouteTypes {
     | '/feed/'
     | '/settings/'
     | '/lists/$listId/edit'
-    | '/profile/$username/tags/$tagName'
     | '/$username/tags/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -502,7 +491,6 @@ export interface FileRouteTypes {
     | '/feed'
     | '/settings'
     | '/lists/$listId/edit'
-    | '/profile/$username/tags/$tagName'
     | '/$username/tags'
   id:
     | '__root__'
@@ -548,7 +536,6 @@ export interface FileRouteTypes {
     | '/_app/_protected/feed/'
     | '/_app/_protected/settings/'
     | '/_app/_protected/lists/$listId/edit'
-    | '/_app/profile_/$username/tags/$tagName'
     | '/_app/_protected/$username/tags/'
   fileRoutesById: FileRoutesById
 }
@@ -853,13 +840,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProtectedUsernameTagsIndexRouteImport
       parentRoute: typeof AppProtectedRoute
     }
-    '/_app/profile_/$username/tags/$tagName': {
-      id: '/_app/profile_/$username/tags/$tagName'
-      path: '/profile/$username/tags/$tagName'
-      fullPath: '/profile/$username/tags/$tagName'
-      preLoaderRoute: typeof AppProfileUsernameTagsTagNameRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/_app/_protected/lists/$listId/edit': {
       id: '/_app/_protected/lists/$listId/edit'
       path: '/lists/$listId/edit'
@@ -947,7 +927,6 @@ interface AppRouteChildren {
   AppProfileUsernameCompareRoute: typeof AppProfileUsernameCompareRoute
   AppProfileUsernameGamesRoute: typeof AppProfileUsernameGamesRoute
   AppProfileUsernameListsRoute: typeof AppProfileUsernameListsRoute
-  AppProfileUsernameTagsTagNameRoute: typeof AppProfileUsernameTagsTagNameRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -974,7 +953,6 @@ const AppRouteChildren: AppRouteChildren = {
   AppProfileUsernameCompareRoute: AppProfileUsernameCompareRoute,
   AppProfileUsernameGamesRoute: AppProfileUsernameGamesRoute,
   AppProfileUsernameListsRoute: AppProfileUsernameListsRoute,
-  AppProfileUsernameTagsTagNameRoute: AppProfileUsernameTagsTagNameRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

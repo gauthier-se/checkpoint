@@ -64,7 +64,7 @@ export function useNavigationHotkeys() {
           void navigate({
             to: '/profile/$username',
             params: { username },
-            search: { tab: 'reviews', page: 1 },
+            search: { tab: 'profile', page: 1 },
           })
         },
         options: { enabled: isDesktop && !!user },

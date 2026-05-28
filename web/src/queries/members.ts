@@ -9,7 +9,7 @@ export function popularMembersQueryOptions(size: number = 10) {
       const res = await apiFetch(`/api/members/popular?size=${size}`)
       return res.json()
     },
-    staleTime: 60 * 1000,
+    staleTime: 0,
   })
 }
 
@@ -20,7 +20,7 @@ export function topReviewersMembersQueryOptions(size: number = 10) {
       const res = await apiFetch(`/api/members/top-reviewers?size=${size}`)
       return res.json()
     },
-    staleTime: 60 * 1000,
+    staleTime: 0,
   })
 }
 
@@ -42,7 +42,7 @@ export function recentMembersQueryOptions(size: number = 10) {
       const res = await apiFetch(`/api/members/recent?size=${size}`)
       return res.json()
     },
-    staleTime: 60 * 1000,
+    staleTime: 0,
   })
 }
 
@@ -78,6 +78,6 @@ export function browseMembersQueryOptions(
       const res = await apiFetch(`/api/members?${qs.toString()}`)
       return res.json()
     },
-    staleTime: 60 * 1000,
+    staleTime: 0,
   })
 }

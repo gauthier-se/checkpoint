@@ -31,6 +31,7 @@ interface ProfileHeaderProps {
 export function ProfileHeader({ profile }: ProfileHeaderProps) {
   const { user } = useAuth()
   const queryClient = useQueryClient()
+  const isOwner = user?.username === profile.username
 
   const followMutation = useMutation({
     mutationFn: () => toggleFollowMutation(profile.id),
@@ -97,7 +98,7 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
 
         {/* Actions */}
         <div className="flex gap-2">
-          {profile.isOwner && (
+          {isOwner && (
             <Button variant="outline" asChild>
               <Link to="/settings/profile">
                 <Pencil className="mr-2 size-4" />
@@ -105,7 +106,7 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
               </Link>
             </Button>
           )}
-          {user && !profile.isOwner && (
+          {user && !isOwner && (
             <>
               <Button variant="outline" asChild>
                 <Link
@@ -166,22 +167,19 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
       </div>
 
       {/* Favorites */}
-      <FavoriteGamesSection
-        favorites={profile.favorites}
-        isOwner={profile.isOwner}
-      />
+      <FavoriteGamesSection favorites={profile.favorites} isOwner={isOwner} />
 
       {/* Recent games preview */}
       <RecentGamesSection
         username={profile.username}
         isPrivate={profile.isPrivate}
-        isOwner={profile.isOwner}
+        isOwner={isOwner}
       />
 
       {/* Recent activity */}
       <RecentActivitySection
         recentPlays={profile.recentPlays}
-        isOwner={profile.isOwner}
+        isOwner={isOwner}
       />
     </div>
   )

@@ -183,8 +183,9 @@ function TagManagementPage() {
               <div className="flex items-center gap-3">
                 <Tag className="size-4 text-muted-foreground" />
                 <Link
-                  to="/profile/$username/tags/$tagName"
-                  params={{ username, tagName: tag.name }}
+                  to="/profile/$username"
+                  params={{ username }}
+                  search={{ tab: 'tags', tagName: tag.name, page: 1 }}
                   className="font-medium hover:underline"
                 >
                   {tag.name}

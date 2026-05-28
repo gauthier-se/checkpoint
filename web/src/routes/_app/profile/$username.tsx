@@ -28,6 +28,7 @@ import {
   WishlistTab,
   wishlistQuery,
 } from '@/components/collection/wishlist-tab'
+import { useAuth } from '@/hooks/use-auth'
 
 // Search params
 
@@ -152,7 +153,8 @@ function UserProfilePage() {
   const { username } = Route.useParams()
   const { data: profile } = useSuspenseQuery(userProfileQueryOptions(username))
   const { tab, page, tagName } = Route.useSearch()
-  const isOwner = profile.isOwner
+  const { user } = useAuth()
+  const isOwner = user?.username === profile.username
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-10">
