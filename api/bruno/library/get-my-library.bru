@@ -14,6 +14,7 @@ params:query {
   ~page: 0
   ~size: 20
   ~sort: createdAt,desc
+  ~status: PLAYING
 }
 
 auth:bearer {
@@ -36,6 +37,7 @@ docs {
   | page | 0 | Page number (0-based) |
   | size | 20 | Number of items per page (max 100) |
   | sort | createdAt,desc | Sort field and direction |
+  | status | (none) | Optional status filter: `PLAYING`, `COMPLETED`, or `DROPPED`. When omitted, every status is returned. |
 
   ## Sort Options
 
@@ -44,8 +46,12 @@ docs {
   - `updatedAt,desc` — Most recently updated first
   - `status,asc` — By status alphabetically
   - `title,asc` — By game title A-Z
+  - `rating,desc` — By the user's own rating, highest first (unrated games last)
 
   ## Response (200 OK)
+
+  Each entry includes `userRating`, the authenticated user's own rating on the
+  half-star scale (0.5–5.0), or `null` if they haven't rated the game.
 
   ```json
   {
@@ -59,7 +65,8 @@ docs {
         "status": "PLAYING",
         "addedAt": "2025-06-01T10:00:00",
         "updatedAt": "2025-06-15T14:30:00",
-        "notes": "Bought during summer sale — start after Elden Ring"
+        "notes": "Bought during summer sale — start after Elden Ring",
+        "userRating": 4.5
       }
     ],
     "metadata": {

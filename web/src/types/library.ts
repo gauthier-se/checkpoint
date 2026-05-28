@@ -12,6 +12,8 @@ export interface UserGameResponse {
   addedAt: string
   updatedAt: string
   notes: string | null
+  /** The library owner's own rating, on the half-star scale (0.5–5.0), or null if unrated. */
+  userRating: number | null
 }
 
 export interface UserGameRequest {

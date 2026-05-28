@@ -6,36 +6,67 @@ import {
 } from '@tanstack/react-query'
 import { Library, Pencil } from 'lucide-react'
 import { useState } from 'react'
+import type { CollectionTab } from '@/types/collection'
 import type {
   GameStatus,
   LibraryResponse,
   UserGameResponse,
 } from '@/types/library'
 import { CollectionGameCard } from '@/components/collection/collection-game-card'
-import { CollectionPagination } from '@/components/collection/collection-pagination'
 import { EmptyState } from '@/components/collection/empty-state'
 import { NotesDialog } from '@/components/collection/notes-dialog'
+import { PaginationNav } from '@/components/shared/pagination-nav'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { ButtonGroup } from '@/components/ui/button-group'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { apiFetch } from '@/services/api'
 
 const PAGE_SIZE = 20
 
-export function libraryQuery(page: number) {
+export type LibrarySort = 'rating' | 'addedAt' | 'updatedAt' | 'title'
+
+const LIBRARY_SORT_PARAM: Record<LibrarySort, string> = {
+  rating: 'rating,desc',
+  addedAt: 'createdAt,desc',
+  updatedAt: 'updatedAt,desc',
+  title: 'title,asc',
+}
+
+export const LIBRARY_SORT_LABELS: Record<LibrarySort, string> = {
+  rating: 'Rating',
+  addedAt: 'Date added',
+  updatedAt: 'Last updated',
+  title: 'Title A→Z',
+}
+
+export function libraryQuery(
+  page: number,
+  status?: GameStatus,
+  sort: LibrarySort = 'addedAt',
+) {
   return queryOptions({
-    queryKey: ['library', 'me', page],
+    queryKey: ['library', 'me', page, status ?? null, sort],
     queryFn: async (): Promise<LibraryResponse> => {
       const apiPage = page - 1
-      const res = await apiFetch(
-        `/api/me/library?page=${apiPage}&size=${PAGE_SIZE}`,
-      )
+      const params = new URLSearchParams({
+        page: String(apiPage),
+        size: String(PAGE_SIZE),
+        sort: LIBRARY_SORT_PARAM[sort],
+      })
+      if (status) params.set('status', status)
+      const res = await apiFetch(`/api/me/library?${params.toString()}`)
       return res.json()
     },
   })
@@ -53,31 +84,31 @@ const STATUS_COLORS: Record<GameStatus, string> = {
   DROPPED: 'bg-red-500/15 text-red-400 border-red-500/20',
 }
 
-const ALL_STATUSES: Array<GameStatus | 'ALL'> = [
-  'ALL',
-  'PLAYING',
-  'COMPLETED',
-  'DROPPED',
-]
-
 interface LibraryTabProps {
   page: number
+  status?: GameStatus
+  sort: LibrarySort
+  tabKey: Extract<CollectionTab, 'games' | 'playing' | 'completed' | 'dropped'>
+  onSortChange: (sort: LibrarySort) => void
 }
 
-export function LibraryTab({ page }: LibraryTabProps) {
-  const { data, isLoading, isError } = useQuery(libraryQuery(page))
-  const queryClient = useQueryClient()
-  const [filter, setFilter] = useState<GameStatus | 'ALL'>('ALL')
-  const [notesGame, setNotesGame] = useState<UserGameResponse | null>(null)
-
-  const filteredGames = (data?.content ?? []).filter(
-    (game) => filter === 'ALL' || game.status === filter,
+export function LibraryTab({
+  page,
+  status,
+  sort,
+  tabKey,
+  onSortChange,
+}: LibraryTabProps) {
+  const { data, isLoading, isError } = useQuery(
+    libraryQuery(page, status, sort),
   )
+  const queryClient = useQueryClient()
+  const [notesGame, setNotesGame] = useState<UserGameResponse | null>(null)
 
   const updateStatusMutation = useMutation({
     mutationFn: async ({
       gameId,
-      status,
+      status: newStatus,
       notes,
     }: {
       gameId: string
@@ -86,7 +117,7 @@ export function LibraryTab({ page }: LibraryTabProps) {
     }) => {
       await apiFetch(`/api/me/library/${gameId}`, {
         method: 'PUT',
-        body: JSON.stringify({ videoGameId: gameId, status, notes }),
+        body: JSON.stringify({ videoGameId: gameId, status: newStatus, notes }),
         headers: { 'Content-Type': 'application/json' },
       })
     },
@@ -106,28 +137,33 @@ export function LibraryTab({ page }: LibraryTabProps) {
     },
   })
 
+  const sortControl = (
+    <div className="mb-4 flex items-center justify-end gap-2">
+      <span className="text-xs text-muted-foreground">Sort by</span>
+      <Select
+        value={sort}
+        onValueChange={(value) => onSortChange(value as LibrarySort)}
+      >
+        <SelectTrigger size="sm" className="h-8 w-[160px] text-xs">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {(Object.keys(LIBRARY_SORT_LABELS) as Array<LibrarySort>).map(
+            (key) => (
+              <SelectItem key={key} value={key}>
+                {LIBRARY_SORT_LABELS[key]}
+              </SelectItem>
+            ),
+          )}
+        </SelectContent>
+      </Select>
+    </div>
+  )
+
   return (
     <div>
-      {/* Status filter */}
-      <div className="mb-6 flex items-center gap-3">
-        <span className="text-sm font-medium text-muted-foreground">
-          Filter:
-        </span>
-        <ButtonGroup>
-          {ALL_STATUSES.map((status) => (
-            <Button
-              key={status}
-              variant={filter === status ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setFilter(status)}
-            >
-              {status === 'ALL' ? 'All' : STATUS_LABELS[status]}
-            </Button>
-          ))}
-        </ButtonGroup>
-      </div>
+      {sortControl}
 
-      {/* Loading */}
       {isLoading && (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
           {Array.from({ length: 10 }).map((_, i) => (
@@ -139,7 +175,6 @@ export function LibraryTab({ page }: LibraryTabProps) {
         </div>
       )}
 
-      {/* Error */}
       {(isError || (!isLoading && !data)) && (
         <EmptyState
           icon={<Library className="size-12" />}
@@ -148,31 +183,31 @@ export function LibraryTab({ page }: LibraryTabProps) {
         />
       )}
 
-      {/* Games grid */}
-      {data && filteredGames.length === 0 && (
+      {data && data.content.length === 0 && (
         <EmptyState
           icon={<Library className="size-12" />}
           title="No games found"
           description={
-            filter === 'ALL'
-              ? 'Your library is empty. Browse games to start building your collection!'
-              : `No games with status "${STATUS_LABELS[filter]}".`
+            status
+              ? `No games with status "${STATUS_LABELS[status]}".`
+              : 'Your library is empty. Browse games to start building your collection!'
           }
-          actionLabel={filter === 'ALL' ? 'Browse Games' : undefined}
-          actionTo={filter === 'ALL' ? '/games' : undefined}
+          actionLabel={!status ? 'Browse Games' : undefined}
+          actionTo={!status ? '/games' : undefined}
         />
       )}
 
-      {data && filteredGames.length > 0 && (
+      {data && data.content.length > 0 && (
         <>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-            {filteredGames.map((game) => (
+            {data.content.map((game) => (
               <CollectionGameCard
                 key={game.id}
                 videoGameId={game.videoGameId}
                 title={game.title}
                 coverUrl={game.coverUrl}
                 releaseDate={game.releaseDate}
+                userRating={game.userRating}
               >
                 <Badge
                   className={`${STATUS_COLORS[game.status]} mt-1 text-[11px]`}
@@ -234,12 +269,17 @@ export function LibraryTab({ page }: LibraryTabProps) {
               </CollectionGameCard>
             ))}
           </div>
-          <CollectionPagination
-            tab="library"
+          <PaginationNav
             page={page}
             totalPages={data.metadata.totalPages}
             hasNext={data.metadata.hasNext}
             hasPrevious={data.metadata.hasPrevious}
+            hideWhenSinglePage
+            className="pt-6 pb-4"
+            linkProps={(target) => ({
+              to: '.',
+              search: { tab: tabKey, page: target, sort },
+            })}
           />
         </>
       )}

@@ -19,16 +19,31 @@ const STATUS_COLORS: Record<GameStatus, string> = {
   DROPPED: 'bg-red-500/15 text-red-400 border-red-500/20',
 }
 
+type ProfileGamesTab = 'games' | 'playing' | 'completed' | 'dropped'
+
 interface ProfileLibraryTabProps {
   profile: UserProfile
   page: number
+  status?: GameStatus
+  tabKey: ProfileGamesTab
 }
 
-export function ProfileLibraryTab({ profile, page }: ProfileLibraryTabProps) {
+/**
+ * Read-only library grid for the public {@code /profile/$username/games} page,
+ * scoped to one status (or all statuses when {@code status} is undefined).
+ * Respects {@code isPrivate} for non-owners.
+ */
+export function ProfileLibraryTab({
+  profile,
+  page,
+  status,
+  tabKey,
+}: ProfileLibraryTabProps) {
   const apiPage = Math.max(0, page - 1)
-  const { data, isLoading, isError } = useQuery(
-    userLibraryQueryOptions(profile.username, apiPage),
-  )
+  const { data, isLoading, isError } = useQuery({
+    ...userLibraryQueryOptions(profile.username, apiPage, 20, status),
+    enabled: !(profile.isPrivate && !profile.isOwner),
+  })
 
   if (profile.isPrivate && !profile.isOwner) {
     return (
@@ -65,7 +80,11 @@ export function ProfileLibraryTab({ profile, page }: ProfileLibraryTabProps) {
     return (
       <div className="flex flex-col items-center gap-3 py-12 text-center">
         <Library className="text-muted-foreground size-12" />
-        <p className="text-muted-foreground text-lg">No games in library</p>
+        <p className="text-muted-foreground text-lg">
+          {status
+            ? `No ${STATUS_LABELS[status].toLowerCase()} games`
+            : 'No games in library'}
+        </p>
       </div>
     )
   }
@@ -80,6 +99,7 @@ export function ProfileLibraryTab({ profile, page }: ProfileLibraryTabProps) {
             title={game.title}
             coverUrl={game.coverUrl}
             releaseDate={game.releaseDate}
+            userRating={game.userRating}
           >
             <Badge className={`${STATUS_COLORS[game.status]} mt-1 text-[11px]`}>
               {STATUS_LABELS[game.status]}
@@ -96,7 +116,7 @@ export function ProfileLibraryTab({ profile, page }: ProfileLibraryTabProps) {
         className="pt-6 pb-4"
         linkProps={(target) => ({
           to: '.',
-          search: { tab: 'library', page: target },
+          search: { tab: tabKey, page: target },
         })}
       />
     </>

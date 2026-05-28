@@ -29,7 +29,9 @@ import com.checkpoint.api.dto.profile.UpdateProfileDto;
 import com.checkpoint.api.dto.profile.UserProfileDto;
 import com.checkpoint.api.entities.Backlog;
 import com.checkpoint.api.entities.User;
+import com.checkpoint.api.entities.UserGame;
 import com.checkpoint.api.entities.UserGamePlay;
+import com.checkpoint.api.enums.GameStatus;
 import com.checkpoint.api.exceptions.ProfilePrivateException;
 import com.checkpoint.api.exceptions.PseudoAlreadyExistsException;
 import com.checkpoint.api.exceptions.UserNotFoundException;
@@ -246,16 +248,16 @@ public class ProfileServiceImpl implements ProfileService {
      * {@inheritDoc}
      */
     @Override
-    public Page<UserGameResponseDto> getUserLibrary(String username, String viewerEmail, Pageable pageable) {
-        log.info("Fetching library for user: {}", username);
+    public Page<UserGameResponseDto> getUserLibrary(String username, String viewerEmail, GameStatus status, Pageable pageable) {
+        log.info("Fetching library for user: {} - status: {}", username, status);
 
         User user = userRepository.findByPseudo(username)
                 .orElseThrow(() -> new UserNotFoundException(username));
 
         enforcePrivacy(user, viewerEmail);
 
-        return userGameRepository.findByUserIdWithVideoGame(user.getId(), pageable)
-                .map(userGameMapper::toResponseDto);
+        return userGameRepository.findLibraryProjection(user.getId(), status, pageable)
+                .map(row -> userGameMapper.toResponseDto((UserGame) row[0], (Integer) row[1]));
     }
 
     /**

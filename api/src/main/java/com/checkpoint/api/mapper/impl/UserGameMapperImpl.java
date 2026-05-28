@@ -15,7 +15,13 @@ public class UserGameMapperImpl implements UserGameMapper {
 
     @Override
     public UserGameResponseDto toResponseDto(UserGame userGame) {
+        return toResponseDto(userGame, null);
+    }
+
+    @Override
+    public UserGameResponseDto toResponseDto(UserGame userGame, Integer rawRateScore) {
         VideoGame videoGame = userGame.getVideoGame();
+        Double userRating = rawRateScore != null ? rawRateScore / 2.0 : null;
 
         return new UserGameResponseDto(
                 userGame.getId(),
@@ -26,7 +32,8 @@ public class UserGameMapperImpl implements UserGameMapper {
                 userGame.getStatus(),
                 userGame.getCreatedAt(),
                 userGame.getUpdatedAt(),
-                userGame.getNotes()
+                userGame.getNotes(),
+                userRating
         );
     }
 }

@@ -27,14 +27,45 @@ public interface UserGameRepository extends JpaRepository<UserGame, UUID> {
     Optional<UserGame> findByUserIdAndVideoGameId(UUID userId, UUID videoGameId);
 
     /**
-     * Returns all games in a user's library (paginated), with video game eagerly fetched.
+     * Returns the games in a user's library (paginated), optionally filtered by status,
+     * with the video game eagerly fetched and the user's rating left-joined.
+     * Each row is a tuple {@code [UserGame, Integer rateScore]} where the rate score is
+     * {@code null} when the user hasn't rated the game. Sorting is delegated to the
+     * supplied {@link Pageable} (entity fields only — to sort by rating, use
+     * {@link #findLibraryProjectionSortedByRating}).
      */
     @Query("""
-            SELECT ug FROM UserGame ug
+            SELECT ug, r.score FROM UserGame ug
             JOIN FETCH ug.videoGame
+            LEFT JOIN Rate r ON r.user.id = ug.user.id AND r.videoGame.id = ug.videoGame.id
             WHERE ug.user.id = :userId
+              AND (:status IS NULL OR ug.status = :status)
             """)
-    Page<UserGame> findByUserIdWithVideoGame(@Param("userId") UUID userId, Pageable pageable);
+    Page<Object[]> findLibraryProjection(@Param("userId") UUID userId,
+                                         @Param("status") GameStatus status,
+                                         Pageable pageable);
+
+    /**
+     * Same projection as {@link #findLibraryProjection} but forces the row order to
+     * the user's rating descending (unrated games last). The supplied {@link Pageable}'s
+     * sort is ignored — only page number and size are honoured.
+     */
+    @Query(value = """
+            SELECT ug, r.score FROM UserGame ug
+            JOIN FETCH ug.videoGame
+            LEFT JOIN Rate r ON r.user.id = ug.user.id AND r.videoGame.id = ug.videoGame.id
+            WHERE ug.user.id = :userId
+              AND (:status IS NULL OR ug.status = :status)
+            ORDER BY r.score DESC NULLS LAST, ug.createdAt DESC
+            """,
+            countQuery = """
+            SELECT COUNT(ug) FROM UserGame ug
+            WHERE ug.user.id = :userId
+              AND (:status IS NULL OR ug.status = :status)
+            """)
+    Page<Object[]> findLibraryProjectionSortedByRating(@Param("userId") UUID userId,
+                                                       @Param("status") GameStatus status,
+                                                       Pageable pageable);
 
     /**
      * Checks if a user already has a specific game in their library.

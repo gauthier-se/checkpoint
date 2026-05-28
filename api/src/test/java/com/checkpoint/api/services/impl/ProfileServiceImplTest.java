@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
@@ -526,30 +527,58 @@ class ProfileServiceImplTest {
     class GetUserLibrary {
 
         @Test
-        @DisplayName("should return library for public profile")
+        @DisplayName("should return library for public profile with rating populated")
         void getUserLibrary_shouldReturnLibraryForPublicProfile() {
             // Given
             Pageable pageable = PageRequest.of(0, 20);
             UserGame userGame = new UserGame();
             userGame.setId(UUID.randomUUID());
-            Page<UserGame> libraryPage = new PageImpl<>(List.of(userGame), pageable, 1);
+            Page<Object[]> projection = new PageImpl<>(
+                    List.<Object[]>of(new Object[] { userGame, 7 }), pageable, 1);
 
             UserGameResponseDto dto = new UserGameResponseDto(
                     userGame.getId(), UUID.randomUUID(), "Celeste", null, null,
-                    GameStatus.COMPLETED, LocalDateTime.now(), LocalDateTime.now(), null);
+                    GameStatus.COMPLETED, LocalDateTime.now(), LocalDateTime.now(), null, 3.5);
 
             when(userRepository.findByPseudo("gamer123"))
                     .thenReturn(Optional.of(profileUser));
-            when(userGameRepository.findByUserIdWithVideoGame(profileUser.getId(), pageable))
-                    .thenReturn(libraryPage);
-            when(userGameMapper.toResponseDto(userGame)).thenReturn(dto);
+            when(userGameRepository.findLibraryProjection(profileUser.getId(), null, pageable))
+                    .thenReturn(projection);
+            when(userGameMapper.toResponseDto(userGame, 7)).thenReturn(dto);
 
             // When
             Page<UserGameResponseDto> result =
-                    profileService.getUserLibrary("gamer123", null, pageable);
+                    profileService.getUserLibrary("gamer123", null, null, pageable);
 
             // Then
             assertThat(result.getContent()).containsExactly(dto);
+        }
+
+        @Test
+        @DisplayName("should pass status filter to the repository")
+        void getUserLibrary_shouldFilterByStatus() {
+            // Given
+            Pageable pageable = PageRequest.of(0, 20);
+            UserGame userGame = new UserGame();
+            userGame.setId(UUID.randomUUID());
+            Page<Object[]> projection = new PageImpl<>(
+                    List.<Object[]>of(new Object[] { userGame, null }), pageable, 1);
+
+            UserGameResponseDto dto = new UserGameResponseDto(
+                    userGame.getId(), UUID.randomUUID(), "Hades", null, null,
+                    GameStatus.PLAYING, LocalDateTime.now(), LocalDateTime.now(), null, null);
+
+            when(userRepository.findByPseudo("gamer123"))
+                    .thenReturn(Optional.of(profileUser));
+            when(userGameRepository.findLibraryProjection(profileUser.getId(), GameStatus.PLAYING, pageable))
+                    .thenReturn(projection);
+            when(userGameMapper.toResponseDto(userGame, null)).thenReturn(dto);
+
+            // When
+            profileService.getUserLibrary("gamer123", null, GameStatus.PLAYING, pageable);
+
+            // Then
+            verify(userGameRepository).findLibraryProjection(profileUser.getId(), GameStatus.PLAYING, pageable);
         }
 
         @Test
@@ -563,7 +592,7 @@ class ProfileServiceImplTest {
                     .thenReturn(Optional.of(profileUser));
 
             // When / Then
-            assertThatThrownBy(() -> profileService.getUserLibrary("gamer123", null, pageable))
+            assertThatThrownBy(() -> profileService.getUserLibrary("gamer123", null, null, pageable))
                     .isInstanceOf(ProfilePrivateException.class);
         }
 
@@ -576,7 +605,7 @@ class ProfileServiceImplTest {
                     .thenReturn(Optional.empty());
 
             // When / Then
-            assertThatThrownBy(() -> profileService.getUserLibrary("ghost", null, pageable))
+            assertThatThrownBy(() -> profileService.getUserLibrary("ghost", null, null, pageable))
                     .isInstanceOf(UserNotFoundException.class);
         }
     }

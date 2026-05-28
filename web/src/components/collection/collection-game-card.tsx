@@ -1,4 +1,5 @@
 import { Link } from '@tanstack/react-router'
+import { Star } from 'lucide-react'
 import { GameCardHoverActions } from '@/components/games/game-card-hover-actions'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 
@@ -7,6 +8,8 @@ interface CollectionGameCardProps {
   title: string
   coverUrl: string | null
   releaseDate?: string | null
+  /** Optional half-star rating (0.5–5.0). When set, renders next to the title. */
+  userRating?: number | null
   children?: React.ReactNode
 }
 
@@ -15,6 +18,7 @@ export function CollectionGameCard({
   title,
   coverUrl,
   releaseDate,
+  userRating,
   children,
 }: CollectionGameCardProps) {
   return (
@@ -49,9 +53,20 @@ export function CollectionGameCard({
         </CardContent>
       </Link>
       <CardFooter className="flex-1 flex-col items-stretch gap-2 p-0">
-        <h3 className="text-sm font-semibold leading-tight line-clamp-2">
-          {title}
-        </h3>
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="text-sm font-semibold leading-tight line-clamp-2">
+            {title}
+          </h3>
+          {userRating != null && (
+            <span
+              className="inline-flex shrink-0 items-center gap-0.5 text-xs font-medium text-amber-400"
+              aria-label={`Your rating: ${userRating} out of 5`}
+            >
+              {userRating}
+              <Star className="size-3 fill-amber-400" />
+            </span>
+          )}
+        </div>
         {children}
       </CardFooter>
     </Card>

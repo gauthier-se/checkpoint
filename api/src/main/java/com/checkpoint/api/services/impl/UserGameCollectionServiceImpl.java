@@ -6,7 +6,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -107,14 +109,24 @@ public class UserGameCollectionServiceImpl implements UserGameCollectionService 
 
     @Override
     @Transactional(readOnly = true)
-    public Page<UserGameResponseDto> getUserLibrary(String userEmail, Pageable pageable) {
-        log.debug("Fetching library for user {} - page: {}, size: {}",
-                userEmail, pageable.getPageNumber(), pageable.getPageSize());
+    public Page<UserGameResponseDto> getUserLibrary(String userEmail, GameStatus status, Pageable pageable) {
+        log.debug("Fetching library for user {} - page: {}, size: {}, status: {}, sort: {}",
+                userEmail, pageable.getPageNumber(), pageable.getPageSize(), status, pageable.getSort());
 
         User user = findUserByEmail(userEmail);
 
-        return userGameRepository.findByUserIdWithVideoGame(user.getId(), pageable)
-                .map(userGameMapper::toResponseDto);
+        Sort.Order ratingOrder = pageable.getSort().getOrderFor("rating");
+        Page<Object[]> rows;
+        if (ratingOrder != null) {
+            // r.score is not an entity field, so strip the sort from the Pageable and let
+            // the dedicated repo query express the ORDER BY.
+            Pageable unsortedPage = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
+            rows = userGameRepository.findLibraryProjectionSortedByRating(user.getId(), status, unsortedPage);
+        } else {
+            rows = userGameRepository.findLibraryProjection(user.getId(), status, pageable);
+        }
+
+        return rows.map(row -> userGameMapper.toResponseDto((UserGame) row[0], (Integer) row[1]));
     }
 
     @Override

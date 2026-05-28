@@ -25,6 +25,7 @@ import com.checkpoint.api.dto.list.GameListCardDto;
 import com.checkpoint.api.dto.playlog.GamePlayLogResponseDto;
 import com.checkpoint.api.dto.profile.ProfileComparisonDto;
 import com.checkpoint.api.dto.profile.UserProfileDto;
+import com.checkpoint.api.enums.GameStatus;
 import com.checkpoint.api.services.ProfileComparisonService;
 import com.checkpoint.api.services.ProfileService;
 
@@ -187,18 +188,19 @@ public class ProfileController {
     public ResponseEntity<PagedResponseDto<UserGameResponseDto>> getUserLibrary(
             @PathVariable String username,
             @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(required = false) GameStatus status,
             @RequestParam(defaultValue = "" + DEFAULT_PAGE) int page,
             @RequestParam(defaultValue = "" + DEFAULT_SIZE) int size,
             @RequestParam(defaultValue = DEFAULT_SORT) String sort) {
 
-        log.info("GET /api/users/{}/library - page: {}, size: {}", username, page, size);
+        log.info("GET /api/users/{}/library - status: {}, page: {}, size: {}", username, status, page, size);
 
         String viewerEmail = userDetails != null ? userDetails.getUsername() : null;
         int validatedSize = Math.min(Math.max(1, size), MAX_SIZE);
         int validatedPage = Math.max(0, page);
 
         Pageable pageable = createPageable(validatedPage, validatedSize, sort);
-        Page<UserGameResponseDto> library = profileService.getUserLibrary(username, viewerEmail, pageable);
+        Page<UserGameResponseDto> library = profileService.getUserLibrary(username, viewerEmail, status, pageable);
 
         return ResponseEntity.ok(PagedResponseDto.from(library));
     }

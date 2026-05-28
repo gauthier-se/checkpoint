@@ -18,6 +18,7 @@ params:query {
   ~page: 0
   ~size: 20
   ~sort: createdAt,desc
+  ~status: PLAYING
 }
 
 docs {
@@ -35,8 +36,12 @@ docs {
   - **page**: Page number (0-based, default: 0)
   - **size**: Page size (default: 20, max: 100)
   - **sort**: Sort criteria (default: "createdAt,desc")
+  - **status**: Optional status filter — `PLAYING`, `COMPLETED`, or `DROPPED`. When omitted, every status is returned.
 
   ## Response (200 OK)
+
+  Each entry includes `userRating`, the library owner's own rating on the
+  half-star scale (0.5–5.0), or `null` if they haven't rated the game.
 
   ```json
   {
@@ -50,7 +55,8 @@ docs {
         "status": "COMPLETED",
         "addedAt": "2025-03-01T10:00:00",
         "updatedAt": "2025-03-02T10:00:00",
-        "notes": null
+        "notes": null,
+        "userRating": 5.0
       }
     ],
     "metadata": {

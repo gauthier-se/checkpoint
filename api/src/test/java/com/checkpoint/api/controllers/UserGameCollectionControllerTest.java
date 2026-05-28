@@ -79,7 +79,7 @@ class UserGameCollectionControllerTest {
             UserGameResponseDto response = new UserGameResponseDto(
                     userGameId, videoGameId, "The Witcher 3", "cover.jpg",
                     LocalDate.of(2015, 5, 19), GameStatus.PLAYING,
-                    LocalDateTime.now(), LocalDateTime.now(), null);
+                    LocalDateTime.now(), LocalDateTime.now(), null, null);
 
             when(userGameCollectionService.addGameToLibrary(eq("user@example.com"), any(UserGameRequestDto.class)))
                     .thenReturn(response);
@@ -107,7 +107,7 @@ class UserGameCollectionControllerTest {
             UserGameResponseDto response = new UserGameResponseDto(
                     userGameId, videoGameId, "The Witcher 3", "cover.jpg",
                     LocalDate.of(2015, 5, 19), GameStatus.PLAYING,
-                    LocalDateTime.now(), LocalDateTime.now(), "Strategy note");
+                    LocalDateTime.now(), LocalDateTime.now(), "Strategy note", null);
 
             when(userGameCollectionService.addGameToLibrary(eq("user@example.com"), any(UserGameRequestDto.class)))
                     .thenReturn(response);
@@ -189,7 +189,7 @@ class UserGameCollectionControllerTest {
             UserGameResponseDto response = new UserGameResponseDto(
                     userGameId, videoGameId, "The Witcher 3", "cover.jpg",
                     LocalDate.of(2015, 5, 19), GameStatus.COMPLETED,
-                    LocalDateTime.now(), LocalDateTime.now(), "Finished it!");
+                    LocalDateTime.now(), LocalDateTime.now(), "Finished it!", null);
 
             when(userGameCollectionService.updateGameStatus(eq("user@example.com"), eq(videoGameId), any(UserGameRequestDto.class)))
                     .thenReturn(response);
@@ -214,7 +214,7 @@ class UserGameCollectionControllerTest {
             UserGameResponseDto response = new UserGameResponseDto(
                     userGameId, videoGameId, "The Witcher 3", "cover.jpg",
                     LocalDate.of(2015, 5, 19), GameStatus.PLAYING,
-                    LocalDateTime.now(), LocalDateTime.now(), null);
+                    LocalDateTime.now(), LocalDateTime.now(), null, null);
 
             when(userGameCollectionService.updateGameStatus(eq("user@example.com"), eq(videoGameId), any(UserGameRequestDto.class)))
                     .thenReturn(response);
@@ -268,7 +268,7 @@ class UserGameCollectionControllerTest {
     class GetUserLibrary {
 
         @Test
-        @DisplayName("should return paginated library")
+        @DisplayName("should return paginated library with userRating populated")
         @WithMockUser(username = "user@example.com")
         void getLibrary_shouldReturnPaginatedLibrary() throws Exception {
             // Given
@@ -277,11 +277,11 @@ class UserGameCollectionControllerTest {
             List<UserGameResponseDto> items = List.of(
                     new UserGameResponseDto(userGameId, videoGameId, "Elden Ring", "cover.jpg",
                             LocalDate.of(2022, 2, 25), GameStatus.PLAYING,
-                            LocalDateTime.now(), LocalDateTime.now(), null)
+                            LocalDateTime.now(), LocalDateTime.now(), null, 4.5)
             );
             Page<UserGameResponseDto> page = new PageImpl<>(items);
 
-            when(userGameCollectionService.getUserLibrary(eq("user@example.com"), any(Pageable.class)))
+            when(userGameCollectionService.getUserLibrary(eq("user@example.com"), any(), any(Pageable.class)))
                     .thenReturn(page);
 
             // When / Then
@@ -290,6 +290,7 @@ class UserGameCollectionControllerTest {
                     .andExpect(jsonPath("$.content").isArray())
                     .andExpect(jsonPath("$.content[0].title").value("Elden Ring"))
                     .andExpect(jsonPath("$.content[0].status").value("PLAYING"))
+                    .andExpect(jsonPath("$.content[0].userRating").value(4.5))
                     .andExpect(jsonPath("$.metadata.totalElements").value(1));
         }
 
@@ -299,7 +300,7 @@ class UserGameCollectionControllerTest {
         void getLibrary_shouldAcceptPaginationParams() throws Exception {
             // Given
             Page<UserGameResponseDto> emptyPage = new PageImpl<>(List.of());
-            when(userGameCollectionService.getUserLibrary(eq("user@example.com"), any(Pageable.class)))
+            when(userGameCollectionService.getUserLibrary(eq("user@example.com"), any(), any(Pageable.class)))
                     .thenReturn(emptyPage);
 
             // When / Then
@@ -309,6 +310,34 @@ class UserGameCollectionControllerTest {
                             .param("sort", "status,asc"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.content").isArray());
+        }
+
+        @Test
+        @DisplayName("should pass status filter to the service")
+        @WithMockUser(username = "user@example.com")
+        void getLibrary_shouldPassStatusFilter() throws Exception {
+            // Given
+            Page<UserGameResponseDto> emptyPage = new PageImpl<>(List.of());
+            when(userGameCollectionService.getUserLibrary(eq("user@example.com"), eq(GameStatus.PLAYING), any(Pageable.class)))
+                    .thenReturn(emptyPage);
+
+            // When / Then
+            mockMvc.perform(get("/api/me/library").param("status", "PLAYING"))
+                    .andExpect(status().isOk());
+        }
+
+        @Test
+        @DisplayName("should accept sort=rating,desc")
+        @WithMockUser(username = "user@example.com")
+        void getLibrary_shouldAcceptRatingSort() throws Exception {
+            // Given
+            Page<UserGameResponseDto> emptyPage = new PageImpl<>(List.of());
+            when(userGameCollectionService.getUserLibrary(eq("user@example.com"), any(), any(Pageable.class)))
+                    .thenReturn(emptyPage);
+
+            // When / Then
+            mockMvc.perform(get("/api/me/library").param("sort", "rating,desc"))
+                    .andExpect(status().isOk());
         }
     }
 

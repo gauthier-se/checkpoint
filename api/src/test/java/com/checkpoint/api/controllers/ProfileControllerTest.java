@@ -297,25 +297,39 @@ class ProfileControllerTest {
                     UUID.randomUUID(), UUID.randomUUID(),
                     "Celeste", "https://example.com/celeste.jpg",
                     LocalDate.of(2018, 1, 25), GameStatus.COMPLETED,
-                    LocalDateTime.now(), LocalDateTime.now(), null
+                    LocalDateTime.now(), LocalDateTime.now(), null, 5.0
             );
             Page<UserGameResponseDto> page = new PageImpl<>(List.of(game));
 
-            when(profileService.getUserLibrary(eq("testuser"), isNull(), any(Pageable.class)))
+            when(profileService.getUserLibrary(eq("testuser"), isNull(), isNull(), any(Pageable.class)))
                     .thenReturn(page);
 
             // When / Then
             mockMvc.perform(get("/api/users/{username}/library", "testuser"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.content[0].title").value("Celeste"))
+                    .andExpect(jsonPath("$.content[0].userRating").value(5.0))
                     .andExpect(jsonPath("$.metadata.totalElements").value(1));
+        }
+
+        @Test
+        @DisplayName("should pass status filter to the service")
+        void getUserLibrary_shouldPassStatusFilter() throws Exception {
+            // Given
+            Page<UserGameResponseDto> emptyPage = new PageImpl<>(List.of());
+            when(profileService.getUserLibrary(eq("testuser"), isNull(), eq(GameStatus.COMPLETED), any(Pageable.class)))
+                    .thenReturn(emptyPage);
+
+            // When / Then
+            mockMvc.perform(get("/api/users/{username}/library", "testuser").param("status", "COMPLETED"))
+                    .andExpect(status().isOk());
         }
 
         @Test
         @DisplayName("should return 403 for private profile library")
         void getUserLibrary_shouldReturn403ForPrivateProfile() throws Exception {
             // Given
-            when(profileService.getUserLibrary(eq("privateuser"), isNull(), any(Pageable.class)))
+            when(profileService.getUserLibrary(eq("privateuser"), isNull(), isNull(), any(Pageable.class)))
                     .thenThrow(new ProfilePrivateException("privateuser"));
 
             // When / Then
@@ -327,7 +341,7 @@ class ProfileControllerTest {
         @DisplayName("should return 404 for unknown user")
         void getUserLibrary_shouldReturn404ForUnknownUser() throws Exception {
             // Given
-            when(profileService.getUserLibrary(eq("ghost"), isNull(), any(Pageable.class)))
+            when(profileService.getUserLibrary(eq("ghost"), isNull(), isNull(), any(Pageable.class)))
                     .thenThrow(new UserNotFoundException("ghost"));
 
             // When / Then

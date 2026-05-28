@@ -86,12 +86,28 @@ export const userLibraryQueryOptions = (
   username: string,
   page: number = 0,
   size: number = 20,
+  status?: GameStatus,
+  sort?: string,
 ) => {
   return queryOptions({
-    queryKey: ['users', username, 'library', page, size],
+    queryKey: [
+      'users',
+      username,
+      'library',
+      page,
+      size,
+      status ?? null,
+      sort ?? null,
+    ],
     queryFn: async (): Promise<LibraryResponse> => {
+      const params = new URLSearchParams({
+        page: String(page),
+        size: String(size),
+      })
+      if (status) params.set('status', status)
+      if (sort) params.set('sort', sort)
       const res = await apiFetch(
-        `/api/users/${username}/library?page=${page}&size=${size}`,
+        `/api/users/${username}/library?${params.toString()}`,
       )
       return res.json()
     },

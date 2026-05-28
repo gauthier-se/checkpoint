@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.checkpoint.api.dto.catalog.PagedResponseDto;
 import com.checkpoint.api.dto.collection.UserGameRequestDto;
 import com.checkpoint.api.dto.collection.UserGameResponseDto;
+import com.checkpoint.api.enums.GameStatus;
 import com.checkpoint.api.services.UserGameCollectionService;
 
 import jakarta.validation.Valid;
@@ -100,27 +101,29 @@ public class UserGameCollectionController {
      * Returns the authenticated user's game collection (paginated).
      *
      * @param userDetails the authenticated user principal
+     * @param status      optional status filter (PLAYING, COMPLETED, DROPPED); null = all statuses
      * @param page        the page number (0-based, default 0)
      * @param size        the page size (default 20, max 100)
-     * @param sort        the sort criteria (e.g., "createdAt,desc")
+     * @param sort        the sort criteria (e.g., "createdAt,desc" or "rating,desc")
      * @return paginated list of games in the user's library
      */
     @GetMapping
     public ResponseEntity<PagedResponseDto<UserGameResponseDto>> getUserLibrary(
             @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(required = false) GameStatus status,
             @RequestParam(defaultValue = "" + DEFAULT_PAGE) int page,
             @RequestParam(defaultValue = "" + DEFAULT_SIZE) int size,
             @RequestParam(defaultValue = DEFAULT_SORT) String sort) {
 
-        log.info("GET /api/me/library - user: {}, page: {}, size: {}, sort: {}",
-                userDetails.getUsername(), page, size, sort);
+        log.info("GET /api/me/library - user: {}, status: {}, page: {}, size: {}, sort: {}",
+                userDetails.getUsername(), status, page, size, sort);
 
         int validatedSize = Math.min(Math.max(1, size), MAX_SIZE);
         int validatedPage = Math.max(0, page);
 
         Pageable pageable = createPageable(validatedPage, validatedSize, sort);
         Page<UserGameResponseDto> libraryPage = userGameCollectionService.getUserLibrary(
-                userDetails.getUsername(), pageable);
+                userDetails.getUsername(), status, pageable);
 
         return ResponseEntity.ok(PagedResponseDto.from(libraryPage));
     }
@@ -162,7 +165,9 @@ public class UserGameCollectionController {
     }
 
     /**
-     * Maps API sort field names to entity field names.
+     * Maps API sort field names to entity field names. The {@code rating} field is a
+     * sentinel — the service detects it on the resulting Sort and routes the call to
+     * the rating-sorted repository query (which expresses the ORDER BY directly in JPQL).
      */
     private String mapSortField(String field) {
         return switch (field.toLowerCase()) {
@@ -170,6 +175,7 @@ public class UserGameCollectionController {
             case "updatedat", "updated_at" -> "updatedAt";
             case "status" -> "status";
             case "title", "name" -> "videoGame.title";
+            case "rating" -> "rating";
             default -> "createdAt";
         };
     }

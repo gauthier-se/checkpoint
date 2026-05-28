@@ -88,7 +88,10 @@ export interface LikedGameListResponse {
 
 // Shared
 export type CollectionTab =
-  | 'library'
+  | 'games'
+  | 'playing'
+  | 'completed'
+  | 'dropped'
   | 'wishlist'
   | 'backlog'
   | 'journal'

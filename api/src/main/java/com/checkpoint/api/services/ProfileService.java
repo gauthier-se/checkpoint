@@ -9,6 +9,7 @@ import com.checkpoint.api.dto.collection.BacklogResponseDto;
 import com.checkpoint.api.dto.collection.LikedGameResponseDto;
 import com.checkpoint.api.dto.collection.UserGameResponseDto;
 import com.checkpoint.api.dto.collection.WishResponseDto;
+import com.checkpoint.api.enums.GameStatus;
 import com.checkpoint.api.dto.list.GameListCardDto;
 import com.checkpoint.api.dto.playlog.GamePlayLogResponseDto;
 import com.checkpoint.api.dto.profile.ProfileUpdatedDto;
@@ -68,16 +69,18 @@ public interface ProfileService {
     Page<LikedGameResponseDto> getUserLikedGames(String username, String viewerEmail, Pageable pageable);
 
     /**
-     * Retrieves a paginated list of games in the given user's library.
+     * Retrieves a paginated list of games in the given user's library, optionally filtered
+     * by status. Each entry includes the library owner's own {@code userRating}.
      * Throws {@link com.checkpoint.api.exceptions.ProfilePrivateException} if the profile
      * is private and the viewer is not the owner.
      *
      * @param username    the profile owner's username (pseudo)
      * @param viewerEmail the authenticated viewer's email, or null if anonymous
+     * @param status      optional status filter (null = all statuses)
      * @param pageable    pagination parameters
      * @return a page of user-game DTOs
      */
-    Page<UserGameResponseDto> getUserLibrary(String username, String viewerEmail, Pageable pageable);
+    Page<UserGameResponseDto> getUserLibrary(String username, String viewerEmail, GameStatus status, Pageable pageable);
 
     /**
      * Retrieves a paginated list of games in the given user's backlog.

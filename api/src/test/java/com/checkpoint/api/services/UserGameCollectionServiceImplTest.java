@@ -89,7 +89,7 @@ class UserGameCollectionServiceImplTest {
         testResponseDto = new UserGameResponseDto(
                 testUserGame.getId(), testGame.getId(), testGame.getTitle(),
                 testGame.getCoverUrl(), testGame.getReleaseDate(), GameStatus.PLAYING,
-                testUserGame.getCreatedAt(), testUserGame.getUpdatedAt(), null);
+                testUserGame.getCreatedAt(), testUserGame.getUpdatedAt(), null, null);
     }
 
     @Nested
@@ -210,7 +210,7 @@ class UserGameCollectionServiceImplTest {
             UserGameResponseDto updatedResponse = new UserGameResponseDto(
                     testUserGame.getId(), testGame.getId(), testGame.getTitle(),
                     testGame.getCoverUrl(), testGame.getReleaseDate(), GameStatus.COMPLETED,
-                    testUserGame.getCreatedAt(), updatedUserGame.getUpdatedAt(), null);
+                    testUserGame.getCreatedAt(), updatedUserGame.getUpdatedAt(), null, null);
 
             when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(testUser));
             when(userGameRepository.findByUserIdAndVideoGameId(testUser.getId(), testGame.getId()))
@@ -289,24 +289,73 @@ class UserGameCollectionServiceImplTest {
     class GetUserLibrary {
 
         @Test
-        @DisplayName("should return paginated user library")
+        @DisplayName("should return paginated user library with rating populated")
         void shouldReturnPaginatedLibrary() {
             // Given
             Pageable pageable = PageRequest.of(0, 20);
-            Page<UserGame> userGamePage = new PageImpl<>(List.of(testUserGame), pageable, 1);
+            UserGameResponseDto dtoWithRating = new UserGameResponseDto(
+                    testUserGame.getId(), testGame.getId(), testGame.getTitle(),
+                    testGame.getCoverUrl(), testGame.getReleaseDate(), GameStatus.PLAYING,
+                    testUserGame.getCreatedAt(), testUserGame.getUpdatedAt(), null, 4.0);
+            Page<Object[]> projection = new PageImpl<>(
+                    List.<Object[]>of(new Object[] { testUserGame, 8 }), pageable, 1);
 
             when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(testUser));
-            when(userGameRepository.findByUserIdWithVideoGame(testUser.getId(), pageable))
-                    .thenReturn(userGamePage);
-            when(userGameMapper.toResponseDto(testUserGame)).thenReturn(testResponseDto);
+            when(userGameRepository.findLibraryProjection(testUser.getId(), null, pageable))
+                    .thenReturn(projection);
+            when(userGameMapper.toResponseDto(testUserGame, 8)).thenReturn(dtoWithRating);
 
             // When
-            Page<UserGameResponseDto> result = service.getUserLibrary("user@example.com", pageable);
+            Page<UserGameResponseDto> result = service.getUserLibrary("user@example.com", null, pageable);
 
             // Then
             assertThat(result.getContent()).hasSize(1);
             assertThat(result.getContent().get(0).title()).isEqualTo("The Witcher 3");
+            assertThat(result.getContent().get(0).userRating()).isEqualTo(4.0);
             assertThat(result.getTotalElements()).isEqualTo(1);
+        }
+
+        @Test
+        @DisplayName("should pass status filter to the repository")
+        void shouldFilterByStatus() {
+            // Given
+            Pageable pageable = PageRequest.of(0, 20);
+            Page<Object[]> projection = new PageImpl<>(
+                    List.<Object[]>of(new Object[] { testUserGame, null }), pageable, 1);
+
+            when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(testUser));
+            when(userGameRepository.findLibraryProjection(testUser.getId(), GameStatus.COMPLETED, pageable))
+                    .thenReturn(projection);
+            when(userGameMapper.toResponseDto(testUserGame, null)).thenReturn(testResponseDto);
+
+            // When
+            Page<UserGameResponseDto> result = service.getUserLibrary("user@example.com", GameStatus.COMPLETED, pageable);
+
+            // Then
+            assertThat(result.getContent()).hasSize(1);
+            verify(userGameRepository).findLibraryProjection(testUser.getId(), GameStatus.COMPLETED, pageable);
+        }
+
+        @Test
+        @DisplayName("should route to rating-sorted query when sort is rating")
+        void shouldRouteToRatingSortedQuery() {
+            // Given
+            Pageable pageable = PageRequest.of(0, 20,
+                    org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "rating"));
+            Page<Object[]> projection = new PageImpl<>(
+                    List.<Object[]>of(new Object[] { testUserGame, 9 }), PageRequest.of(0, 20), 1);
+
+            when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(testUser));
+            when(userGameRepository.findLibraryProjectionSortedByRating(any(), any(), any()))
+                    .thenReturn(projection);
+            when(userGameMapper.toResponseDto(testUserGame, 9)).thenReturn(testResponseDto);
+
+            // When
+            service.getUserLibrary("user@example.com", null, pageable);
+
+            // Then
+            verify(userGameRepository).findLibraryProjectionSortedByRating(any(), any(), any());
+            verify(userGameRepository, never()).findLibraryProjection(any(), any(), any());
         }
 
         @Test
@@ -314,14 +363,14 @@ class UserGameCollectionServiceImplTest {
         void shouldReturnEmptyPage() {
             // Given
             Pageable pageable = PageRequest.of(0, 20);
-            Page<UserGame> emptyPage = new PageImpl<>(List.of(), pageable, 0);
+            Page<Object[]> emptyPage = new PageImpl<>(List.<Object[]>of(), pageable, 0);
 
             when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(testUser));
-            when(userGameRepository.findByUserIdWithVideoGame(testUser.getId(), pageable))
+            when(userGameRepository.findLibraryProjection(testUser.getId(), null, pageable))
                     .thenReturn(emptyPage);
 
             // When
-            Page<UserGameResponseDto> result = service.getUserLibrary("user@example.com", pageable);
+            Page<UserGameResponseDto> result = service.getUserLibrary("user@example.com", null, pageable);
 
             // Then
             assertThat(result.getContent()).isEmpty();
