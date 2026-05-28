@@ -10,19 +10,52 @@ import { cn } from '@/lib/utils'
 
 interface BadgeGridProps {
   badges: Array<BadgeDto>
+  /**
+   * When set, only the first `limit` visible badges are rendered (earned
+   * first), hidden silhouettes and the "X of Y hidden discovered" footer are
+   * omitted. Used by the profile header to keep the badge section compact —
+   * the full grid still lives on the dedicated badges page.
+   */
+  limit?: number
 }
 
-export function BadgeGrid({ badges }: BadgeGridProps) {
+/**
+ * Returns true when the badge catalog has more content than would fit in a
+ * preview limited to `limit` visible badges — i.e. there are more visible
+ * badges than the limit, or any hidden badges exist. Used to decide whether
+ * to show a "See all" link next to a limited grid.
+ */
+export function hasMoreBadges(badges: Array<BadgeDto>, limit: number): boolean {
+  const visibleCount = badges.filter((b) => !b.hidden || b.earned).length
+  const hiddenCount = badges.filter((b) => b.hidden).length
+  return visibleCount > limit || hiddenCount > 0
+}
+
+export function BadgeGrid({ badges, limit }: BadgeGridProps) {
   // Visible (non-hidden) badges always render in the grid — earned ones in
   // full colour, locked ones desaturated so the user knows what to chase.
   // Hidden badges only show as silhouettes until earned (and then in full).
-  const visible = badges.filter((b) => !b.hidden || b.earned)
+  const visibleAll = badges.filter((b) => !b.hidden || b.earned)
   const hiddenLocked = badges.filter((b) => b.hidden && !b.earned)
 
   const hiddenTotal = badges.filter((b) => b.hidden).length
   const hiddenEarned = badges.filter((b) => b.hidden && b.earned).length
 
-  if (visible.length === 0 && hiddenLocked.length === 0) {
+  // In preview mode we surface earned badges first so the user's wins lead.
+  const visible =
+    limit !== undefined
+      ? [...visibleAll]
+          .sort((a, b) => Number(b.earned) - Number(a.earned))
+          .slice(0, limit)
+      : visibleAll
+
+  const showHiddenSilhouettes = limit === undefined
+  const showHiddenFooter = limit === undefined && hiddenTotal > 0
+
+  if (
+    visible.length === 0 &&
+    (!showHiddenSilhouettes || hiddenLocked.length === 0)
+  ) {
     return (
       <p className="text-muted-foreground text-sm">No badges to display.</p>
     )
@@ -81,23 +114,24 @@ export function BadgeGrid({ badges }: BadgeGridProps) {
               </TooltipContent>
             </Tooltip>
           ))}
-          {hiddenLocked.map((badge) => (
-            <Tooltip key={badge.id}>
-              <TooltipTrigger asChild>
-                <div className="bg-muted/30 flex flex-col items-center gap-1 rounded-lg p-3 opacity-50 grayscale">
-                  <Award className="text-muted-foreground size-8" />
-                  <span className="text-muted-foreground text-center text-xs font-medium leading-tight">
-                    ???
-                  </span>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Hidden badge — unlock it to reveal.</p>
-              </TooltipContent>
-            </Tooltip>
-          ))}
+          {showHiddenSilhouettes &&
+            hiddenLocked.map((badge) => (
+              <Tooltip key={badge.id}>
+                <TooltipTrigger asChild>
+                  <div className="bg-muted/30 flex flex-col items-center gap-1 rounded-lg p-3 opacity-50 grayscale">
+                    <Award className="text-muted-foreground size-8" />
+                    <span className="text-muted-foreground text-center text-xs font-medium leading-tight">
+                      ???
+                    </span>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Hidden badge — unlock it to reveal.</p>
+                </TooltipContent>
+              </Tooltip>
+            ))}
         </div>
-        {hiddenTotal > 0 && (
+        {showHiddenFooter && (
           <p className="text-muted-foreground text-xs">
             {hiddenEarned} of {hiddenTotal} hidden discovered
           </p>

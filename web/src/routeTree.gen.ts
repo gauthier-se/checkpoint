@@ -41,6 +41,7 @@ import { Route as AppProtectedFeedIndexRouteImport } from './routes/_app/_protec
 import { Route as AppProfileUsernameListsRouteImport } from './routes/_app/profile_.$username.lists'
 import { Route as AppProfileUsernameGamesRouteImport } from './routes/_app/profile_.$username.games'
 import { Route as AppProfileUsernameCompareRouteImport } from './routes/_app/profile_.$username.compare'
+import { Route as AppProfileUsernameBadgesRouteImport } from './routes/_app/profile_.$username.badges'
 import { Route as AppGamesGameIdListsRouteImport } from './routes/_app/games/$gameId_.lists'
 import { Route as AppProtectedSettingsSecurityRouteImport } from './routes/_app/_protected/settings/security'
 import { Route as AppProtectedSettingsProfileRouteImport } from './routes/_app/_protected/settings/profile'
@@ -214,6 +215,12 @@ const AppProfileUsernameCompareRoute =
     path: '/profile/$username/compare',
     getParentRoute: () => AppRoute,
   } as any)
+const AppProfileUsernameBadgesRoute =
+  AppProfileUsernameBadgesRouteImport.update({
+    id: '/profile_/$username/badges',
+    path: '/profile/$username/badges',
+    getParentRoute: () => AppRoute,
+  } as any)
 const AppGamesGameIdListsRoute = AppGamesGameIdListsRouteImport.update({
   id: '/games/$gameId_/lists',
   path: '/games/$gameId/lists',
@@ -280,6 +287,7 @@ const AppProtectedListsListIdEditRoute =
   } as any)
 
 export interface FileRoutesByFullPath {
+  '/': typeof AppIndexRoute
   '/about': typeof AppAboutRoute
   '/leaderboard': typeof AppLeaderboardRoute
   '/legal': typeof AppLegalRoute
@@ -288,7 +296,6 @@ export interface FileRoutesByFullPath {
   '/login': typeof AuthLoginRoute
   '/register': typeof AuthRegisterRoute
   '/reset-password': typeof AuthResetPasswordRoute
-  '/': typeof AppIndexRoute
   '/settings': typeof AppProtectedSettingsRouteRouteWithChildren
   '/notifications': typeof AppProtectedNotificationsRoute
   '/profile': typeof AppProtectedProfileRoute
@@ -300,10 +307,10 @@ export interface FileRoutesByFullPath {
   '/news/$newsId': typeof AppNewsNewsIdRoute
   '/plays/$id': typeof AppPlaysIdRoute
   '/profile/$username': typeof AppProfileUsernameRoute
-  '/games': typeof AppGamesIndexRoute
-  '/lists': typeof AppListsIndexRoute
-  '/members': typeof AppMembersIndexRoute
-  '/news': typeof AppNewsIndexRoute
+  '/games/': typeof AppGamesIndexRoute
+  '/lists/': typeof AppListsIndexRoute
+  '/members/': typeof AppMembersIndexRoute
+  '/news/': typeof AppNewsIndexRoute
   '/games/popular-with-friends': typeof AppProtectedGamesPopularWithFriendsRoute
   '/lists/new': typeof AppProtectedListsNewRoute
   '/settings/appearance': typeof AppProtectedSettingsAppearanceRoute
@@ -312,16 +319,18 @@ export interface FileRoutesByFullPath {
   '/settings/profile': typeof AppProtectedSettingsProfileRoute
   '/settings/security': typeof AppProtectedSettingsSecurityRoute
   '/games/$gameId/lists': typeof AppGamesGameIdListsRoute
+  '/profile/$username/badges': typeof AppProfileUsernameBadgesRoute
   '/profile/$username/compare': typeof AppProfileUsernameCompareRoute
   '/profile/$username/games': typeof AppProfileUsernameGamesRoute
   '/profile/$username/lists': typeof AppProfileUsernameListsRoute
-  '/feed': typeof AppProtectedFeedIndexRoute
+  '/feed/': typeof AppProtectedFeedIndexRoute
   '/settings/': typeof AppProtectedSettingsIndexRoute
   '/lists/$listId/edit': typeof AppProtectedListsListIdEditRoute
   '/profile/$username/tags/$tagName': typeof AppProfileUsernameTagsTagNameRoute
-  '/$username/tags': typeof AppProtectedUsernameTagsIndexRoute
+  '/$username/tags/': typeof AppProtectedUsernameTagsIndexRoute
 }
 export interface FileRoutesByTo {
+  '/': typeof AppIndexRoute
   '/about': typeof AppAboutRoute
   '/leaderboard': typeof AppLeaderboardRoute
   '/legal': typeof AppLegalRoute
@@ -330,7 +339,6 @@ export interface FileRoutesByTo {
   '/login': typeof AuthLoginRoute
   '/register': typeof AuthRegisterRoute
   '/reset-password': typeof AuthResetPasswordRoute
-  '/': typeof AppIndexRoute
   '/notifications': typeof AppProtectedNotificationsRoute
   '/profile': typeof AppProtectedProfileRoute
   '/games/$gameId': typeof AppGamesGameIdRoute
@@ -353,6 +361,7 @@ export interface FileRoutesByTo {
   '/settings/profile': typeof AppProtectedSettingsProfileRoute
   '/settings/security': typeof AppProtectedSettingsSecurityRoute
   '/games/$gameId/lists': typeof AppGamesGameIdListsRoute
+  '/profile/$username/badges': typeof AppProfileUsernameBadgesRoute
   '/profile/$username/compare': typeof AppProfileUsernameCompareRoute
   '/profile/$username/games': typeof AppProfileUsernameGamesRoute
   '/profile/$username/lists': typeof AppProfileUsernameListsRoute
@@ -399,6 +408,7 @@ export interface FileRoutesById {
   '/_app/_protected/settings/profile': typeof AppProtectedSettingsProfileRoute
   '/_app/_protected/settings/security': typeof AppProtectedSettingsSecurityRoute
   '/_app/games/$gameId_/lists': typeof AppGamesGameIdListsRoute
+  '/_app/profile_/$username/badges': typeof AppProfileUsernameBadgesRoute
   '/_app/profile_/$username/compare': typeof AppProfileUsernameCompareRoute
   '/_app/profile_/$username/games': typeof AppProfileUsernameGamesRoute
   '/_app/profile_/$username/lists': typeof AppProfileUsernameListsRoute
@@ -411,6 +421,7 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
+    | '/'
     | '/about'
     | '/leaderboard'
     | '/legal'
@@ -419,7 +430,6 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/reset-password'
-    | '/'
     | '/settings'
     | '/notifications'
     | '/profile'
@@ -431,10 +441,10 @@ export interface FileRouteTypes {
     | '/news/$newsId'
     | '/plays/$id'
     | '/profile/$username'
-    | '/games'
-    | '/lists'
-    | '/members'
-    | '/news'
+    | '/games/'
+    | '/lists/'
+    | '/members/'
+    | '/news/'
     | '/games/popular-with-friends'
     | '/lists/new'
     | '/settings/appearance'
@@ -443,16 +453,18 @@ export interface FileRouteTypes {
     | '/settings/profile'
     | '/settings/security'
     | '/games/$gameId/lists'
+    | '/profile/$username/badges'
     | '/profile/$username/compare'
     | '/profile/$username/games'
     | '/profile/$username/lists'
-    | '/feed'
+    | '/feed/'
     | '/settings/'
     | '/lists/$listId/edit'
     | '/profile/$username/tags/$tagName'
-    | '/$username/tags'
+    | '/$username/tags/'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/'
     | '/about'
     | '/leaderboard'
     | '/legal'
@@ -461,7 +473,6 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/reset-password'
-    | '/'
     | '/notifications'
     | '/profile'
     | '/games/$gameId'
@@ -484,6 +495,7 @@ export interface FileRouteTypes {
     | '/settings/profile'
     | '/settings/security'
     | '/games/$gameId/lists'
+    | '/profile/$username/badges'
     | '/profile/$username/compare'
     | '/profile/$username/games'
     | '/profile/$username/lists'
@@ -529,6 +541,7 @@ export interface FileRouteTypes {
     | '/_app/_protected/settings/profile'
     | '/_app/_protected/settings/security'
     | '/_app/games/$gameId_/lists'
+    | '/_app/profile_/$username/badges'
     | '/_app/profile_/$username/compare'
     | '/_app/profile_/$username/games'
     | '/_app/profile_/$username/lists'
@@ -549,14 +562,14 @@ declare module '@tanstack/react-router' {
     '/_auth': {
       id: '/_auth'
       path: ''
-      fullPath: ''
+      fullPath: '/'
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_app': {
       id: '/_app'
       path: ''
-      fullPath: ''
+      fullPath: '/'
       preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
     }
@@ -626,35 +639,35 @@ declare module '@tanstack/react-router' {
     '/_app/_protected': {
       id: '/_app/_protected'
       path: ''
-      fullPath: ''
+      fullPath: '/'
       preLoaderRoute: typeof AppProtectedRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/news/': {
       id: '/_app/news/'
       path: '/news'
-      fullPath: '/news'
+      fullPath: '/news/'
       preLoaderRoute: typeof AppNewsIndexRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/members/': {
       id: '/_app/members/'
       path: '/members'
-      fullPath: '/members'
+      fullPath: '/members/'
       preLoaderRoute: typeof AppMembersIndexRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/lists/': {
       id: '/_app/lists/'
       path: '/lists'
-      fullPath: '/lists'
+      fullPath: '/lists/'
       preLoaderRoute: typeof AppListsIndexRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/games/': {
       id: '/_app/games/'
       path: '/games'
-      fullPath: '/games'
+      fullPath: '/games/'
       preLoaderRoute: typeof AppGamesIndexRouteImport
       parentRoute: typeof AppRoute
     }
@@ -745,7 +758,7 @@ declare module '@tanstack/react-router' {
     '/_app/_protected/feed/': {
       id: '/_app/_protected/feed/'
       path: '/feed'
-      fullPath: '/feed'
+      fullPath: '/feed/'
       preLoaderRoute: typeof AppProtectedFeedIndexRouteImport
       parentRoute: typeof AppProtectedRoute
     }
@@ -768,6 +781,13 @@ declare module '@tanstack/react-router' {
       path: '/profile/$username/compare'
       fullPath: '/profile/$username/compare'
       preLoaderRoute: typeof AppProfileUsernameCompareRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/profile_/$username/badges': {
+      id: '/_app/profile_/$username/badges'
+      path: '/profile/$username/badges'
+      fullPath: '/profile/$username/badges'
+      preLoaderRoute: typeof AppProfileUsernameBadgesRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/games/$gameId_/lists': {
@@ -829,7 +849,7 @@ declare module '@tanstack/react-router' {
     '/_app/_protected/$username/tags/': {
       id: '/_app/_protected/$username/tags/'
       path: '/$username/tags'
-      fullPath: '/$username/tags'
+      fullPath: '/$username/tags/'
       preLoaderRoute: typeof AppProtectedUsernameTagsIndexRouteImport
       parentRoute: typeof AppProtectedRoute
     }
@@ -923,6 +943,7 @@ interface AppRouteChildren {
   AppMembersIndexRoute: typeof AppMembersIndexRoute
   AppNewsIndexRoute: typeof AppNewsIndexRoute
   AppGamesGameIdListsRoute: typeof AppGamesGameIdListsRoute
+  AppProfileUsernameBadgesRoute: typeof AppProfileUsernameBadgesRoute
   AppProfileUsernameCompareRoute: typeof AppProfileUsernameCompareRoute
   AppProfileUsernameGamesRoute: typeof AppProfileUsernameGamesRoute
   AppProfileUsernameListsRoute: typeof AppProfileUsernameListsRoute
@@ -949,6 +970,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppMembersIndexRoute: AppMembersIndexRoute,
   AppNewsIndexRoute: AppNewsIndexRoute,
   AppGamesGameIdListsRoute: AppGamesGameIdListsRoute,
+  AppProfileUsernameBadgesRoute: AppProfileUsernameBadgesRoute,
   AppProfileUsernameCompareRoute: AppProfileUsernameCompareRoute,
   AppProfileUsernameGamesRoute: AppProfileUsernameGamesRoute,
   AppProfileUsernameListsRoute: AppProfileUsernameListsRoute,

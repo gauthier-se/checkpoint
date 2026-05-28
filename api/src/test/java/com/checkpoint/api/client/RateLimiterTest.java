@@ -52,10 +52,12 @@ class RateLimiterTest {
         assertThat(firstDuration.toMillis()).isLessThan(100);
 
         // Total time for 3 requests should approach 2 seconds (2 waits).
-        // Use a generous slack (~200ms) to absorb CI scheduler jitter — the
-        // refresh-period clock isn't perfectly aligned with wall-clock time.
+        // Resilience4j's refresh window isn't aligned with wall-clock time, so
+        // the two waits can each finish noticeably before 1s on a noisy CI
+        // runner. 1500ms still proves throttling (3 unthrottled calls would
+        // complete in <100ms) without flaking.
         Duration totalDuration = Duration.between(start, afterThird);
-        assertThat(totalDuration.toMillis()).isGreaterThanOrEqualTo(1800);
+        assertThat(totalDuration.toMillis()).isGreaterThanOrEqualTo(1500);
     }
 
     @Test

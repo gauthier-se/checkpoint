@@ -9,8 +9,10 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 
-interface MentionTextareaProps
-  extends Omit<React.ComponentProps<'textarea'>, 'value' | 'onChange'> {
+interface MentionTextareaProps extends Omit<
+  React.ComponentProps<'textarea'>,
+  'value' | 'onChange'
+> {
   /** Current text value (controlled). */
   value: string
   /** Called with the new plain-text value on every change or mention insertion. */

@@ -1,3 +1,7 @@
 package-lock.json
 pnpm-lock.yaml
 yarn.lock
+
+# Installed agent skills (third-party, not project source)
+.agents
+skills-lock.json

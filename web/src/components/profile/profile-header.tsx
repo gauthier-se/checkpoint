@@ -1,4 +1,5 @@
 import {
+  ArrowRight,
   Calendar,
   GitCompareArrows,
   Pencil,
@@ -8,7 +9,7 @@ import {
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { XpProgressBar } from './xp-progress-bar'
-import { BadgeGrid } from './badge-grid'
+import { BadgeGrid, hasMoreBadges } from './badge-grid'
 import { FavoriteGamesSection } from './favorite-games-section'
 import { RecentActivitySection } from './recent-activity-section'
 import { RecentGamesSection } from './recent-games-section'
@@ -19,6 +20,9 @@ import { toggleFollowMutation } from '@/queries/profile'
 import { useAuth } from '@/hooks/use-auth'
 
 const API_URL = import.meta.env.VITE_API_URL
+
+// One full desktop row in the BadgeGrid (md:grid-cols-8).
+const BADGE_PREVIEW_LIMIT = 8
 
 interface ProfileHeaderProps {
   profile: UserProfile
@@ -145,8 +149,20 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
 
       {/* Badges */}
       <div className="space-y-3">
-        <h2 className="text-lg font-semibold">Badges</h2>
-        <BadgeGrid badges={profile.badges} />
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Badges</h2>
+          {hasMoreBadges(profile.badges, BADGE_PREVIEW_LIMIT) && (
+            <Link
+              to="/profile/$username/badges"
+              params={{ username: profile.username }}
+              className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-sm font-medium"
+            >
+              See all badges
+              <ArrowRight className="size-4" />
+            </Link>
+          )}
+        </div>
+        <BadgeGrid badges={profile.badges} limit={BADGE_PREVIEW_LIMIT} />
       </div>
 
       {/* Favorites */}

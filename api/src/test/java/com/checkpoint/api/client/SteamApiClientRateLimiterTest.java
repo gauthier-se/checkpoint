@@ -39,6 +39,11 @@ class SteamApiClientRateLimiterTest {
         RateLimiter.waitForPermission(limiter);
         Instant end = Instant.now();
 
-        assertThat(Duration.between(start, end).toMillis()).isGreaterThanOrEqualTo(1900);
+        // 3 calls = 2 throttled waits; ideal is ~2000ms. Resilience4j's refresh
+        // window isn't aligned with wall-clock time, so on a noisy CI runner
+        // the two waits can be noticeably shorter than 1s each. 1500ms still
+        // proves throttling (3 unthrottled calls would complete in <100ms)
+        // without flaking — observed minimum on GHA: ~1720ms.
+        assertThat(Duration.between(start, end).toMillis()).isGreaterThanOrEqualTo(1500);
     }
 }
