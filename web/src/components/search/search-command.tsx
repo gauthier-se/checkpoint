@@ -21,6 +21,7 @@ import { searchNewsQueryOptions } from '@/queries/news'
 import { triggerRickroll } from '@/queries/easter-eggs'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
+import { resolvePictureUrl } from '@/lib/picture'
 
 type SearchTab = 'all' | 'games' | 'members' | 'news' | 'genres' | 'platforms'
 
@@ -196,7 +197,7 @@ export function SearchCommand({ open, onOpenChange }: SearchCommandProps) {
           <div className="flex items-center gap-3">
             {member.picture && (
               <img
-                src={member.picture}
+                src={resolvePictureUrl(member.picture)}
                 alt=""
                 className="size-6 rounded-full object-cover"
               />

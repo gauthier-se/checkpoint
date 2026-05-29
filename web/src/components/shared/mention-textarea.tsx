@@ -8,6 +8,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
+import { resolvePictureUrl } from '@/lib/picture'
 
 interface MentionTextareaProps extends Omit<
   React.ComponentProps<'textarea'>,
@@ -151,7 +152,7 @@ export function MentionTextarea({
             >
               <Avatar className="size-6">
                 <AvatarImage
-                  src={member.picture ?? undefined}
+                  src={resolvePictureUrl(member.picture)}
                   alt={member.pseudo}
                 />
                 <AvatarFallback className="text-[10px]">

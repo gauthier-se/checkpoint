@@ -3,6 +3,7 @@ import { Heart, MessageSquare } from 'lucide-react'
 import type { ReviewCard as ReviewCardType } from '@/types/review'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Card, CardContent } from '@/components/ui/card'
+import { resolvePictureUrl } from '@/lib/picture'
 
 interface ReviewCardProps {
   review: ReviewCardType
@@ -29,7 +30,7 @@ export function ReviewCard({ review }: ReviewCardProps) {
             <div className="mt-1 flex items-center gap-2">
               <Avatar className="h-5 w-5">
                 <AvatarImage
-                  src={review.user.picture ?? undefined}
+                  src={resolvePictureUrl(review.user.picture)}
                   alt={review.user.pseudo}
                 />
                 <AvatarFallback className="text-[10px]">

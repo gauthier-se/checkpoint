@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { StepFrame } from '../step-frame'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
+import { resolvePictureUrl } from '@/lib/picture'
 import { authQueryOptions, useAuth } from '@/hooks/use-auth'
 import { updateOnboardingStep } from '@/queries/onboarding'
 import { uploadPicture } from '@/queries/profile'
@@ -81,7 +82,10 @@ export function PictureStep({ onNext }: PictureStepProps) {
     >
       <div className="flex items-center justify-center">
         <Avatar className="size-24">
-          <AvatarImage src={user?.picture ?? undefined} alt={user?.username} />
+          <AvatarImage
+            src={resolvePictureUrl(user?.picture)}
+            alt={user?.username}
+          />
           <AvatarFallback>{initials}</AvatarFallback>
         </Avatar>
       </div>

@@ -18,8 +18,7 @@ import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { toggleFollowMutation } from '@/queries/profile'
 import { useAuth } from '@/hooks/use-auth'
-
-const API_URL = import.meta.env.VITE_API_URL
+import { resolvePictureUrl } from '@/lib/picture'
 
 // One full desktop row in the BadgeGrid (md:grid-cols-8).
 const BADGE_PREVIEW_LIMIT = 8
@@ -54,7 +53,7 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
       <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
         <Avatar className="size-24 text-2xl">
           <AvatarImage
-            src={profile.picture ? `${API_URL}${profile.picture}` : undefined}
+            src={resolvePictureUrl(profile.picture)}
             alt={profile.username}
           />
           <AvatarFallback>{initials}</AvatarFallback>

@@ -2,6 +2,7 @@ import { Link } from '@tanstack/react-router'
 import type { LeaderboardEntry, LeaderboardSortBy } from '@/types/leaderboard'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { cn } from '@/lib/utils'
+import { resolvePictureUrl } from '@/lib/picture'
 
 interface LeaderboardTableProps {
   entries: Array<LeaderboardEntry>
@@ -48,7 +49,7 @@ export function LeaderboardTable({ entries, sortBy }: LeaderboardTableProps) {
             >
               <Avatar size="lg">
                 <AvatarImage
-                  src={entry.picture ?? undefined}
+                  src={resolvePictureUrl(entry.picture)}
                   alt={entry.pseudo}
                 />
                 <AvatarFallback>{initials}</AvatarFallback>

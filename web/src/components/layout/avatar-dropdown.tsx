@@ -16,8 +16,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useAuth } from '@/hooks/use-auth'
-
-const API_URL = import.meta.env.VITE_API_URL
+import { resolvePictureUrl } from '@/lib/picture'
 
 export function AvatarDropdown({ user }: { user: User }) {
   const { logout } = useAuth()
@@ -25,7 +24,7 @@ export function AvatarDropdown({ user }: { user: User }) {
   const navigate = useNavigate()
 
   const initials = user.username.slice(0, 2).toUpperCase()
-  const avatarSrc = user.picture ? `${API_URL}${user.picture}` : undefined
+  const avatarSrc = resolvePictureUrl(user.picture)
 
   const handleLogout = async () => {
     await logout()

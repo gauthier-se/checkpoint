@@ -19,8 +19,7 @@ import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { useAuth } from '@/hooks/use-auth'
 import { deletePicture, updateProfile, uploadPicture } from '@/queries/profile'
-
-const API_URL = import.meta.env.VITE_API_URL
+import { resolvePictureUrl } from '@/lib/picture'
 
 const profileSchema = z.object({
   pseudo: z
@@ -58,7 +57,7 @@ export function EditProfileForm({
 
   const currentPicture = pictureDeleted
     ? null
-    : previewUrl || (picture ? `${API_URL}${picture}` : null)
+    : previewUrl || resolvePictureUrl(picture)
 
   const initials = username.slice(0, 2).toUpperCase()
 

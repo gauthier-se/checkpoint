@@ -9,6 +9,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
+import { resolvePictureUrl } from '@/lib/picture'
 
 interface FriendAvatarTileProps {
   pseudo: string
@@ -38,7 +39,7 @@ export function FriendAvatarTile({
     <div className="flex w-14 flex-col items-center gap-1">
       <div className="relative">
         <Avatar size="xl" className={cn(href && 'transition hover:opacity-90')}>
-          <AvatarImage src={picture ?? undefined} alt={pseudo} />
+          <AvatarImage src={resolvePictureUrl(picture)} alt={pseudo} />
           <AvatarFallback>{fallback}</AvatarFallback>
         </Avatar>
         {hasReview && (

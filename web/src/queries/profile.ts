@@ -45,7 +45,7 @@ export const userProfileQueryOptions = (username: string) => {
       const res = await apiFetch(`/api/users/${username}`)
       return res.json()
     },
-    staleTime: 0,
+    staleTime: 60 * 1000,
   })
 }
 

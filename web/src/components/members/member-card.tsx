@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { toggleFollowMutation } from '@/queries/profile'
 import { useAuth } from '@/hooks/use-auth'
+import { resolvePictureUrl } from '@/lib/picture'
 
 interface MemberCardProps {
   member: MemberCardType
@@ -39,7 +40,10 @@ export function MemberCard({ member }: MemberCardProps) {
         className="flex flex-col items-center gap-3"
       >
         <Avatar className="size-16">
-          <AvatarImage src={member.picture ?? undefined} alt={member.pseudo} />
+          <AvatarImage
+            src={resolvePictureUrl(member.picture)}
+            alt={member.pseudo}
+          />
           <AvatarFallback>{initials}</AvatarFallback>
         </Avatar>
         <div className="text-center">

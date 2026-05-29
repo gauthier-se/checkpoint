@@ -4,6 +4,7 @@ import { Loader2, Search, UserCheck, UserPlus } from 'lucide-react'
 import { StepFrame } from '../step-frame'
 import type { MemberCard } from '@/types/member'
 import { cn } from '@/lib/utils'
+import { resolvePictureUrl } from '@/lib/picture'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -131,7 +132,10 @@ function SuggestedMember({
     <div className="flex items-center justify-between gap-3 rounded-md border p-3">
       <div className="flex min-w-0 items-center gap-3">
         <Avatar className="size-10">
-          <AvatarImage src={member.picture ?? undefined} alt={member.pseudo} />
+          <AvatarImage
+            src={resolvePictureUrl(member.picture)}
+            alt={member.pseudo}
+          />
           <AvatarFallback>{initials}</AvatarFallback>
         </Avatar>
         <div className="min-w-0">

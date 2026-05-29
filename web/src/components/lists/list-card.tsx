@@ -2,6 +2,7 @@ import { Link } from '@tanstack/react-router'
 import { Gamepad2, Heart, Lock } from 'lucide-react'
 import type { GameListCard } from '@/types/list'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { resolvePictureUrl } from '@/lib/picture'
 
 interface ListCardProps {
   list: GameListCard
@@ -48,7 +49,7 @@ export function ListCard({ list }: ListCardProps) {
         <div className="flex items-center gap-2">
           <Avatar className="size-5">
             <AvatarImage
-              src={list.authorPicture ?? undefined}
+              src={resolvePictureUrl(list.authorPicture)}
               alt={list.authorPseudo}
             />
             <AvatarFallback className="text-[10px]">{initials}</AvatarFallback>

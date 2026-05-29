@@ -14,6 +14,7 @@ import { toast } from 'sonner'
 
 import type { Comment, CommentsResponse } from '@/types/comment'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { resolvePictureUrl } from '@/lib/picture'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -214,7 +215,7 @@ export function CommentItem({
       <div className="flex gap-3">
         <Avatar className="mt-1 size-8 shrink-0">
           <AvatarImage
-            src={comment.user.picture ?? undefined}
+            src={resolvePictureUrl(comment.user.picture)}
             alt={comment.user.pseudo}
           />
           <AvatarFallback className="text-xs">
