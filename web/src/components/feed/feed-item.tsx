@@ -3,6 +3,7 @@ import { formatDistanceToNow } from 'date-fns'
 import { Heart, ListMusic, MessageSquare, Play, Star } from 'lucide-react'
 import type { FeedItem as FeedItemType } from '@/types/feed'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { resolvePictureUrl } from '@/lib/picture'
 
 interface FeedItemProps {
   item: FeedItemType
@@ -59,7 +60,7 @@ export function FeedItem({ item }: FeedItemProps) {
       >
         <Avatar className="size-9">
           <AvatarImage
-            src={item.user.picture ?? undefined}
+            src={resolvePictureUrl(item.user.picture)}
             alt={item.user.pseudo}
           />
           <AvatarFallback>

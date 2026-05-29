@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
+import { resolvePictureUrl } from '@/lib/picture'
 
 export const Route = createFileRoute('/_app/news/$newsId')({
   component: RouteComponent,
@@ -64,7 +65,7 @@ function RouteComponent() {
           <>
             <Avatar className="size-8">
               <AvatarImage
-                src={article.author.picture ?? undefined}
+                src={resolvePictureUrl(article.author.picture)}
                 alt={article.author.pseudo}
               />
               <AvatarFallback className="text-xs">

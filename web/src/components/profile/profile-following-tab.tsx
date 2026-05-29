@@ -8,6 +8,7 @@ import {
   userFollowingQueryOptions,
 } from '@/queries/profile'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { resolvePictureUrl } from '@/lib/picture'
 
 interface ProfileFollowingTabProps {
   profile: UserProfile
@@ -89,7 +90,10 @@ export function ProfileFollowingTab({
             className="flex min-w-0 flex-1 items-center gap-3"
           >
             <Avatar className="size-10">
-              <AvatarImage src={user.picture ?? undefined} alt={user.pseudo} />
+              <AvatarImage
+                src={resolvePictureUrl(user.picture)}
+                alt={user.pseudo}
+              />
               <AvatarFallback>
                 {user.pseudo.slice(0, 2).toUpperCase()}
               </AvatarFallback>

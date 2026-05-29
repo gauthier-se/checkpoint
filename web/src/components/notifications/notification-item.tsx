@@ -4,6 +4,7 @@ import type { LucideIcon } from 'lucide-react'
 import type { Notification, NotificationType } from '@/types/notification'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Checkbox } from '@/components/ui/checkbox'
+import { resolvePictureUrl } from '@/lib/picture'
 import { cn } from '@/lib/utils'
 
 function getSystemIcon(type: NotificationType): LucideIcon | null {
@@ -95,7 +96,9 @@ export function NotificationItem({
         ) : (
           <Avatar className="size-8 shrink-0">
             {notification.senderPicture && (
-              <AvatarImage src={notification.senderPicture} />
+              <AvatarImage
+                src={resolvePictureUrl(notification.senderPicture)}
+              />
             )}
             <AvatarFallback className="text-xs">
               {notification.senderPseudo?.charAt(0).toUpperCase() ?? '?'}

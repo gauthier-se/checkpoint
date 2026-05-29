@@ -3,6 +3,7 @@ import { Newspaper } from 'lucide-react'
 import type { NewsArticle } from '@/types/news'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
+import { resolvePictureUrl } from '@/lib/picture'
 
 interface NewsCardProps {
   article: NewsArticle
@@ -54,7 +55,7 @@ export function NewsCard({ article }: NewsCardProps) {
           <>
             <Avatar className="size-5">
               <AvatarImage
-                src={article.author.picture ?? undefined}
+                src={resolvePictureUrl(article.author.picture)}
                 alt={article.author.pseudo}
               />
               <AvatarFallback className="text-[10px]">

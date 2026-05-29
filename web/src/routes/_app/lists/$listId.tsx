@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { useAuth } from '@/hooks/use-auth'
+import { resolvePictureUrl } from '@/lib/picture'
 
 export const Route = createFileRoute('/_app/lists/$listId')({
   component: RouteComponent,
@@ -150,7 +151,7 @@ function RouteComponent() {
           >
             <Avatar className="size-6">
               <AvatarImage
-                src={list.authorPicture ?? undefined}
+                src={resolvePictureUrl(list.authorPicture)}
                 alt={list.authorPseudo}
               />
               <AvatarFallback className="text-[10px]">

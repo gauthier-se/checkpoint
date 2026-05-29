@@ -40,6 +40,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
+import { resolvePictureUrl } from '@/lib/picture'
 import {
   Tooltip,
   TooltipContent,
@@ -240,7 +241,7 @@ function PlayLogDetailPage() {
               >
                 <Avatar className="size-8">
                   <AvatarImage
-                    src={play.userPicture ?? undefined}
+                    src={resolvePictureUrl(play.userPicture)}
                     alt={play.username}
                   />
                   <AvatarFallback className="text-xs">

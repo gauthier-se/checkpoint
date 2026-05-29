@@ -11,6 +11,7 @@ import { ReportReviewDialog } from '@/components/reviews/report-review-dialog'
 import { LikeButton } from '@/components/shared/like-button'
 import { MentionText } from '@/components/shared/mention-text'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { resolvePictureUrl } from '@/lib/picture'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -162,7 +163,7 @@ export function ReviewList({
                 <div className="flex items-center gap-3">
                   <Avatar className="h-10 w-10">
                     <AvatarImage
-                      src={review.user.picture ?? undefined}
+                      src={resolvePictureUrl(review.user.picture)}
                       alt={review.user.pseudo}
                     />
                     <AvatarFallback>
