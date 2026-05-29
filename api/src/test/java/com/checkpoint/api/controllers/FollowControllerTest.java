@@ -3,6 +3,10 @@ package com.checkpoint.api.controllers;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -225,6 +229,41 @@ class FollowControllerTest {
 
             // When / Then
             mockMvc.perform(get("/api/users/{userId}/following", userId))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.status").value(404));
+        }
+    }
+
+    @Nested
+    @DisplayName("DELETE /api/users/me/followers/{followerId}")
+    class RemoveFollower {
+
+        @Test
+        @DisplayName("should remove follower and return 204")
+        @WithMockUser(username = "user@example.com")
+        void removeFollower_shouldReturn204() throws Exception {
+            // Given
+            UUID followerId = UUID.randomUUID();
+            doNothing().when(followService).removeFollower(eq("user@example.com"), eq(followerId));
+
+            // When / Then
+            mockMvc.perform(delete("/api/users/me/followers/{followerId}", followerId))
+                    .andExpect(status().isNoContent());
+
+            verify(followService).removeFollower(eq("user@example.com"), eq(followerId));
+        }
+
+        @Test
+        @DisplayName("should return 404 when follower not found")
+        @WithMockUser(username = "user@example.com")
+        void removeFollower_shouldReturn404WhenFollowerNotFound() throws Exception {
+            // Given
+            UUID followerId = UUID.randomUUID();
+            doThrow(new UserNotFoundException(followerId))
+                    .when(followService).removeFollower(eq("user@example.com"), eq(followerId));
+
+            // When / Then
+            mockMvc.perform(delete("/api/users/me/followers/{followerId}", followerId))
                     .andExpect(status().isNotFound())
                     .andExpect(jsonPath("$.status").value(404));
         }

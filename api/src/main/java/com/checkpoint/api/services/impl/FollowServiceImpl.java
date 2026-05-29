@@ -115,4 +115,21 @@ public class FollowServiceImpl implements FollowService {
         Page<User> followingPage = userRepository.findFollowingByUserId(userId, pageable);
         return followingPage.map(followMapper::toFollowUserDto);
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void removeFollower(String userEmail, UUID followerId) {
+        User currentUser = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new IllegalArgumentException("Authenticated user not found"));
+
+        User follower = userRepository.findById(followerId)
+                .orElseThrow(() -> new UserNotFoundException(followerId));
+
+        if (userRepository.isFollowing(followerId, currentUser.getId())) {
+            follower.unfollow(currentUser);
+            log.info("User {} removed follower {}", currentUser.getPseudo(), follower.getPseudo());
+        }
+    }
 }

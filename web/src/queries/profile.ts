@@ -226,9 +226,34 @@ export const userFollowingQueryOptions = (
   })
 }
 
+export const userFollowersQueryOptions = (
+  userId: string,
+  page: number = 0,
+  size: number = 20,
+) => {
+  return queryOptions({
+    queryKey: ['users', userId, 'followers', page, size],
+    queryFn: async (): Promise<FollowingResponse> => {
+      const res = await apiFetch(
+        `/api/users/${userId}/followers?page=${page}&size=${size}`,
+      )
+      return res.json()
+    },
+    staleTime: 60 * 1000,
+  })
+}
+
 export const toggleFollowMutation = async (userId: string): Promise<void> => {
   await apiFetch(`/api/users/${userId}/follow`, {
     method: 'POST',
+  })
+}
+
+export const removeFollowerMutation = async (
+  followerId: string,
+): Promise<void> => {
+  await apiFetch(`/api/users/me/followers/${followerId}`, {
+    method: 'DELETE',
   })
 }
 

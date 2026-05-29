@@ -239,4 +239,62 @@ class FollowServiceImplTest {
                     .isInstanceOf(UserNotFoundException.class);
         }
     }
+
+    @Nested
+    @DisplayName("removeFollower")
+    class RemoveFollower {
+
+        @Test
+        @DisplayName("should remove follower when they currently follow the user")
+        void removeFollower_shouldRemoveWhenFollowing() {
+            // Given: targetUser follows currentUser
+            targetUser.follow(currentUser);
+            when(userRepository.findByEmail("user@example.com"))
+                    .thenReturn(Optional.of(currentUser));
+            when(userRepository.findById(targetUser.getId()))
+                    .thenReturn(Optional.of(targetUser));
+            when(userRepository.isFollowing(targetUser.getId(), currentUser.getId()))
+                    .thenReturn(true);
+
+            // When
+            followService.removeFollower("user@example.com", targetUser.getId());
+
+            // Then
+            assertThat(targetUser.getFollowing()).doesNotContain(currentUser);
+            assertThat(currentUser.getFollowers()).doesNotContain(targetUser);
+        }
+
+        @Test
+        @DisplayName("should be a no-op when the user is not a follower")
+        void removeFollower_shouldBeNoOpWhenNotFollowing() {
+            // Given
+            when(userRepository.findByEmail("user@example.com"))
+                    .thenReturn(Optional.of(currentUser));
+            when(userRepository.findById(targetUser.getId()))
+                    .thenReturn(Optional.of(targetUser));
+            when(userRepository.isFollowing(targetUser.getId(), currentUser.getId()))
+                    .thenReturn(false);
+
+            // When
+            followService.removeFollower("user@example.com", targetUser.getId());
+
+            // Then
+            assertThat(currentUser.getFollowers()).doesNotContain(targetUser);
+        }
+
+        @Test
+        @DisplayName("should throw UserNotFoundException when the follower does not exist")
+        void removeFollower_shouldThrowWhenFollowerNotFound() {
+            // Given
+            UUID unknownId = UUID.randomUUID();
+            when(userRepository.findByEmail("user@example.com"))
+                    .thenReturn(Optional.of(currentUser));
+            when(userRepository.findById(unknownId))
+                    .thenReturn(Optional.empty());
+
+            // When / Then
+            assertThatThrownBy(() -> followService.removeFollower("user@example.com", unknownId))
+                    .isInstanceOf(UserNotFoundException.class);
+        }
+    }
 }

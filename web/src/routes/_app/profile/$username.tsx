@@ -3,6 +3,7 @@ import { useSuspenseQuery } from '@tanstack/react-query'
 import type { ProfileInlineTab } from '@/components/profile/profile-tab-bar'
 import {
   userBacklogQueryOptions,
+  userFollowersQueryOptions,
   userFollowingQueryOptions,
   userJournalQueryOptions,
   userLibraryQueryOptions,
@@ -15,6 +16,7 @@ import { userTagGamesQueryOptions, userTagsQueryOptions } from '@/queries/tags'
 import { ProfileHeader } from '@/components/profile/profile-header'
 import { ProfileReviewsTab } from '@/components/profile/profile-reviews-tab'
 import { ProfileWishlistTab } from '@/components/profile/profile-wishlist-tab'
+import { ProfileFollowersTab } from '@/components/profile/profile-followers-tab'
 import { ProfileFollowingTab } from '@/components/profile/profile-following-tab'
 import { ProfileBacklogTab } from '@/components/profile/profile-backlog-tab'
 import { ProfileJournalTab } from '@/components/profile/profile-journal-tab'
@@ -40,6 +42,7 @@ const VALID_INLINE_TABS: Array<ProfileInlineTab> = [
   'tags',
   'liked',
   'reviews',
+  'followers',
   'following',
 ]
 
@@ -133,6 +136,11 @@ export const Route = createFileRoute('/_app/profile/$username')({
             userReviewsQueryOptions(username, apiPage),
           )
           break
+        case 'followers':
+          void context.queryClient.prefetchQuery(
+            userFollowersQueryOptions(profile.id, apiPage),
+          )
+          break
         case 'following':
           void context.queryClient.prefetchQuery(
             userFollowingQueryOptions(profile.id, apiPage),
@@ -210,8 +218,12 @@ function UserProfilePage() {
 
       {tab === 'reviews' && <ProfileReviewsTab profile={profile} page={page} />}
 
+      {tab === 'followers' && (
+        <ProfileFollowersTab profile={profile} page={page} isOwner={isOwner} />
+      )}
+
       {tab === 'following' && (
-        <ProfileFollowingTab profile={profile} page={page} />
+        <ProfileFollowingTab profile={profile} page={page} isOwner={isOwner} />
       )}
     </main>
   )

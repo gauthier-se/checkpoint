@@ -11,6 +11,7 @@ import {
   Tag,
   ThumbsUp,
   User,
+  UserCheck,
   Users,
   XCircle,
 } from 'lucide-react'
@@ -30,6 +31,7 @@ export type ProfileTabKey =
   | 'liked'
   | 'reviews'
   | 'lists'
+  | 'followers'
   | 'following'
 
 interface ProfileTabBarProps {
@@ -57,6 +59,7 @@ const TABS: ReadonlyArray<TabConfig> = [
   { value: 'liked', label: 'Liked', icon: ThumbsUp },
   { value: 'reviews', label: 'Reviews', icon: MessageSquare },
   { value: 'lists', label: 'Lists', icon: List },
+  { value: 'followers', label: 'Followers', icon: UserCheck },
   { value: 'following', label: 'Following', icon: Users },
 ]
 
@@ -69,6 +72,7 @@ const PROFILE_INLINE_TABS = new Set<ProfileTabKey>([
   'tags',
   'liked',
   'reviews',
+  'followers',
   'following',
 ])
 
@@ -180,6 +184,7 @@ export type ProfileInlineTab =
   | 'tags'
   | 'liked'
   | 'reviews'
+  | 'followers'
   | 'following'
 
 /** Status tabs rendered as ?tab= variants on /profile/$username/games. */

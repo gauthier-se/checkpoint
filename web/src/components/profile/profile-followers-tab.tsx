@@ -4,33 +4,33 @@ import { Users } from 'lucide-react'
 import { FollowActionButton } from './follow-action-button'
 import type { UserProfile } from '@/types/profile'
 import {
-  toggleFollowMutation,
-  userFollowingQueryOptions,
+  removeFollowerMutation,
+  userFollowersQueryOptions,
 } from '@/queries/profile'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
-interface ProfileFollowingTabProps {
+interface ProfileFollowersTabProps {
   profile: UserProfile
   page: number
   isOwner: boolean
 }
 
-export function ProfileFollowingTab({
+export function ProfileFollowersTab({
   profile,
   page,
   isOwner,
-}: ProfileFollowingTabProps) {
+}: ProfileFollowersTabProps) {
   const apiPage = Math.max(0, page - 1)
   const queryClient = useQueryClient()
   const { data, isLoading, isError } = useQuery(
-    userFollowingQueryOptions(profile.id, apiPage),
+    userFollowersQueryOptions(profile.id, apiPage),
   )
 
-  const unfollowMutation = useMutation({
-    mutationFn: (userId: string) => toggleFollowMutation(userId),
+  const removeMutation = useMutation({
+    mutationFn: (followerId: string) => removeFollowerMutation(followerId),
     onSuccess: () => {
       void queryClient.invalidateQueries({
-        queryKey: ['users', profile.id, 'following'],
+        queryKey: ['users', profile.id, 'followers'],
       })
       void queryClient.invalidateQueries({
         queryKey: ['users', profile.username, 'profile'],
@@ -59,7 +59,7 @@ export function ProfileFollowingTab({
       <div className="flex flex-col items-center gap-3 py-12 text-center">
         <Users className="text-muted-foreground size-12" />
         <p className="text-muted-foreground text-lg">
-          Unable to load following list
+          Unable to load followers list
         </p>
       </div>
     )
@@ -69,9 +69,7 @@ export function ProfileFollowingTab({
     return (
       <div className="flex flex-col items-center gap-3 py-12 text-center">
         <Users className="text-muted-foreground size-12" />
-        <p className="text-muted-foreground text-lg">
-          Not following anyone yet
-        </p>
+        <p className="text-muted-foreground text-lg">No followers yet</p>
       </div>
     )
   }
@@ -98,15 +96,14 @@ export function ProfileFollowingTab({
           </Link>
           {isOwner && (
             <FollowActionButton
-              label="Unfollow"
-              title={`Unfollow ${user.pseudo}?`}
-              description={`You will no longer follow ${user.pseudo}. You can follow them again at any time.`}
-              confirmLabel="Unfollow"
+              label="Remove"
+              title={`Remove ${user.pseudo}?`}
+              description={`${user.pseudo} will no longer follow you. They won't be notified, but they can follow you again.`}
+              confirmLabel="Remove"
               isPending={
-                unfollowMutation.isPending &&
-                unfollowMutation.variables === user.id
+                removeMutation.isPending && removeMutation.variables === user.id
               }
-              onConfirm={() => unfollowMutation.mutate(user.id)}
+              onConfirm={() => removeMutation.mutate(user.id)}
             />
           )}
         </div>

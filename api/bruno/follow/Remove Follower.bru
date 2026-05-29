@@ -1,0 +1,46 @@
+meta {
+  name: Remove Follower
+  type: http
+  seq: 4
+}
+
+delete {
+  url: {{baseUrl}}/api/users/me/followers/:followerId
+  body: none
+  auth: bearer
+}
+
+params:path {
+  followerId: 00000000-0000-0000-0000-000000000000
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  # Remove Follower
+
+  Removes a follower from the authenticated user. The given follower will no
+  longer follow the authenticated user.
+
+  Idempotent and silent: if the user is not currently a follower, nothing
+  happens, and no notification is sent to the removed follower.
+
+  ## Authentication
+
+  Requires a valid JWT token in the `Authorization: Bearer` header.
+
+  ## Path Parameters
+
+  - **followerId**: The UUID of the follower to remove
+
+  ## Response (204 No Content)
+
+  Empty body.
+
+  ## Error Responses
+
+  - **401 Unauthorized**: Not authenticated
+  - **404 Not Found**: The follower user does not exist
+}
