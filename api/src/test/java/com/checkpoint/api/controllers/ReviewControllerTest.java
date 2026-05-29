@@ -247,4 +247,80 @@ class ReviewControllerTest {
             verify(reviewService).getRecentReviews(eq(20), any());
         }
     }
+
+    @Nested
+    @DisplayName("GET /api/games/{gameId}/reviews/popular")
+    class GetPopularForGame {
+
+        @Test
+        @DisplayName("should return 200 OK with popular reviews scoped to the game")
+        void shouldReturnPopularGameReviews() throws Exception {
+            when(reviewService.getPopularGameReviews(eq(gameId), eq(7), any()))
+                    .thenReturn(List.of(sampleCard("Loved it", "Elden Ring")));
+
+            mockMvc.perform(get("/api/games/{gameId}/reviews/popular", gameId))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$").isArray())
+                    .andExpect(jsonPath("$[0].content").value("Loved it"));
+        }
+
+        @Test
+        @DisplayName("should cap size to maximum 20")
+        void shouldCapSizeToMaximum() throws Exception {
+            when(reviewService.getPopularGameReviews(eq(gameId), anyInt(), any())).thenReturn(List.of());
+
+            mockMvc.perform(get("/api/games/{gameId}/reviews/popular", gameId).param("size", "1000"))
+                    .andExpect(status().isOk());
+
+            verify(reviewService).getPopularGameReviews(eq(gameId), eq(20), any());
+        }
+
+        @Test
+        @DisplayName("should return 404 when the game does not exist")
+        void shouldReturn404WhenGameMissing() throws Exception {
+            when(reviewService.getPopularGameReviews(eq(gameId), anyInt(), any()))
+                    .thenThrow(new GameNotFoundException(gameId));
+
+            mockMvc.perform(get("/api/games/{gameId}/reviews/popular", gameId))
+                    .andExpect(status().isNotFound());
+        }
+    }
+
+    @Nested
+    @DisplayName("GET /api/games/{gameId}/reviews/from-friends")
+    class GetFriendReviewsForGame {
+
+        @Test
+        @DisplayName("should return 200 OK with paginated friend reviews")
+        void shouldReturnFriendReviews() throws Exception {
+            when(reviewService.getFriendReviewsForGame(eq(gameId), any(), any()))
+                    .thenReturn(new PageImpl<>(List.of(reviewResponseDto)));
+
+            mockMvc.perform(get("/api/games/{gameId}/reviews/from-friends", gameId))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content[0].content").value("Great game!"));
+        }
+
+        @Test
+        @DisplayName("should return 200 OK with an empty page when viewer is anonymous")
+        void shouldReturnEmptyPageWhenAnonymous() throws Exception {
+            when(reviewService.getFriendReviewsForGame(eq(gameId), any(), any()))
+                    .thenReturn(new PageImpl<>(List.of()));
+
+            mockMvc.perform(get("/api/games/{gameId}/reviews/from-friends", gameId))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content").isArray())
+                    .andExpect(jsonPath("$.content").isEmpty());
+        }
+
+        @Test
+        @DisplayName("should return 404 when the game does not exist")
+        void shouldReturn404WhenGameMissing() throws Exception {
+            when(reviewService.getFriendReviewsForGame(eq(gameId), any(), any()))
+                    .thenThrow(new GameNotFoundException(gameId));
+
+            mockMvc.perform(get("/api/games/{gameId}/reviews/from-friends", gameId))
+                    .andExpect(status().isNotFound());
+        }
+    }
 }

@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 
 import type { PlayStatus } from '@/types/interaction'
 import type { ReviewsResponse } from '@/types/review'
+import type { gameReviewsQueryOptions } from '@/queries/review'
 import { CommentSection } from '@/components/comments/comment-section'
 import { ReportReviewDialog } from '@/components/reviews/report-review-dialog'
 import { LikeButton } from '@/components/shared/like-button'
@@ -20,10 +21,18 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { useAuth } from '@/hooks/use-auth'
-import { gameReviewsQueryOptions, toggleReviewLike } from '@/queries/review'
+import { toggleReviewLike } from '@/queries/review'
+
+// Shape returned by `queryOptions(...)` for a reviews page. We reuse the
+// existing helper for the type so both this component and the friend-reviews
+// factory accept it without manual generics gymnastics.
+type ReviewsQueryOptions = ReturnType<typeof gameReviewsQueryOptions>
 
 interface ReviewListProps {
-  gameId: string
+  title: string
+  queryOptionsFactory: (page: number, size: number) => ReviewsQueryOptions
+  hideWhenEmpty?: boolean
+  emptyMessage?: string
 }
 
 const PLAY_STATUS_LABELS: Record<PlayStatus, string> = {
@@ -44,7 +53,12 @@ const PLAY_STATUS_COLORS: Record<PlayStatus, string> = {
   ABANDONED: 'bg-red-500/15 text-red-400 border-red-500/20',
 }
 
-export function ReviewList({ gameId }: ReviewListProps) {
+export function ReviewList({
+  title,
+  queryOptionsFactory,
+  hideWhenEmpty = false,
+  emptyMessage = 'No reviews yet. Be the first to leave one!',
+}: ReviewListProps) {
   const { user } = useAuth()
   const [page, setPage] = useState(0)
   const [revealedSpoilers, setRevealedSpoilers] = useState<
@@ -59,16 +73,15 @@ export function ReviewList({ gameId }: ReviewListProps) {
   const size = 10
 
   const queryClient = useQueryClient()
+  const currentOptions = queryOptionsFactory(page, size)
 
-  const { data, isLoading, isError } = useQuery(
-    gameReviewsQueryOptions(gameId, page, size),
-  )
+  const { data, isLoading, isError } = useQuery(currentOptions)
 
   const likeMutation = useMutation({
     meta: { suppressGlobalError: true },
     mutationFn: (reviewId: string) => toggleReviewLike(reviewId),
     onMutate: async (reviewId) => {
-      const queryKey = gameReviewsQueryOptions(gameId, page, size).queryKey
+      const queryKey = currentOptions.queryKey
       await queryClient.cancelQueries({ queryKey })
       const previous = queryClient.getQueryData<ReviewsResponse>(queryKey)
       queryClient.setQueryData<ReviewsResponse>(queryKey, (old) => {
@@ -91,15 +104,12 @@ export function ReviewList({ gameId }: ReviewListProps) {
     onError: (_err, _reviewId, context) => {
       toast.error('Failed to update like')
       if (context?.previous) {
-        queryClient.setQueryData(
-          gameReviewsQueryOptions(gameId, page, size).queryKey,
-          context.previous,
-        )
+        queryClient.setQueryData(currentOptions.queryKey, context.previous)
       }
     },
     onSettled: () => {
       void queryClient.invalidateQueries({
-        queryKey: gameReviewsQueryOptions(gameId, page, size).queryKey,
+        queryKey: currentOptions.queryKey,
       })
     },
   })
@@ -112,6 +122,7 @@ export function ReviewList({ gameId }: ReviewListProps) {
   }
 
   if (isLoading) {
+    if (hideWhenEmpty) return null
     return (
       <div className="py-8 text-center text-muted-foreground">
         Loading reviews...
@@ -120,6 +131,7 @@ export function ReviewList({ gameId }: ReviewListProps) {
   }
 
   if (isError || !data) {
+    if (hideWhenEmpty) return null
     return (
       <div className="py-8 text-center text-red-500">
         Error loading reviews.
@@ -130,16 +142,17 @@ export function ReviewList({ gameId }: ReviewListProps) {
   const { content: reviews, metadata } = data
 
   if (reviews.length === 0) {
+    if (hideWhenEmpty) return null
     return (
       <div className="py-8 text-center text-muted-foreground">
-        No reviews yet. Be the first to leave one!
+        {emptyMessage}
       </div>
     )
   }
 
   return (
     <div className="flex flex-col gap-6">
-      <h2 className="text-xl font-semibold">User Reviews</h2>
+      <h2 className="text-xl font-semibold">{title}</h2>
 
       <div className="grid grid-cols-1 gap-4">
         {reviews.map((review) => (

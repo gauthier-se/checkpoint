@@ -116,6 +116,60 @@ public class ReviewController {
     }
 
     /**
+     * Returns the top reviews for a specific game ranked by the same "hot" score
+     * used by {@link #getPopularReviews(UserDetails, int)}.
+     *
+     * @param gameId      the video game ID
+     * @param userDetails the authenticated user, or null if anonymous
+     * @param size        the number of reviews to return (default 7, max 20)
+     * @return the popular reviews for the game
+     */
+    @GetMapping("/games/{gameId}/reviews/popular")
+    public ResponseEntity<List<ReviewCardDto>> getPopularGameReviews(
+            @PathVariable UUID gameId,
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(defaultValue = "" + DEFAULT_DISCOVERY_SIZE) int size) {
+
+        int validatedSize = Math.min(Math.max(1, size), MAX_DISCOVERY_SIZE);
+        log.info("GET /api/games/{}/reviews/popular - size: {}, viewer: {}",
+                gameId, validatedSize, userDetails != null ? userDetails.getUsername() : "anonymous");
+
+        String viewerEmail = userDetails != null ? userDetails.getUsername() : null;
+        return ResponseEntity.ok(reviewService.getPopularGameReviews(gameId, validatedSize, viewerEmail));
+    }
+
+    /**
+     * Returns reviews authored by the viewer's followings for a specific game.
+     * When the viewer is anonymous or follows nobody, the response is an empty page.
+     *
+     * @param gameId      the video game ID
+     * @param userDetails the authenticated user, or null if anonymous
+     * @param page        the page number (0-based)
+     * @param size        the page size
+     * @return the paginated friend reviews
+     */
+    @GetMapping("/games/{gameId}/reviews/from-friends")
+    public ResponseEntity<PagedResponseDto<ReviewResponseDto>> getFriendReviewsForGame(
+            @PathVariable UUID gameId,
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(defaultValue = "" + DEFAULT_PAGE) int page,
+            @RequestParam(defaultValue = "" + DEFAULT_SIZE) int size) {
+
+        int validatedSize = Math.min(Math.max(1, size), MAX_SIZE);
+        int validatedPage = Math.max(0, page);
+
+        log.info("GET /api/games/{}/reviews/from-friends - page: {}, size: {}, viewer: {}",
+                gameId, validatedPage, validatedSize,
+                userDetails != null ? userDetails.getUsername() : "anonymous");
+
+        String viewerEmail = userDetails != null ? userDetails.getUsername() : null;
+        Pageable pageable = PageRequest.of(validatedPage, validatedSize);
+        Page<ReviewResponseDto> reviewPage = reviewService.getFriendReviewsForGame(gameId, viewerEmail, pageable);
+
+        return ResponseEntity.ok(PagedResponseDto.from(reviewPage));
+    }
+
+    /**
      * Returns the most recently created reviews across all games and users.
      *
      * @param userDetails the authenticated user, or null if anonymous

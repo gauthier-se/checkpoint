@@ -1,5 +1,6 @@
 package com.checkpoint.api.repositories;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -167,5 +168,48 @@ public interface ReviewRepository extends JpaRepository<Review, UUID> {
      * @return a page of reviews ordered by creation time (descending)
      */
     Page<Review> findAllByOrderByCreatedAtDesc(Pageable pageable);
+
+    /**
+     * Finds the top reviews for a single game ranked by the same "hot" score as
+     * {@link #findPopularReviews(int)}.
+     *
+     * @param videoGameId the video game ID
+     * @param limit       the maximum number of reviews to return
+     * @return the top reviews for the game ordered by hot score (descending)
+     */
+    @Query(value = """
+            SELECT r.*
+            FROM reviews r
+            LEFT JOIN likes l ON l.review_id = r.id
+            WHERE r.video_game_id = :videoGameId
+            GROUP BY r.id
+            ORDER BY (COUNT(l.id)::float
+                      / POWER(EXTRACT(EPOCH FROM (NOW() - r.created_at)) / 86400.0 + 2, 1.5)) DESC,
+                     r.created_at DESC
+            LIMIT :limit
+            """, nativeQuery = true)
+    List<Review> findPopularReviewsForGame(@Param("videoGameId") UUID videoGameId,
+                                            @Param("limit") int limit);
+
+    /**
+     * Finds reviews authored by any of the given users for a specific game,
+     * ordered by creation date (descending). Used to feed the "Reviews from friends"
+     * panel on the game detail page.
+     *
+     * @param videoGameId the video game ID
+     * @param userIds     the candidate author IDs (typically the viewer's followings)
+     * @param pageable    pagination parameters; sort is ignored
+     * @return a page of friend reviews for the game
+     */
+    @Query("""
+            SELECT r FROM Review r
+            WHERE r.videoGame.id = :videoGameId
+              AND r.user.id IN :userIds
+            ORDER BY r.createdAt DESC
+            """)
+    Page<Review> findByVideoGameIdAndUserIdInOrderByCreatedAtDesc(
+            @Param("videoGameId") UUID videoGameId,
+            @Param("userIds") Collection<UUID> userIds,
+            Pageable pageable);
 
 }

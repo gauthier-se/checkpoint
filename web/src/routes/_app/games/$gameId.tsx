@@ -4,10 +4,13 @@ import { createFileRoute, useRouter } from '@tanstack/react-router'
 import { Play, Star } from 'lucide-react'
 import type { GameDetail } from '@/types/game'
 import { ErrorPage } from '@/components/errors/error-page'
+import { FriendActivitySection } from '@/components/games/friend-activity-section'
+import { FriendReviewsSection } from '@/components/games/friend-reviews-section'
+import { FriendWantToPlaySection } from '@/components/games/friend-want-to-play-section'
 import { GameListsSection } from '@/components/games/game-lists-section'
+import { PopularGameReviewsSection } from '@/components/games/popular-game-reviews-section'
 import { GameQuickActions } from '@/components/games/quick-actions'
 import { SimilarGamesSection } from '@/components/games/similar-games-section'
-import { ReviewList } from '@/components/reviews/review-list'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -17,16 +20,29 @@ import {
 } from '@/components/ui/dialog'
 import { Separator } from '@/components/ui/separator'
 import { similarGamesQueryOptions } from '@/queries/catalog'
+import {
+  friendReviewsQueryOptions,
+  friendsActivityQueryOptions,
+  friendsWantToPlayQueryOptions,
+  popularGameReviewsQueryOptions,
+} from '@/queries/game-social'
 import { listsContainingGameQueryOptions } from '@/queries/lists'
-import { gameReviewsQueryOptions } from '@/queries/review'
 import { apiFetch, isApiError } from '@/services/api'
 
 export const Route = createFileRoute('/_app/games/$gameId')({
   component: RouteComponent,
   loader: async ({ params: { gameId }, context }) => {
-    // start fetching reviews in background
+    // Start fetching social signals in the background — empty payloads for
+    // anonymous viewers, so this is always safe to kick off.
+    void context.queryClient.prefetchQuery(friendsActivityQueryOptions(gameId))
     void context.queryClient.prefetchQuery(
-      gameReviewsQueryOptions(gameId, 0, 10),
+      friendsWantToPlayQueryOptions(gameId),
+    )
+    void context.queryClient.prefetchQuery(
+      friendReviewsQueryOptions(gameId, 0, 10),
+    )
+    void context.queryClient.prefetchQuery(
+      popularGameReviewsQueryOptions(gameId, 6),
     )
 
     // prefetch lists + similar games so SSR renders those sections
@@ -294,10 +310,10 @@ function RouteComponent() {
           <SimilarGamesSection gameId={game.id} />
         </Suspense>
 
-        <Separator className="my-6" />
-
-        {/* Reviews List */}
-        <ReviewList gameId={game.id} />
+        <FriendActivitySection gameId={game.id} />
+        <FriendWantToPlaySection gameId={game.id} />
+        <FriendReviewsSection gameId={game.id} />
+        <PopularGameReviewsSection gameId={game.id} />
       </div>
     </div>
   )

@@ -138,4 +138,17 @@ public interface BacklogRepository extends JpaRepository<Backlog, UUID> {
             ORDER BY COUNT(DISTINCT b.id) DESC
             """)
     Page<GameCardDto> findMostBackloggedGames(Pageable pageable);
+
+    /**
+     * Returns all backlog entries for a specific game among the given users,
+     * eagerly fetching the linked user. Used by the friend "Want to Play" panel.
+     */
+    @Query("""
+            SELECT b FROM Backlog b
+            JOIN FETCH b.user
+            WHERE b.videoGame.id = :videoGameId
+              AND b.user.id IN :userIds
+            """)
+    List<Backlog> findByVideoGameIdAndUserIdIn(@Param("videoGameId") UUID videoGameId,
+                                                @Param("userIds") Collection<UUID> userIds);
 }

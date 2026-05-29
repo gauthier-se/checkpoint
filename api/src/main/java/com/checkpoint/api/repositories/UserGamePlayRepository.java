@@ -1,5 +1,6 @@
 package com.checkpoint.api.repositories;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -117,6 +118,30 @@ public interface UserGamePlayRepository extends JpaRepository<UserGamePlay, UUID
      */
     @Query("SELECT COUNT(DISTINCT p.platform.id) FROM UserGamePlay p WHERE p.user.id = :userId")
     long countDistinctPlatformsByUserId(@Param("userId") UUID userId);
+
+    /**
+     * Returns the most recent play log (by {@code createdAt}) for each of the given
+     * users on a specific game, eagerly fetching the linked user, review reference,
+     * and platform so the consumer can render friend-activity entries without N+1.
+     *
+     * @param videoGameId the video game ID
+     * @param userIds     the candidate user IDs (typically the viewer's followings)
+     * @return one play log per matching user, or an empty list if {@code userIds} is empty
+     */
+    @Query("""
+            SELECT p FROM UserGamePlay p
+            JOIN FETCH p.user
+            LEFT JOIN FETCH p.review
+            WHERE p.videoGame.id = :videoGameId
+              AND p.user.id IN :userIds
+              AND p.createdAt = (
+                  SELECT MAX(p2.createdAt) FROM UserGamePlay p2
+                  WHERE p2.videoGame.id = :videoGameId
+                    AND p2.user.id = p.user.id
+              )
+            """)
+    List<UserGamePlay> findLatestPerUserForGame(@Param("videoGameId") UUID videoGameId,
+                                                 @Param("userIds") Collection<UUID> userIds);
 
     /**
      * Returns true if the user has at least one play log whose {@code createdAt}

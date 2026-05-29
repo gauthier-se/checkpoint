@@ -92,4 +92,27 @@ public interface ReviewService {
      * @return the recent reviews bundled with their game information
      */
     List<ReviewCardDto> getRecentReviews(int size, String viewerEmail);
+
+    /**
+     * Returns the top reviews for a single game ranked by the same "hot" score
+     * as {@link #getPopularReviews(int, String)}.
+     *
+     * @param videoGameId the video game ID
+     * @param size        the maximum number of reviews to return
+     * @param viewerEmail the authenticated viewer's email, or null if anonymous
+     * @return the popular reviews for the game (never null; may be empty)
+     */
+    List<ReviewCardDto> getPopularGameReviews(UUID videoGameId, int size, String viewerEmail);
+
+    /**
+     * Returns reviews authored by the viewer's followings for a specific game,
+     * ordered by creation date (descending). When the viewer is anonymous or
+     * follows nobody, returns an empty page.
+     *
+     * @param videoGameId the video game ID
+     * @param viewerEmail the authenticated viewer's email, or null if anonymous
+     * @param pageable    pagination parameters; sort is ignored
+     * @return a page of friend reviews
+     */
+    Page<ReviewResponseDto> getFriendReviewsForGame(UUID videoGameId, String viewerEmail, Pageable pageable);
 }

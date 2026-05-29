@@ -229,6 +229,53 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<ReviewCardDto> getPopularGameReviews(UUID videoGameId, int size, String viewerEmail) {
+        if (!videoGameRepository.existsById(videoGameId)) {
+            throw new GameNotFoundException(videoGameId);
+        }
+        User viewer = resolveViewer(viewerEmail);
+        List<Review> reviews = reviewRepository.findPopularReviewsForGame(videoGameId, size);
+        return reviews.stream()
+                .map(review -> toCardDto(review, viewer))
+                .toList();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ReviewResponseDto> getFriendReviewsForGame(UUID videoGameId, String viewerEmail, Pageable pageable) {
+        if (!videoGameRepository.existsById(videoGameId)) {
+            throw new GameNotFoundException(videoGameId);
+        }
+
+        User viewer = resolveViewer(viewerEmail);
+        if (viewer == null || viewer.getFollowing() == null || viewer.getFollowing().isEmpty()) {
+            return Page.empty(pageable);
+        }
+
+        List<UUID> followingIds = viewer.getFollowing().stream()
+                .map(User::getId)
+                .toList();
+
+        Page<Review> reviews = reviewRepository
+                .findByVideoGameIdAndUserIdInOrderByCreatedAtDesc(videoGameId, followingIds, pageable);
+
+        User resolvedViewer = viewer;
+        return reviews.map(review -> {
+            long likesCount = likeRepository.countByReviewId(review.getId());
+            boolean hasLiked = likeRepository.existsByUserIdAndReviewId(resolvedViewer.getId(), review.getId());
+            long commentsCount = commentRepository.countByReviewId(review.getId());
+            return reviewMapper.toDto(review, likesCount, hasLiked, commentsCount);
+        });
+    }
+
+    /**
      * Parses {@code @username} mentions from the given content and publishes a
      * {@link NotificationType#MENTION} notification for each mentioned user that exists
      * and is not the author. Unknown pseudos are silently ignored, and duplicate

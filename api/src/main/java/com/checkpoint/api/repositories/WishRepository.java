@@ -1,5 +1,6 @@
 package com.checkpoint.api.repositories;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -137,4 +138,17 @@ public interface WishRepository extends JpaRepository<Wish, UUID> {
      */
     @Query("SELECT w.videoGame.id FROM Wish w WHERE w.user.id = :userId")
     List<UUID> findVideoGameIdsByUserId(@Param("userId") UUID userId);
+
+    /**
+     * Returns all wishlist entries for a specific game among the given users,
+     * eagerly fetching the linked user. Used by the friend "Want to Play" panel.
+     */
+    @Query("""
+            SELECT w FROM Wish w
+            JOIN FETCH w.user
+            WHERE w.videoGame.id = :videoGameId
+              AND w.user.id IN :userIds
+            """)
+    List<Wish> findByVideoGameIdAndUserIdIn(@Param("videoGameId") UUID videoGameId,
+                                             @Param("userIds") Collection<UUID> userIds);
 }
