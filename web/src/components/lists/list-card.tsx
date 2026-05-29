@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import { Gamepad2, Heart } from 'lucide-react'
+import { Gamepad2, Heart, Lock } from 'lucide-react'
 import type { GameListCard } from '@/types/list'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
@@ -28,7 +28,13 @@ export function ListCard({ list }: ListCardProps) {
       </div>
 
       <div className="flex-1 space-y-1.5">
-        <h3 className="font-semibold leading-tight line-clamp-1 group-hover:underline">
+        <h3 className="flex items-center gap-1.5 font-semibold leading-tight line-clamp-1 group-hover:underline">
+          {list.isPrivate && (
+            <Lock
+              className="size-3.5 shrink-0 text-muted-foreground"
+              aria-label="Private list"
+            />
+          )}
           {list.title}
         </h3>
         {list.description && (
