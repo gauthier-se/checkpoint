@@ -8,7 +8,8 @@ import type {
   Priority,
 } from '@/types/collection'
 import type { PaginationMetadata } from '@/types/game'
-import type { GameStatus, LibraryResponse } from '@/types/library'
+import type { PlayStatus } from '@/types/interaction'
+import type { LibraryResponse } from '@/types/library'
 import { apiFetch } from '@/services/api'
 
 export interface WishlistItem {
@@ -86,7 +87,7 @@ export const userLibraryQueryOptions = (
   username: string,
   page: number = 0,
   size: number = 20,
-  status?: GameStatus,
+  status?: PlayStatus,
   sort?: string,
 ) => {
   return queryOptions({
@@ -171,8 +172,8 @@ export interface CommonGameEntry {
   title: string
   coverUrl: string | null
   releaseDate: string | null
-  viewerStatus: GameStatus
-  targetStatus: GameStatus
+  viewerStatus: PlayStatus
+  targetStatus: PlayStatus
   /** Viewer's rating on the 5-star scale (0.5–5.0), or null if unrated. */
   viewerRating: number | null
   /** Compared user's rating on the 5-star scale (0.5–5.0), or null if unrated. */

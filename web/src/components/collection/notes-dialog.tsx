@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
-import type { GameStatus } from '@/types/library'
+import type { PlayStatus } from '@/types/interaction'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -20,7 +20,7 @@ interface NotesDialogProps {
   onOpenChange: (open: boolean) => void
   videoGameId: string
   gameTitle: string
-  status: GameStatus
+  status: PlayStatus
   initialNotes: string | null
 }
 

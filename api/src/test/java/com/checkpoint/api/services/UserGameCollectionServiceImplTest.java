@@ -31,7 +31,7 @@ import com.checkpoint.api.dto.collection.UserGameResponseDto;
 import com.checkpoint.api.entities.User;
 import com.checkpoint.api.entities.UserGame;
 import com.checkpoint.api.entities.VideoGame;
-import com.checkpoint.api.enums.GameStatus;
+import com.checkpoint.api.enums.PlayStatus;
 import com.checkpoint.api.exceptions.GameAlreadyInLibraryException;
 import com.checkpoint.api.exceptions.GameNotFoundException;
 import com.checkpoint.api.exceptions.GameNotInLibraryException;
@@ -81,14 +81,14 @@ class UserGameCollectionServiceImplTest {
         testGame.setId(UUID.randomUUID());
         testGame.setCoverUrl("cover.jpg");
 
-        testUserGame = new UserGame(testUser, testGame, GameStatus.PLAYING);
+        testUserGame = new UserGame(testUser, testGame, PlayStatus.ARE_PLAYING);
         testUserGame.setId(UUID.randomUUID());
         testUserGame.setCreatedAt(LocalDateTime.now());
         testUserGame.setUpdatedAt(LocalDateTime.now());
 
         testResponseDto = new UserGameResponseDto(
                 testUserGame.getId(), testGame.getId(), testGame.getTitle(),
-                testGame.getCoverUrl(), testGame.getReleaseDate(), GameStatus.PLAYING,
+                testGame.getCoverUrl(), testGame.getReleaseDate(), PlayStatus.ARE_PLAYING,
                 testUserGame.getCreatedAt(), testUserGame.getUpdatedAt(), null, null);
     }
 
@@ -100,7 +100,7 @@ class UserGameCollectionServiceImplTest {
         @DisplayName("should add game to library successfully")
         void shouldAddGameSuccessfully() {
             // Given
-            UserGameRequestDto request = new UserGameRequestDto(testGame.getId(), GameStatus.PLAYING, null);
+            UserGameRequestDto request = new UserGameRequestDto(testGame.getId(), PlayStatus.ARE_PLAYING, null);
 
             when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(testUser));
             when(videoGameRepository.findById(testGame.getId())).thenReturn(Optional.of(testGame));
@@ -114,13 +114,13 @@ class UserGameCollectionServiceImplTest {
             // Then
             assertThat(result.videoGameId()).isEqualTo(testGame.getId());
             assertThat(result.title()).isEqualTo("The Witcher 3");
-            assertThat(result.status()).isEqualTo(GameStatus.PLAYING);
+            assertThat(result.status()).isEqualTo(PlayStatus.ARE_PLAYING);
 
             ArgumentCaptor<UserGame> captor = ArgumentCaptor.forClass(UserGame.class);
             verify(userGameRepository).save(captor.capture());
             assertThat(captor.getValue().getUser()).isEqualTo(testUser);
             assertThat(captor.getValue().getVideoGame()).isEqualTo(testGame);
-            assertThat(captor.getValue().getStatus()).isEqualTo(GameStatus.PLAYING);
+            assertThat(captor.getValue().getStatus()).isEqualTo(PlayStatus.ARE_PLAYING);
             assertThat(captor.getValue().getNotes()).isNull();
         }
 
@@ -128,7 +128,7 @@ class UserGameCollectionServiceImplTest {
         @DisplayName("should persist notes when provided on add")
         void shouldPersistNotesOnAdd() {
             // Given
-            UserGameRequestDto request = new UserGameRequestDto(testGame.getId(), GameStatus.PLAYING, "Great combat system");
+            UserGameRequestDto request = new UserGameRequestDto(testGame.getId(), PlayStatus.ARE_PLAYING, "Great combat system");
 
             when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(testUser));
             when(videoGameRepository.findById(testGame.getId())).thenReturn(Optional.of(testGame));
@@ -149,7 +149,7 @@ class UserGameCollectionServiceImplTest {
         @DisplayName("should throw GameAlreadyInLibraryException when game already exists")
         void shouldThrowWhenGameAlreadyInLibrary() {
             // Given
-            UserGameRequestDto request = new UserGameRequestDto(testGame.getId(), GameStatus.PLAYING, null);
+            UserGameRequestDto request = new UserGameRequestDto(testGame.getId(), PlayStatus.ARE_PLAYING, null);
 
             when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(testUser));
             when(videoGameRepository.findById(testGame.getId())).thenReturn(Optional.of(testGame));
@@ -168,7 +168,7 @@ class UserGameCollectionServiceImplTest {
         void shouldThrowWhenVideoGameNotFound() {
             // Given
             UUID unknownGameId = UUID.randomUUID();
-            UserGameRequestDto request = new UserGameRequestDto(unknownGameId, GameStatus.PLAYING, null);
+            UserGameRequestDto request = new UserGameRequestDto(unknownGameId, PlayStatus.ARE_PLAYING, null);
 
             when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(testUser));
             when(videoGameRepository.findById(unknownGameId)).thenReturn(Optional.empty());
@@ -183,7 +183,7 @@ class UserGameCollectionServiceImplTest {
         @DisplayName("should throw IllegalArgumentException when user not found")
         void shouldThrowWhenUserNotFound() {
             // Given
-            UserGameRequestDto request = new UserGameRequestDto(testGame.getId(), GameStatus.PLAYING, null);
+            UserGameRequestDto request = new UserGameRequestDto(testGame.getId(), PlayStatus.ARE_PLAYING, null);
             when(userRepository.findByEmail("unknown@example.com")).thenReturn(Optional.empty());
 
             // When / Then
@@ -201,15 +201,15 @@ class UserGameCollectionServiceImplTest {
         @DisplayName("should update game status successfully")
         void shouldUpdateStatusSuccessfully() {
             // Given
-            UserGameRequestDto request = new UserGameRequestDto(testGame.getId(), GameStatus.COMPLETED, null);
-            UserGame updatedUserGame = new UserGame(testUser, testGame, GameStatus.COMPLETED);
+            UserGameRequestDto request = new UserGameRequestDto(testGame.getId(), PlayStatus.COMPLETED, null);
+            UserGame updatedUserGame = new UserGame(testUser, testGame, PlayStatus.COMPLETED);
             updatedUserGame.setId(testUserGame.getId());
             updatedUserGame.setCreatedAt(testUserGame.getCreatedAt());
             updatedUserGame.setUpdatedAt(LocalDateTime.now());
 
             UserGameResponseDto updatedResponse = new UserGameResponseDto(
                     testUserGame.getId(), testGame.getId(), testGame.getTitle(),
-                    testGame.getCoverUrl(), testGame.getReleaseDate(), GameStatus.COMPLETED,
+                    testGame.getCoverUrl(), testGame.getReleaseDate(), PlayStatus.COMPLETED,
                     testUserGame.getCreatedAt(), updatedUserGame.getUpdatedAt(), null, null);
 
             when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(testUser));
@@ -222,7 +222,7 @@ class UserGameCollectionServiceImplTest {
             UserGameResponseDto result = service.updateGameStatus("user@example.com", testGame.getId(), request);
 
             // Then
-            assertThat(result.status()).isEqualTo(GameStatus.COMPLETED);
+            assertThat(result.status()).isEqualTo(PlayStatus.COMPLETED);
             verify(userGameRepository).save(testUserGame);
         }
 
@@ -230,7 +230,7 @@ class UserGameCollectionServiceImplTest {
         @DisplayName("should update notes on update")
         void shouldUpdateNotes() {
             // Given
-            UserGameRequestDto request = new UserGameRequestDto(testGame.getId(), GameStatus.PLAYING, "New note");
+            UserGameRequestDto request = new UserGameRequestDto(testGame.getId(), PlayStatus.ARE_PLAYING, "New note");
             testUserGame.setNotes("Old note");
 
             when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(testUser));
@@ -250,7 +250,7 @@ class UserGameCollectionServiceImplTest {
         @DisplayName("should clear notes when request notes is null")
         void shouldClearNotesWhenNull() {
             // Given
-            UserGameRequestDto request = new UserGameRequestDto(testGame.getId(), GameStatus.COMPLETED, null);
+            UserGameRequestDto request = new UserGameRequestDto(testGame.getId(), PlayStatus.COMPLETED, null);
             testUserGame.setNotes("Existing note to be cleared");
 
             when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(testUser));
@@ -271,7 +271,7 @@ class UserGameCollectionServiceImplTest {
         void shouldThrowWhenGameNotInLibrary() {
             // Given
             UUID videoGameId = UUID.randomUUID();
-            UserGameRequestDto request = new UserGameRequestDto(videoGameId, GameStatus.DROPPED, null);
+            UserGameRequestDto request = new UserGameRequestDto(videoGameId, PlayStatus.ABANDONED, null);
 
             when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(testUser));
             when(userGameRepository.findByUserIdAndVideoGameId(testUser.getId(), videoGameId))
@@ -295,7 +295,7 @@ class UserGameCollectionServiceImplTest {
             Pageable pageable = PageRequest.of(0, 20);
             UserGameResponseDto dtoWithRating = new UserGameResponseDto(
                     testUserGame.getId(), testGame.getId(), testGame.getTitle(),
-                    testGame.getCoverUrl(), testGame.getReleaseDate(), GameStatus.PLAYING,
+                    testGame.getCoverUrl(), testGame.getReleaseDate(), PlayStatus.ARE_PLAYING,
                     testUserGame.getCreatedAt(), testUserGame.getUpdatedAt(), null, 4.0);
             Page<Object[]> projection = new PageImpl<>(
                     List.<Object[]>of(new Object[] { testUserGame, 8 }), pageable, 1);
@@ -324,16 +324,16 @@ class UserGameCollectionServiceImplTest {
                     List.<Object[]>of(new Object[] { testUserGame, null }), pageable, 1);
 
             when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(testUser));
-            when(userGameRepository.findLibraryProjection(testUser.getId(), GameStatus.COMPLETED, pageable))
+            when(userGameRepository.findLibraryProjection(testUser.getId(), PlayStatus.COMPLETED, pageable))
                     .thenReturn(projection);
             when(userGameMapper.toResponseDto(testUserGame, null)).thenReturn(testResponseDto);
 
             // When
-            Page<UserGameResponseDto> result = service.getUserLibrary("user@example.com", GameStatus.COMPLETED, pageable);
+            Page<UserGameResponseDto> result = service.getUserLibrary("user@example.com", PlayStatus.COMPLETED, pageable);
 
             // Then
             assertThat(result.getContent()).hasSize(1);
-            verify(userGameRepository).findLibraryProjection(testUser.getId(), GameStatus.COMPLETED, pageable);
+            verify(userGameRepository).findLibraryProjection(testUser.getId(), PlayStatus.COMPLETED, pageable);
         }
 
         @Test

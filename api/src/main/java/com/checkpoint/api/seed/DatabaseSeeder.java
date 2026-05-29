@@ -36,7 +36,6 @@ import com.checkpoint.api.entities.UserGamePlay;
 import com.checkpoint.api.entities.VideoGame;
 import com.checkpoint.api.entities.Wish;
 import com.checkpoint.api.enums.BadgeCode;
-import com.checkpoint.api.enums.GameStatus;
 import com.checkpoint.api.enums.PlayStatus;
 import com.checkpoint.api.repositories.BadgeRepository;
 import com.checkpoint.api.repositories.PlatformRepository;
@@ -373,7 +372,7 @@ public class DatabaseSeeder implements ApplicationRunner {
             playLogs.add(play);
             c.playLogs++;
 
-            UserGame userGame = new UserGame(user, game, mapPlayToGameStatus(status));
+            UserGame userGame = new UserGame(user, game, status);
             entityManager.persist(userGame);
             c.userGames++;
         }
@@ -563,14 +562,6 @@ public class DatabaseSeeder implements ApplicationRunner {
         }
 
         return total;
-    }
-
-    private GameStatus mapPlayToGameStatus(PlayStatus playStatus) {
-        return switch (playStatus) {
-            case COMPLETED, PLAYED -> GameStatus.COMPLETED;
-            case ARE_PLAYING, SHELVED -> GameStatus.PLAYING;
-            case ABANDONED, RETIRED -> GameStatus.DROPPED;
-        };
     }
 
     /**

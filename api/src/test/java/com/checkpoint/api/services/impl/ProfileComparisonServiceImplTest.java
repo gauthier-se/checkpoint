@@ -24,7 +24,7 @@ import com.checkpoint.api.entities.Rate;
 import com.checkpoint.api.entities.User;
 import com.checkpoint.api.entities.UserGame;
 import com.checkpoint.api.entities.VideoGame;
-import com.checkpoint.api.enums.GameStatus;
+import com.checkpoint.api.enums.PlayStatus;
 import com.checkpoint.api.exceptions.ProfilePrivateException;
 import com.checkpoint.api.repositories.RateRepository;
 import com.checkpoint.api.repositories.UserGameRepository;
@@ -90,14 +90,14 @@ class ProfileComparisonServiceImplTest {
 
         when(userGameRepository.findByUserIdAndVideoGameIdIn(viewer.getId(), commonIds))
                 .thenReturn(List.of(
-                        userGame(viewer, g1, GameStatus.COMPLETED),
-                        userGame(viewer, g2, GameStatus.PLAYING),
-                        userGame(viewer, g3, GameStatus.PLAYING)));
+                        userGame(viewer, g1, PlayStatus.COMPLETED),
+                        userGame(viewer, g2, PlayStatus.ARE_PLAYING),
+                        userGame(viewer, g3, PlayStatus.ARE_PLAYING)));
         when(userGameRepository.findByUserIdAndVideoGameIdIn(target.getId(), commonIds))
                 .thenReturn(List.of(
-                        userGame(target, g1, GameStatus.COMPLETED),
-                        userGame(target, g2, GameStatus.COMPLETED),
-                        userGame(target, g3, GameStatus.DROPPED)));
+                        userGame(target, g1, PlayStatus.COMPLETED),
+                        userGame(target, g2, PlayStatus.COMPLETED),
+                        userGame(target, g3, PlayStatus.ABANDONED)));
 
         // Ratings (raw 1-10): g1 viewer 10/target 8 -> 5.0 vs 4.0 (diff 1.0)
         //                     g2 viewer 6/target 6  -> 3.0 vs 3.0 (diff 0.0)
@@ -128,8 +128,8 @@ class ProfileComparisonServiceImplTest {
         assertThat(content.get(0).viewerRating()).isEqualTo(5.0);
         assertThat(content.get(0).targetRating()).isEqualTo(4.0);
         assertThat(content.get(0).ratingDiff()).isEqualTo(1.0);
-        assertThat(content.get(0).viewerStatus()).isEqualTo(GameStatus.COMPLETED);
-        assertThat(content.get(0).targetStatus()).isEqualTo(GameStatus.COMPLETED);
+        assertThat(content.get(0).viewerStatus()).isEqualTo(PlayStatus.COMPLETED);
+        assertThat(content.get(0).targetStatus()).isEqualTo(PlayStatus.COMPLETED);
         assertThat(content.get(1).title()).isEqualTo("Hades");
         assertThat(content.get(1).ratingDiff()).isEqualTo(0.0);
         assertThat(content.get(2).title()).isEqualTo("Celeste");
@@ -211,9 +211,9 @@ class ProfileComparisonServiceImplTest {
         when(userGameRepository.countByUserId(viewer.getId())).thenReturn(2L);
         when(userGameRepository.countByUserId(target.getId())).thenReturn(2L);
         when(userGameRepository.findByUserIdAndVideoGameIdIn(viewer.getId(), commonIds))
-                .thenReturn(List.of(userGame(viewer, g1, GameStatus.COMPLETED)));
+                .thenReturn(List.of(userGame(viewer, g1, PlayStatus.COMPLETED)));
         when(userGameRepository.findByUserIdAndVideoGameIdIn(target.getId(), commonIds))
-                .thenReturn(List.of(userGame(target, g1, GameStatus.PLAYING)));
+                .thenReturn(List.of(userGame(target, g1, PlayStatus.ARE_PLAYING)));
         // Only the viewer rated the game -> no common rating
         when(rateRepository.findByUserIdInAndVideoGameIdIn(
                 List.of(viewer.getId(), target.getId()), commonIds))
@@ -262,14 +262,14 @@ class ProfileComparisonServiceImplTest {
         when(userGameRepository.countByUserId(target.getId())).thenReturn(3L);
         when(userGameRepository.findByUserIdAndVideoGameIdIn(viewer.getId(), commonIds))
                 .thenReturn(List.of(
-                        userGame(viewer, g1, GameStatus.COMPLETED),
-                        userGame(viewer, g2, GameStatus.COMPLETED),
-                        userGame(viewer, g3, GameStatus.COMPLETED)));
+                        userGame(viewer, g1, PlayStatus.COMPLETED),
+                        userGame(viewer, g2, PlayStatus.COMPLETED),
+                        userGame(viewer, g3, PlayStatus.COMPLETED)));
         when(userGameRepository.findByUserIdAndVideoGameIdIn(target.getId(), commonIds))
                 .thenReturn(List.of(
-                        userGame(target, g1, GameStatus.COMPLETED),
-                        userGame(target, g2, GameStatus.COMPLETED),
-                        userGame(target, g3, GameStatus.COMPLETED)));
+                        userGame(target, g1, PlayStatus.COMPLETED),
+                        userGame(target, g2, PlayStatus.COMPLETED),
+                        userGame(target, g3, PlayStatus.COMPLETED)));
         when(rateRepository.findByUserIdInAndVideoGameIdIn(
                 List.of(viewer.getId(), target.getId()), commonIds))
                 .thenReturn(List.of(
@@ -313,7 +313,7 @@ class ProfileComparisonServiceImplTest {
         return game;
     }
 
-    private static UserGame userGame(User user, VideoGame game, GameStatus status) {
+    private static UserGame userGame(User user, VideoGame game, PlayStatus status) {
         return new UserGame(user, game, status);
     }
 

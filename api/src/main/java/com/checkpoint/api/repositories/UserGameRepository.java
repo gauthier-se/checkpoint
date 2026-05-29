@@ -13,7 +13,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.checkpoint.api.entities.UserGame;
-import com.checkpoint.api.enums.GameStatus;
+import com.checkpoint.api.enums.PlayStatus;
 
 /**
  * Repository for {@link UserGame} entities.
@@ -42,7 +42,7 @@ public interface UserGameRepository extends JpaRepository<UserGame, UUID> {
               AND (:status IS NULL OR ug.status = :status)
             """)
     Page<Object[]> findLibraryProjection(@Param("userId") UUID userId,
-                                         @Param("status") GameStatus status,
+                                         @Param("status") PlayStatus status,
                                          Pageable pageable);
 
     /**
@@ -64,7 +64,7 @@ public interface UserGameRepository extends JpaRepository<UserGame, UUID> {
               AND (:status IS NULL OR ug.status = :status)
             """)
     Page<Object[]> findLibraryProjectionSortedByRating(@Param("userId") UUID userId,
-                                                       @Param("status") GameStatus status,
+                                                       @Param("status") PlayStatus status,
                                                        Pageable pageable);
 
     /**
@@ -93,7 +93,7 @@ public interface UserGameRepository extends JpaRepository<UserGame, UUID> {
      * Counts the number of games in a user's library that are in the given status.
      * Used by the badge system to evaluate completion thresholds.
      */
-    long countByUserIdAndStatus(UUID userId, GameStatus status);
+    long countByUserIdAndStatus(UUID userId, PlayStatus status);
 
     /**
      * Counts the total number of games in a user's library, regardless of status.
@@ -115,7 +115,7 @@ public interface UserGameRepository extends JpaRepository<UserGame, UUID> {
     @Query("""
             SELECT COUNT(ug) FROM UserGame ug JOIN ug.videoGame.genres g
             WHERE ug.user.id = :userId
-              AND ug.status = com.checkpoint.api.enums.GameStatus.COMPLETED
+              AND ug.status = com.checkpoint.api.enums.PlayStatus.COMPLETED
               AND LOWER(g.name) = LOWER(:genreName)
             """)
     long countCompletedByUserIdAndGenreName(@Param("userId") UUID userId,
@@ -172,7 +172,7 @@ public interface UserGameRepository extends JpaRepository<UserGame, UUID> {
     @Query("""
             SELECT COUNT(ug) > 0 FROM UserGame ug
             WHERE ug.user.id = :userId
-              AND ug.status = com.checkpoint.api.enums.GameStatus.COMPLETED
+              AND ug.status = com.checkpoint.api.enums.PlayStatus.COMPLETED
               AND ug.videoGame.releaseDate IS NOT NULL
               AND ug.videoGame.releaseDate <= :cutoff
             """)

@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.checkpoint.api.dto.catalog.PagedResponseDto;
 import com.checkpoint.api.dto.collection.UserGameRequestDto;
 import com.checkpoint.api.dto.collection.UserGameResponseDto;
-import com.checkpoint.api.enums.GameStatus;
+import com.checkpoint.api.enums.PlayStatus;
 import com.checkpoint.api.services.UserGameCollectionService;
 
 import jakarta.validation.Valid;
@@ -110,7 +110,7 @@ public class UserGameCollectionController {
     @GetMapping
     public ResponseEntity<PagedResponseDto<UserGameResponseDto>> getUserLibrary(
             @AuthenticationPrincipal UserDetails userDetails,
-            @RequestParam(required = false) GameStatus status,
+            @RequestParam(required = false) PlayStatus status,
             @RequestParam(defaultValue = "" + DEFAULT_PAGE) int page,
             @RequestParam(defaultValue = "" + DEFAULT_SIZE) int size,
             @RequestParam(defaultValue = DEFAULT_SORT) String sort) {

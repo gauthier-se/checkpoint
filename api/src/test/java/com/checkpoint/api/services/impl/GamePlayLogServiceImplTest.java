@@ -19,6 +19,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -35,7 +37,6 @@ import com.checkpoint.api.entities.User;
 import com.checkpoint.api.entities.UserGame;
 import com.checkpoint.api.entities.UserGamePlay;
 import com.checkpoint.api.entities.VideoGame;
-import com.checkpoint.api.enums.GameStatus;
 import com.checkpoint.api.enums.PlayStatus;
 import com.checkpoint.api.exceptions.GameNotFoundException;
 import com.checkpoint.api.exceptions.PlayLogNotFoundException;
@@ -519,7 +520,7 @@ class GamePlayLogServiceImplTest {
             );
         }
 
-        private GameStatus capturedSavedStatus() {
+        private PlayStatus capturedSavedStatus() {
             ArgumentCaptor<UserGame> captor = ArgumentCaptor.forClass(UserGame.class);
             verify(userGameRepository).save(captor.capture());
             return captor.getValue().getStatus();
@@ -556,14 +557,14 @@ class GamePlayLogServiceImplTest {
             UserGame saved = captor.getValue();
             assertThat(saved.getUser()).isEqualTo(testUser);
             assertThat(saved.getVideoGame()).isEqualTo(testGame);
-            assertThat(saved.getStatus()).isEqualTo(GameStatus.COMPLETED);
+            assertThat(saved.getStatus()).isEqualTo(PlayStatus.COMPLETED);
         }
 
         @Test
         @DisplayName("should update existing library entry status without touching notes")
         void shouldUpdateExistingLibraryEntryStatusOnly() {
             // Given
-            UserGame existing = new UserGame(testUser, testGame, GameStatus.PLAYING);
+            UserGame existing = new UserGame(testUser, testGame, PlayStatus.ARE_PLAYING);
             existing.setNotes("my note");
             stubLogPlayHappyPath(testRequestDto);
             when(userGameRepository.findByUserIdAndVideoGameId(testUser.getId(), testGame.getId()))
@@ -574,97 +575,28 @@ class GamePlayLogServiceImplTest {
 
             // Then
             verify(userGameRepository).save(existing);
-            assertThat(existing.getStatus()).isEqualTo(GameStatus.COMPLETED);
+            assertThat(existing.getStatus()).isEqualTo(PlayStatus.COMPLETED);
             assertThat(existing.getNotes()).isEqualTo("my note");
         }
 
-        @Test
-        @DisplayName("should map ARE_PLAYING to PLAYING")
-        void shouldMapArePlayingToPlaying() {
+        @ParameterizedTest
+        @EnumSource(PlayStatus.class)
+        @DisplayName("should persist the play status to the library entry unchanged")
+        void shouldPersistPlayStatusToLibrary(PlayStatus status) {
             // Given
-            GamePlayLogRequestDto request = requestWithStatus(PlayStatus.ARE_PLAYING);
+            GamePlayLogRequestDto request = requestWithStatus(status);
             stubLogPlayHappyPath(request);
 
             // When
             gamePlayLogService.logPlay(testUser.getEmail(), request);
 
             // Then
-            assertThat(capturedSavedStatus()).isEqualTo(GameStatus.PLAYING);
+            assertThat(capturedSavedStatus()).isEqualTo(status);
         }
 
         @Test
-        @DisplayName("should map PLAYED to PLAYING")
-        void shouldMapPlayedToPlaying() {
-            // Given
-            GamePlayLogRequestDto request = requestWithStatus(PlayStatus.PLAYED);
-            stubLogPlayHappyPath(request);
-
-            // When
-            gamePlayLogService.logPlay(testUser.getEmail(), request);
-
-            // Then
-            assertThat(capturedSavedStatus()).isEqualTo(GameStatus.PLAYING);
-        }
-
-        @Test
-        @DisplayName("should map SHELVED to PLAYING")
-        void shouldMapShelvedToPlaying() {
-            // Given
-            GamePlayLogRequestDto request = requestWithStatus(PlayStatus.SHELVED);
-            stubLogPlayHappyPath(request);
-
-            // When
-            gamePlayLogService.logPlay(testUser.getEmail(), request);
-
-            // Then
-            assertThat(capturedSavedStatus()).isEqualTo(GameStatus.PLAYING);
-        }
-
-        @Test
-        @DisplayName("should map COMPLETED to COMPLETED")
-        void shouldMapCompletedToCompleted() {
-            // Given
-            GamePlayLogRequestDto request = requestWithStatus(PlayStatus.COMPLETED);
-            stubLogPlayHappyPath(request);
-
-            // When
-            gamePlayLogService.logPlay(testUser.getEmail(), request);
-
-            // Then
-            assertThat(capturedSavedStatus()).isEqualTo(GameStatus.COMPLETED);
-        }
-
-        @Test
-        @DisplayName("should map RETIRED to DROPPED")
-        void shouldMapRetiredToDropped() {
-            // Given
-            GamePlayLogRequestDto request = requestWithStatus(PlayStatus.RETIRED);
-            stubLogPlayHappyPath(request);
-
-            // When
-            gamePlayLogService.logPlay(testUser.getEmail(), request);
-
-            // Then
-            assertThat(capturedSavedStatus()).isEqualTo(GameStatus.DROPPED);
-        }
-
-        @Test
-        @DisplayName("should map ABANDONED to DROPPED")
-        void shouldMapAbandonedToDropped() {
-            // Given
-            GamePlayLogRequestDto request = requestWithStatus(PlayStatus.ABANDONED);
-            stubLogPlayHappyPath(request);
-
-            // When
-            gamePlayLogService.logPlay(testUser.getEmail(), request);
-
-            // Then
-            assertThat(capturedSavedStatus()).isEqualTo(GameStatus.DROPPED);
-        }
-
-        @Test
-        @DisplayName("should default to PLAYING when play status is null")
-        void shouldDefaultNullStatusToPlaying() {
+        @DisplayName("should default to ARE_PLAYING when play status is null")
+        void shouldDefaultNullStatusToArePlaying() {
             // Given
             GamePlayLogRequestDto request = requestWithStatus(null);
             stubLogPlayHappyPath(request);
@@ -673,7 +605,7 @@ class GamePlayLogServiceImplTest {
             gamePlayLogService.logPlay(testUser.getEmail(), request);
 
             // Then
-            assertThat(capturedSavedStatus()).isEqualTo(GameStatus.PLAYING);
+            assertThat(capturedSavedStatus()).isEqualTo(PlayStatus.ARE_PLAYING);
         }
     }
 }

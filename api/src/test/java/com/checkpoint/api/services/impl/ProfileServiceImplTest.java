@@ -44,7 +44,6 @@ import com.checkpoint.api.entities.UserGame;
 import com.checkpoint.api.entities.UserGamePlay;
 import com.checkpoint.api.entities.VideoGame;
 import com.checkpoint.api.entities.Wish;
-import com.checkpoint.api.enums.GameStatus;
 import com.checkpoint.api.enums.PlayStatus;
 import com.checkpoint.api.enums.Priority;
 import com.checkpoint.api.exceptions.ProfilePrivateException;
@@ -538,7 +537,7 @@ class ProfileServiceImplTest {
 
             UserGameResponseDto dto = new UserGameResponseDto(
                     userGame.getId(), UUID.randomUUID(), "Celeste", null, null,
-                    GameStatus.COMPLETED, LocalDateTime.now(), LocalDateTime.now(), null, 3.5);
+                    PlayStatus.COMPLETED, LocalDateTime.now(), LocalDateTime.now(), null, 3.5);
 
             when(userRepository.findByPseudo("gamer123"))
                     .thenReturn(Optional.of(profileUser));
@@ -566,19 +565,19 @@ class ProfileServiceImplTest {
 
             UserGameResponseDto dto = new UserGameResponseDto(
                     userGame.getId(), UUID.randomUUID(), "Hades", null, null,
-                    GameStatus.PLAYING, LocalDateTime.now(), LocalDateTime.now(), null, null);
+                    PlayStatus.ARE_PLAYING, LocalDateTime.now(), LocalDateTime.now(), null, null);
 
             when(userRepository.findByPseudo("gamer123"))
                     .thenReturn(Optional.of(profileUser));
-            when(userGameRepository.findLibraryProjection(profileUser.getId(), GameStatus.PLAYING, pageable))
+            when(userGameRepository.findLibraryProjection(profileUser.getId(), PlayStatus.ARE_PLAYING, pageable))
                     .thenReturn(projection);
             when(userGameMapper.toResponseDto(userGame, null)).thenReturn(dto);
 
             // When
-            profileService.getUserLibrary("gamer123", null, GameStatus.PLAYING, pageable);
+            profileService.getUserLibrary("gamer123", null, PlayStatus.ARE_PLAYING, pageable);
 
             // Then
-            verify(userGameRepository).findLibraryProjection(profileUser.getId(), GameStatus.PLAYING, pageable);
+            verify(userGameRepository).findLibraryProjection(profileUser.getId(), PlayStatus.ARE_PLAYING, pageable);
         }
 
         @Test

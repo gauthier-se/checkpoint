@@ -6,21 +6,19 @@ import {
   Boxes,
   Check,
   ChevronDown,
-  Gamepad2,
   Gift,
   Heart,
   Library,
   NotebookPen,
   Pencil,
-  Play,
   StickyNote,
   Trash2,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import type { Priority } from '@/types/collection'
 import type { GameDetail } from '@/types/game'
-import type { GameInteractionStatusDto } from '@/types/interaction'
-import type { GameStatus } from '@/types/library'
+import type { GameInteractionStatusDto, PlayStatus } from '@/types/interaction'
+import { PLAY_STATUS_LABELS, PLAY_STATUS_ORDER } from '@/lib/play-status'
 import { NotesDialog } from '@/components/collection/notes-dialog'
 import { PlayLogDialog } from '@/components/games/play-log-dialog'
 import { StarRating } from '@/components/games/star-rating'
@@ -143,7 +141,7 @@ export function GameQuickActions({ game }: GameQuickActionsProps) {
 
   const libraryMutation = useMutation({
     meta: { suppressGlobalError: true },
-    mutationFn: (newStatus: GameStatus | null) =>
+    mutationFn: (newStatus: PlayStatus | null) =>
       updateLibraryStatus(
         game.id,
         newStatus
@@ -192,7 +190,7 @@ export function GameQuickActions({ game }: GameQuickActionsProps) {
       if (newStatus === null) {
         toast.success('Removed from library')
       } else {
-        toast.success(`Library status set to ${newStatus}`)
+        toast.success(`Library status set to ${PLAY_STATUS_LABELS[newStatus]}`)
       }
     },
   })
@@ -221,7 +219,7 @@ export function GameQuickActions({ game }: GameQuickActionsProps) {
     { enabled: hotkeysEnabled },
   )
 
-  const handleLibraryChange = (newStatus: GameStatus) => {
+  const handleLibraryChange = (newStatus: PlayStatus) => {
     libraryMutation.mutate(newStatus)
   }
 
@@ -504,40 +502,6 @@ export function GameQuickActions({ game }: GameQuickActionsProps) {
           </DropdownMenu>
         )}
 
-        {/* Quick Library Status: Playing */}
-        <Button
-          variant={libraryStatus === 'PLAYING' ? 'default' : 'outline'}
-          size="sm"
-          className="gap-2 focus:ring-0"
-          disabled={disabled || libraryMutation.isPending}
-          aria-pressed={libraryStatus === 'PLAYING'}
-          onClick={() =>
-            libraryMutation.mutate(
-              libraryStatus === 'PLAYING' ? null : 'PLAYING',
-            )
-          }
-        >
-          <Play className="w-4 h-4" />
-          Playing
-        </Button>
-
-        {/* Quick Library Status: Completed */}
-        <Button
-          variant={libraryStatus === 'COMPLETED' ? 'default' : 'outline'}
-          size="sm"
-          className="gap-2 focus:ring-0"
-          disabled={disabled || libraryMutation.isPending}
-          aria-pressed={libraryStatus === 'COMPLETED'}
-          onClick={() =>
-            libraryMutation.mutate(
-              libraryStatus === 'COMPLETED' ? null : 'COMPLETED',
-            )
-          }
-        >
-          <Gamepad2 className="w-4 h-4" />
-          Completed
-        </Button>
-
         {/* Library Dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -548,35 +512,21 @@ export function GameQuickActions({ game }: GameQuickActionsProps) {
               disabled={disabled || libraryMutation.isPending}
             >
               <Boxes className="w-4 h-4" />
-              {libraryStatus ? `Lib: ${libraryStatus}` : 'Library'}
+              {libraryStatus
+                ? `Lib: ${PLAY_STATUS_LABELS[libraryStatus]}`
+                : 'Library'}
               <ChevronDown className="w-3 h-3 opacity-50" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start">
-            <DropdownMenuItem onClick={() => handleLibraryChange('PLAYING')}>
-              {libraryStatus === 'PLAYING' && (
-                <Check className="w-4 h-4 mr-2" />
-              )}
-              <span className={libraryStatus === 'PLAYING' ? '' : 'ml-6'}>
-                Playing
-              </span>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleLibraryChange('COMPLETED')}>
-              {libraryStatus === 'COMPLETED' && (
-                <Check className="w-4 h-4 mr-2" />
-              )}
-              <span className={libraryStatus === 'COMPLETED' ? '' : 'ml-6'}>
-                Completed
-              </span>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleLibraryChange('DROPPED')}>
-              {libraryStatus === 'DROPPED' && (
-                <Check className="w-4 h-4 mr-2" />
-              )}
-              <span className={libraryStatus === 'DROPPED' ? '' : 'ml-6'}>
-                Dropped
-              </span>
-            </DropdownMenuItem>
+            {PLAY_STATUS_ORDER.map((s) => (
+              <DropdownMenuItem key={s} onClick={() => handleLibraryChange(s)}>
+                {libraryStatus === s && <Check className="w-4 h-4 mr-2" />}
+                <span className={libraryStatus === s ? '' : 'ml-6'}>
+                  {PLAY_STATUS_LABELS[s]}
+                </span>
+              </DropdownMenuItem>
+            ))}
             {libraryStatus && (
               <>
                 <DropdownMenuSeparator />

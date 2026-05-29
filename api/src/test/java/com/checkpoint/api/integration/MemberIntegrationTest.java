@@ -22,7 +22,7 @@ import com.checkpoint.api.entities.Review;
 import com.checkpoint.api.entities.User;
 import com.checkpoint.api.entities.UserGame;
 import com.checkpoint.api.entities.VideoGame;
-import com.checkpoint.api.enums.GameStatus;
+import com.checkpoint.api.enums.PlayStatus;
 import com.checkpoint.api.repositories.ReviewRepository;
 import com.checkpoint.api.repositories.UserGameRepository;
 import com.checkpoint.api.repositories.UserRepository;
@@ -113,10 +113,10 @@ class MemberIntegrationTest {
 
         // Create user_games for suggested members:
         // viewer has game1, popularUser has game1, quietUser has game1 + game2
-        userGameRepository.save(new UserGame(viewer, game1, GameStatus.PLAYING));
-        userGameRepository.save(new UserGame(popularUser, game1, GameStatus.COMPLETED));
-        userGameRepository.save(new UserGame(quietUser, game1, GameStatus.PLAYING));
-        userGameRepository.save(new UserGame(quietUser, game2, GameStatus.PLAYING));
+        userGameRepository.save(new UserGame(viewer, game1, PlayStatus.ARE_PLAYING));
+        userGameRepository.save(new UserGame(popularUser, game1, PlayStatus.COMPLETED));
+        userGameRepository.save(new UserGame(quietUser, game1, PlayStatus.ARE_PLAYING));
+        userGameRepository.save(new UserGame(quietUser, game2, PlayStatus.ARE_PLAYING));
 
         entityManager.flush();
         entityManager.clear();

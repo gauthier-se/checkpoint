@@ -1,6 +1,5 @@
 import type { PaginationMetadata } from './game'
-
-export type GameStatus = 'PLAYING' | 'COMPLETED' | 'DROPPED'
+import type { PlayStatus } from './interaction'
 
 export interface UserGameResponse {
   id: string
@@ -8,7 +7,7 @@ export interface UserGameResponse {
   title: string
   coverUrl: string | null
   releaseDate: string | null
-  status: GameStatus
+  status: PlayStatus
   addedAt: string
   updatedAt: string
   notes: string | null
@@ -18,7 +17,7 @@ export interface UserGameResponse {
 
 export interface UserGameRequest {
   videoGameId: string
-  status: GameStatus
+  status: PlayStatus
   notes?: string | null
 }
 

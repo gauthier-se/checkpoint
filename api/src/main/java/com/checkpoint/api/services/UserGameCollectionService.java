@@ -7,7 +7,7 @@ import org.springframework.data.domain.Pageable;
 
 import com.checkpoint.api.dto.collection.UserGameRequestDto;
 import com.checkpoint.api.dto.collection.UserGameResponseDto;
-import com.checkpoint.api.enums.GameStatus;
+import com.checkpoint.api.enums.PlayStatus;
 
 /**
  * Service for managing a user's game collection (library).
@@ -45,7 +45,7 @@ public interface UserGameCollectionService {
      * @param pageable  pagination parameters
      * @return paginated list of games in the user's library
      */
-    Page<UserGameResponseDto> getUserLibrary(String userEmail, GameStatus status, Pageable pageable);
+    Page<UserGameResponseDto> getUserLibrary(String userEmail, PlayStatus status, Pageable pageable);
 
     /**
      * Removes a game from the user's library.

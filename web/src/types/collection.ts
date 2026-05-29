@@ -90,8 +90,11 @@ export interface LikedGameListResponse {
 export type CollectionTab =
   | 'games'
   | 'playing'
+  | 'played'
   | 'completed'
-  | 'dropped'
+  | 'retired'
+  | 'shelved'
+  | 'abandoned'
   | 'wishlist'
   | 'backlog'
   | 'journal'

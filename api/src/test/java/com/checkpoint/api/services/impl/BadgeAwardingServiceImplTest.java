@@ -30,7 +30,7 @@ import com.checkpoint.api.entities.Review;
 import com.checkpoint.api.entities.User;
 import com.checkpoint.api.entities.UserGamePlay;
 import com.checkpoint.api.enums.BadgeCode;
-import com.checkpoint.api.enums.GameStatus;
+import com.checkpoint.api.enums.PlayStatus;
 import com.checkpoint.api.events.BadgeUnlockedEvent;
 import com.checkpoint.api.repositories.BadgeRepository;
 import com.checkpoint.api.repositories.LikeRepository;
@@ -211,7 +211,7 @@ class BadgeAwardingServiceImplTest {
         @DisplayName("Should award only FIRST_GAME_FINISHED when completed count is 1")
         void shouldAwardFirstGameFinishedOnly() {
             // Given
-            when(userGameRepository.countByUserIdAndStatus(userId, GameStatus.COMPLETED))
+            when(userGameRepository.countByUserIdAndStatus(userId, PlayStatus.COMPLETED))
                     .thenReturn(1L);
             stubUser();
             stubBadge(BadgeCode.FIRST_GAME_FINISHED);
@@ -230,7 +230,7 @@ class BadgeAwardingServiceImplTest {
         @DisplayName("Should evaluate all four tiers when count is 100")
         void shouldEvaluateAllTiersAtHundred() {
             // Given
-            when(userGameRepository.countByUserIdAndStatus(userId, GameStatus.COMPLETED))
+            when(userGameRepository.countByUserIdAndStatus(userId, PlayStatus.COMPLETED))
                     .thenReturn(100L);
             stubUser();
             stubBadge(BadgeCode.FIRST_GAME_FINISHED);

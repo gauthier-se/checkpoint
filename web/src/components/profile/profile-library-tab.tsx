@@ -1,31 +1,19 @@
 import { useQuery } from '@tanstack/react-query'
 import { Library, Lock } from 'lucide-react'
-import type { GameStatus } from '@/types/library'
+import type { PlayStatus } from '@/types/interaction'
 import type { UserProfile } from '@/types/profile'
+import type { ProfileGamesTabKey } from '@/components/profile/profile-tab-bar'
 import { userLibraryQueryOptions } from '@/queries/profile'
+import { PLAY_STATUS_COLORS, PLAY_STATUS_LABELS } from '@/lib/play-status'
 import { CollectionGameCard } from '@/components/collection/collection-game-card'
 import { PaginationNav } from '@/components/shared/pagination-nav'
 import { Badge } from '@/components/ui/badge'
 
-const STATUS_LABELS: Record<GameStatus, string> = {
-  PLAYING: 'Playing',
-  COMPLETED: 'Completed',
-  DROPPED: 'Dropped',
-}
-
-const STATUS_COLORS: Record<GameStatus, string> = {
-  PLAYING: 'bg-blue-500/15 text-blue-400 border-blue-500/20',
-  COMPLETED: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20',
-  DROPPED: 'bg-red-500/15 text-red-400 border-red-500/20',
-}
-
-type ProfileGamesTab = 'games' | 'playing' | 'completed' | 'dropped'
-
 interface ProfileLibraryTabProps {
   profile: UserProfile
   page: number
-  status?: GameStatus
-  tabKey: ProfileGamesTab
+  status?: PlayStatus
+  tabKey: ProfileGamesTabKey
 }
 
 /**
@@ -82,7 +70,7 @@ export function ProfileLibraryTab({
         <Library className="text-muted-foreground size-12" />
         <p className="text-muted-foreground text-lg">
           {status
-            ? `No ${STATUS_LABELS[status].toLowerCase()} games`
+            ? `No ${PLAY_STATUS_LABELS[status].toLowerCase()} games`
             : 'No games in library'}
         </p>
       </div>
@@ -101,8 +89,10 @@ export function ProfileLibraryTab({
             releaseDate={game.releaseDate}
             userRating={game.userRating}
           >
-            <Badge className={`${STATUS_COLORS[game.status]} mt-1 text-[11px]`}>
-              {STATUS_LABELS[game.status]}
+            <Badge
+              className={`${PLAY_STATUS_COLORS[game.status]} mt-1 text-[11px]`}
+            >
+              {PLAY_STATUS_LABELS[game.status]}
             </Badge>
           </CollectionGameCard>
         ))}

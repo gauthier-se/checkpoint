@@ -1,5 +1,4 @@
 import type { Priority } from './collection'
-import type { GameStatus } from './library'
 import type { TagSummary } from './tag'
 
 export interface GameInteractionStatusDto {
@@ -8,7 +7,7 @@ export interface GameInteractionStatusDto {
   inBacklog: boolean
   backlogPriority: Priority | null
   inLibrary: boolean
-  libraryStatus: GameStatus | null
+  libraryStatus: PlayStatus | null
   libraryNotes: string | null
   playCount: number
   userRating: number | null

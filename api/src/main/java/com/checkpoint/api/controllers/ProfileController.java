@@ -25,7 +25,7 @@ import com.checkpoint.api.dto.list.GameListCardDto;
 import com.checkpoint.api.dto.playlog.GamePlayLogResponseDto;
 import com.checkpoint.api.dto.profile.ProfileComparisonDto;
 import com.checkpoint.api.dto.profile.UserProfileDto;
-import com.checkpoint.api.enums.GameStatus;
+import com.checkpoint.api.enums.PlayStatus;
 import com.checkpoint.api.services.ProfileComparisonService;
 import com.checkpoint.api.services.ProfileService;
 
@@ -188,7 +188,7 @@ public class ProfileController {
     public ResponseEntity<PagedResponseDto<UserGameResponseDto>> getUserLibrary(
             @PathVariable String username,
             @AuthenticationPrincipal UserDetails userDetails,
-            @RequestParam(required = false) GameStatus status,
+            @RequestParam(required = false) PlayStatus status,
             @RequestParam(defaultValue = "" + DEFAULT_PAGE) int page,
             @RequestParam(defaultValue = "" + DEFAULT_SIZE) int size,
             @RequestParam(defaultValue = DEFAULT_SORT) String sort) {

@@ -31,7 +31,7 @@ import com.checkpoint.api.entities.UserGame;
 import com.checkpoint.api.entities.UserGamePlay;
 import com.checkpoint.api.entities.VideoGame;
 import com.checkpoint.api.entities.Wish;
-import com.checkpoint.api.enums.GameStatus;
+import com.checkpoint.api.enums.PlayStatus;
 import com.checkpoint.api.repositories.BadgeRepository;
 import com.checkpoint.api.repositories.LikeRepository;
 import com.checkpoint.api.repositories.PlatformRepository;
@@ -407,13 +407,13 @@ class ProfileIntegrationTest {
             VideoGame c = videoGameRepository.save(makeGame("Game C", "/covers/c.png"));
             VideoGame d = videoGameRepository.save(makeGame("Game D", "/covers/d.png"));
 
-            userGameRepository.save(new UserGame(testUser, a, GameStatus.COMPLETED));
-            userGameRepository.save(new UserGame(testUser, b, GameStatus.PLAYING));
-            userGameRepository.save(new UserGame(testUser, c, GameStatus.PLAYING));
+            userGameRepository.save(new UserGame(testUser, a, PlayStatus.COMPLETED));
+            userGameRepository.save(new UserGame(testUser, b, PlayStatus.ARE_PLAYING));
+            userGameRepository.save(new UserGame(testUser, c, PlayStatus.ARE_PLAYING));
 
-            userGameRepository.save(new UserGame(otherUser, a, GameStatus.COMPLETED));
-            userGameRepository.save(new UserGame(otherUser, b, GameStatus.DROPPED));
-            userGameRepository.save(new UserGame(otherUser, d, GameStatus.PLAYING));
+            userGameRepository.save(new UserGame(otherUser, a, PlayStatus.COMPLETED));
+            userGameRepository.save(new UserGame(otherUser, b, PlayStatus.ABANDONED));
+            userGameRepository.save(new UserGame(otherUser, d, PlayStatus.ARE_PLAYING));
 
             rateRepository.save(new Rate(testUser, a, 10));
             rateRepository.save(new Rate(otherUser, a, 8));
@@ -444,8 +444,8 @@ class ProfileIntegrationTest {
                     .andExpect(jsonPath("$.commonGames.content[0].targetRating").value(4.0))
                     .andExpect(jsonPath("$.commonGames.content[0].ratingDiff").value(1.0))
                     .andExpect(jsonPath("$.commonGames.content[1].title").value("Game B"))
-                    .andExpect(jsonPath("$.commonGames.content[1].viewerStatus").value("PLAYING"))
-                    .andExpect(jsonPath("$.commonGames.content[1].targetStatus").value("DROPPED"))
+                    .andExpect(jsonPath("$.commonGames.content[1].viewerStatus").value("ARE_PLAYING"))
+                    .andExpect(jsonPath("$.commonGames.content[1].targetStatus").value("ABANDONED"))
                     .andExpect(jsonPath("$.commonGames.content[1].targetRating").doesNotExist())
                     .andExpect(jsonPath("$.commonGames.content[1].ratingDiff").doesNotExist());
         }

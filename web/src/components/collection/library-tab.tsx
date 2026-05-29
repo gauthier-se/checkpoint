@@ -7,11 +7,13 @@ import {
 import { Library, Pencil } from 'lucide-react'
 import { useState } from 'react'
 import type { CollectionTab } from '@/types/collection'
-import type {
-  GameStatus,
-  LibraryResponse,
-  UserGameResponse,
-} from '@/types/library'
+import type { PlayStatus } from '@/types/interaction'
+import type { LibraryResponse, UserGameResponse } from '@/types/library'
+import {
+  PLAY_STATUS_COLORS,
+  PLAY_STATUS_LABELS,
+  PLAY_STATUS_ORDER,
+} from '@/lib/play-status'
 import { CollectionGameCard } from '@/components/collection/collection-game-card'
 import { EmptyState } from '@/components/collection/empty-state'
 import { NotesDialog } from '@/components/collection/notes-dialog'
@@ -53,7 +55,7 @@ export const LIBRARY_SORT_LABELS: Record<LibrarySort, string> = {
 
 export function libraryQuery(
   page: number,
-  status?: GameStatus,
+  status?: PlayStatus,
   sort: LibrarySort = 'addedAt',
 ) {
   return queryOptions({
@@ -72,23 +74,20 @@ export function libraryQuery(
   })
 }
 
-const STATUS_LABELS: Record<GameStatus, string> = {
-  PLAYING: 'Playing',
-  COMPLETED: 'Completed',
-  DROPPED: 'Dropped',
-}
-
-const STATUS_COLORS: Record<GameStatus, string> = {
-  PLAYING: 'bg-blue-500/15 text-blue-400 border-blue-500/20',
-  COMPLETED: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20',
-  DROPPED: 'bg-red-500/15 text-red-400 border-red-500/20',
-}
-
 interface LibraryTabProps {
   page: number
-  status?: GameStatus
+  status?: PlayStatus
   sort: LibrarySort
-  tabKey: Extract<CollectionTab, 'games' | 'playing' | 'completed' | 'dropped'>
+  tabKey: Extract<
+    CollectionTab,
+    | 'games'
+    | 'playing'
+    | 'played'
+    | 'completed'
+    | 'retired'
+    | 'shelved'
+    | 'abandoned'
+  >
   onSortChange: (sort: LibrarySort) => void
 }
 
@@ -112,7 +111,7 @@ export function LibraryTab({
       notes,
     }: {
       gameId: string
-      status: GameStatus
+      status: PlayStatus
       notes: string | null
     }) => {
       await apiFetch(`/api/me/library/${gameId}`, {
@@ -189,7 +188,7 @@ export function LibraryTab({
           title="No games found"
           description={
             status
-              ? `No games with status "${STATUS_LABELS[status]}".`
+              ? `No games with status "${PLAY_STATUS_LABELS[status]}".`
               : 'Your library is empty. Browse games to start building your collection!'
           }
           actionLabel={!status ? 'Browse Games' : undefined}
@@ -210,9 +209,9 @@ export function LibraryTab({
                 userRating={game.userRating}
               >
                 <Badge
-                  className={`${STATUS_COLORS[game.status]} mt-1 text-[11px]`}
+                  className={`${PLAY_STATUS_COLORS[game.status]} mt-1 text-[11px]`}
                 >
-                  {STATUS_LABELS[game.status]}
+                  {PLAY_STATUS_LABELS[game.status]}
                 </Badge>
                 <div className="mt-auto flex flex-wrap gap-1 pt-2">
                   <DropdownMenu>
@@ -227,9 +226,8 @@ export function LibraryTab({
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
-                      {(['PLAYING', 'COMPLETED', 'DROPPED'] as const)
-                        .filter((s) => s !== game.status)
-                        .map((s) => (
+                      {PLAY_STATUS_ORDER.filter((s) => s !== game.status).map(
+                        (s) => (
                           <DropdownMenuItem
                             key={s}
                             onClick={() =>
@@ -240,9 +238,10 @@ export function LibraryTab({
                               })
                             }
                           >
-                            {STATUS_LABELS[s]}
+                            {PLAY_STATUS_LABELS[s]}
                           </DropdownMenuItem>
-                        ))}
+                        ),
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                   <Button

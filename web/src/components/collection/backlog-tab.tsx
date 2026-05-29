@@ -67,10 +67,10 @@ export function BacklogTab({ page }: BacklogTabProps) {
 
   const moveToLibraryMutation = useMutation({
     mutationFn: async (videoGameId: string) => {
-      // Add to library with PLAYING status
+      // Add to library with ARE_PLAYING status
       await apiFetch('/api/me/library', {
         method: 'POST',
-        body: JSON.stringify({ videoGameId, status: 'PLAYING' }),
+        body: JSON.stringify({ videoGameId, status: 'ARE_PLAYING' }),
         headers: { 'Content-Type': 'application/json' },
       })
       // Remove from backlog

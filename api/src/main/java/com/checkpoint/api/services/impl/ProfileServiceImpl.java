@@ -31,7 +31,7 @@ import com.checkpoint.api.entities.Backlog;
 import com.checkpoint.api.entities.User;
 import com.checkpoint.api.entities.UserGame;
 import com.checkpoint.api.entities.UserGamePlay;
-import com.checkpoint.api.enums.GameStatus;
+import com.checkpoint.api.enums.PlayStatus;
 import com.checkpoint.api.exceptions.ProfilePrivateException;
 import com.checkpoint.api.exceptions.PseudoAlreadyExistsException;
 import com.checkpoint.api.exceptions.UserNotFoundException;
@@ -248,7 +248,7 @@ public class ProfileServiceImpl implements ProfileService {
      * {@inheritDoc}
      */
     @Override
-    public Page<UserGameResponseDto> getUserLibrary(String username, String viewerEmail, GameStatus status, Pageable pageable) {
+    public Page<UserGameResponseDto> getUserLibrary(String username, String viewerEmail, PlayStatus status, Pageable pageable) {
         log.info("Fetching library for user: {} - status: {}", username, status);
 
         User user = userRepository.findByPseudo(username)

@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useSuspenseQuery } from '@tanstack/react-query'
-import type { GameStatus } from '@/types/library'
+import type { PlayStatus } from '@/types/interaction'
 import type { ProfileGamesTabKey } from '@/components/profile/profile-tab-bar'
 import type { LibrarySort } from '@/components/collection/library-tab'
 import { LibraryTab, libraryQuery } from '@/components/collection/library-tab'
@@ -14,8 +14,11 @@ import {
 const VALID_TABS: Array<ProfileGamesTabKey> = [
   'games',
   'playing',
+  'played',
   'completed',
-  'dropped',
+  'retired',
+  'shelved',
+  'abandoned',
 ]
 
 const VALID_SORTS: Array<LibrarySort> = [
@@ -25,11 +28,14 @@ const VALID_SORTS: Array<LibrarySort> = [
   'title',
 ]
 
-const STATUS_FOR_TAB: Record<ProfileGamesTabKey, GameStatus | undefined> = {
+const STATUS_FOR_TAB: Record<ProfileGamesTabKey, PlayStatus | undefined> = {
   games: undefined,
-  playing: 'PLAYING',
+  playing: 'ARE_PLAYING',
+  played: 'PLAYED',
   completed: 'COMPLETED',
-  dropped: 'DROPPED',
+  retired: 'RETIRED',
+  shelved: 'SHELVED',
+  abandoned: 'ABANDONED',
 }
 
 type ProfileGamesSearch = {

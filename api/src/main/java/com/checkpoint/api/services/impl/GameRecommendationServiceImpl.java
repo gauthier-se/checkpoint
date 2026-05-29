@@ -24,7 +24,7 @@ import com.checkpoint.api.entities.Rate;
 import com.checkpoint.api.entities.User;
 import com.checkpoint.api.entities.UserGame;
 import com.checkpoint.api.entities.VideoGame;
-import com.checkpoint.api.enums.GameStatus;
+import com.checkpoint.api.enums.PlayStatus;
 import com.checkpoint.api.repositories.LikeRepository;
 import com.checkpoint.api.repositories.RateRepository;
 import com.checkpoint.api.repositories.UserGameRepository;
@@ -237,11 +237,11 @@ public class GameRecommendationServiceImpl implements GameRecommendationService 
         return 0.0;
     }
 
-    private static double statusWeight(GameStatus status) {
-        if (status == GameStatus.COMPLETED) {
+    private static double statusWeight(PlayStatus status) {
+        if (status == PlayStatus.COMPLETED) {
             return STATUS_COMPLETED_WEIGHT;
         }
-        if (status == GameStatus.PLAYING) {
+        if (status == PlayStatus.ARE_PLAYING) {
             return STATUS_PLAYING_WEIGHT;
         }
         return 0.0;

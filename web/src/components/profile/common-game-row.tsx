@@ -1,21 +1,12 @@
 import { Link } from '@tanstack/react-router'
 import { Gamepad2, Star } from 'lucide-react'
 import type { CommonGameEntry } from '@/queries/profile'
-import type { GameStatus } from '@/types/library'
 import { Badge } from '@/components/ui/badge'
+import {
+  PLAY_STATUS_COLORS as STATUS_COLORS,
+  PLAY_STATUS_LABELS as STATUS_LABELS,
+} from '@/lib/play-status'
 import { cn } from '@/lib/utils'
-
-const STATUS_LABELS: Record<GameStatus, string> = {
-  PLAYING: 'Playing',
-  COMPLETED: 'Completed',
-  DROPPED: 'Dropped',
-}
-
-const STATUS_COLORS: Record<GameStatus, string> = {
-  PLAYING: 'bg-blue-500/15 text-blue-400 border-blue-500/20',
-  COMPLETED: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20',
-  DROPPED: 'bg-red-500/15 text-red-400 border-red-500/20',
-}
 
 /** Rating difference (5-star scale) at or above which a disagreement is highlighted. */
 const DISAGREEMENT_THRESHOLD = 2

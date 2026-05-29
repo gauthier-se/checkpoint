@@ -1,6 +1,6 @@
 package com.checkpoint.api.dto.collection;
 
-import com.checkpoint.api.enums.GameStatus;
+import com.checkpoint.api.enums.PlayStatus;
 import com.checkpoint.api.enums.Priority;
 
 /**
@@ -25,7 +25,7 @@ public record GameInteractionStatusDto(
         boolean inBacklog,
         Priority backlogPriority,
         boolean inLibrary,
-        GameStatus libraryStatus,
+        PlayStatus libraryStatus,
         String libraryNotes,
         int playCount,
         Integer userRating,

@@ -14,7 +14,7 @@ import com.checkpoint.api.dto.collection.UserGameResponseDto;
 import com.checkpoint.api.entities.User;
 import com.checkpoint.api.entities.UserGame;
 import com.checkpoint.api.entities.VideoGame;
-import com.checkpoint.api.enums.GameStatus;
+import com.checkpoint.api.enums.PlayStatus;
 import com.checkpoint.api.mapper.impl.UserGameMapperImpl;
 
 /**
@@ -40,7 +40,7 @@ class UserGameMapperImplTest {
         videoGame.setId(UUID.randomUUID());
         videoGame.setCoverUrl("elden-ring-cover.jpg");
 
-        UserGame userGame = new UserGame(user, videoGame, GameStatus.PLAYING);
+        UserGame userGame = new UserGame(user, videoGame, PlayStatus.ARE_PLAYING);
         userGame.setId(UUID.randomUUID());
         userGame.setCreatedAt(LocalDateTime.of(2025, 6, 1, 10, 0));
         userGame.setUpdatedAt(LocalDateTime.of(2025, 6, 15, 14, 30));
@@ -55,7 +55,7 @@ class UserGameMapperImplTest {
         assertThat(result.title()).isEqualTo("Elden Ring");
         assertThat(result.coverUrl()).isEqualTo("elden-ring-cover.jpg");
         assertThat(result.releaseDate()).isEqualTo(LocalDate.of(2022, 2, 25));
-        assertThat(result.status()).isEqualTo(GameStatus.PLAYING);
+        assertThat(result.status()).isEqualTo(PlayStatus.ARE_PLAYING);
         assertThat(result.addedAt()).isEqualTo(LocalDateTime.of(2025, 6, 1, 10, 0));
         assertThat(result.updatedAt()).isEqualTo(LocalDateTime.of(2025, 6, 15, 14, 30));
         assertThat(result.notes()).isEqualTo("Defeated Margit on third try");
@@ -71,7 +71,7 @@ class UserGameMapperImplTest {
         VideoGame videoGame = new VideoGame("Unknown Game", null, null);
         videoGame.setId(UUID.randomUUID());
 
-        UserGame userGame = new UserGame(user, videoGame, GameStatus.PLAYING);
+        UserGame userGame = new UserGame(user, videoGame, PlayStatus.ARE_PLAYING);
         userGame.setId(UUID.randomUUID());
         userGame.setCreatedAt(LocalDateTime.now());
         userGame.setUpdatedAt(LocalDateTime.now());
@@ -83,7 +83,7 @@ class UserGameMapperImplTest {
         assertThat(result.title()).isEqualTo("Unknown Game");
         assertThat(result.coverUrl()).isNull();
         assertThat(result.releaseDate()).isNull();
-        assertThat(result.status()).isEqualTo(GameStatus.PLAYING);
+        assertThat(result.status()).isEqualTo(PlayStatus.ARE_PLAYING);
         assertThat(result.notes()).isNull();
     }
 }

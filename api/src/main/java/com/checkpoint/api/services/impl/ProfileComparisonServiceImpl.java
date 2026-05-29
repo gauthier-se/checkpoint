@@ -24,7 +24,7 @@ import com.checkpoint.api.entities.Rate;
 import com.checkpoint.api.entities.User;
 import com.checkpoint.api.entities.UserGame;
 import com.checkpoint.api.entities.VideoGame;
-import com.checkpoint.api.enums.GameStatus;
+import com.checkpoint.api.enums.PlayStatus;
 import com.checkpoint.api.exceptions.ProfilePrivateException;
 import com.checkpoint.api.exceptions.UserNotFoundException;
 import com.checkpoint.api.repositories.RateRepository;
@@ -132,7 +132,7 @@ public class ProfileComparisonServiceImpl implements ProfileComparisonService {
         }
 
         List<UserGame> viewerGames = userGameRepository.findByUserIdAndVideoGameIdIn(viewerId, commonIds);
-        Map<UUID, GameStatus> targetStatusByGame = userGameRepository
+        Map<UUID, PlayStatus> targetStatusByGame = userGameRepository
                 .findByUserIdAndVideoGameIdIn(targetId, commonIds).stream()
                 .collect(Collectors.toMap(ug -> ug.getVideoGame().getId(), UserGame::getStatus));
 

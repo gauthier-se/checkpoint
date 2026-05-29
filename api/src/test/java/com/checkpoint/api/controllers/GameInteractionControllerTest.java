@@ -19,7 +19,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.checkpoint.api.dto.collection.GameInteractionStatusDto;
-import com.checkpoint.api.enums.GameStatus;
+import com.checkpoint.api.enums.PlayStatus;
 import com.checkpoint.api.security.ApiAuthenticationEntryPoint;
 import com.checkpoint.api.security.JwtAuthenticationFilter;
 import com.checkpoint.api.services.GameInteractionService;
@@ -52,7 +52,7 @@ class GameInteractionControllerTest {
         UUID videoGameId = UUID.randomUUID();
 
         GameInteractionStatusDto response = new GameInteractionStatusDto(
-                true, null, false, null, true, GameStatus.COMPLETED, "My private notes", 1, 4, true, 4, true
+                true, null, false, null, true, PlayStatus.COMPLETED, "My private notes", 1, 4, true, 4, true
         );
 
         when(gameInteractionService.getGameInteractionStatus(eq("user@example.com"), eq(videoGameId)))

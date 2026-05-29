@@ -36,7 +36,7 @@ export function GameCardHoverActions({
 
   if (!user) return null
 
-  const isPlaying = libraryStatus === 'PLAYING'
+  const isPlaying = libraryStatus === 'ARE_PLAYING'
   const isCompleted = libraryStatus === 'COMPLETED'
 
   const stop = (e: React.MouseEvent) => {
@@ -129,7 +129,7 @@ export function GameCardHoverActions({
             aria-pressed={isPlaying}
             onClick={(e) => {
               stop(e)
-              toggleLibraryStatus('PLAYING')
+              toggleLibraryStatus('ARE_PLAYING')
             }}
           >
             <Play className={cn('size-3.5', isPlaying && 'fill-current')} />

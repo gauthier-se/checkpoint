@@ -36,7 +36,7 @@ import com.checkpoint.api.entities.Rate;
 import com.checkpoint.api.entities.User;
 import com.checkpoint.api.entities.UserGame;
 import com.checkpoint.api.entities.VideoGame;
-import com.checkpoint.api.enums.GameStatus;
+import com.checkpoint.api.enums.PlayStatus;
 import com.checkpoint.api.repositories.LikeRepository;
 import com.checkpoint.api.repositories.RateRepository;
 import com.checkpoint.api.repositories.UserGameRepository;
@@ -144,7 +144,7 @@ class GameRecommendationServiceImplTest {
         @DisplayName("RPGs surface for a user who completed RPGs")
         void completedRpgsSurfaceRpgCandidates() {
             VideoGame likedRpg = newGame("Liked RPG", List.of(rpgGenre), List.of(pcPlatform), List.of(studioA));
-            UserGame ug = new UserGame(user, likedRpg, GameStatus.COMPLETED);
+            UserGame ug = new UserGame(user, likedRpg, PlayStatus.COMPLETED);
             when(rateRepository.findAllByUserId(userId)).thenReturn(List.of());
             when(userGameRepository.findAllByUserId(userId)).thenReturn(List.of(ug));
             when(wishRepository.findVideoGameIdsByUserId(userId)).thenReturn(List.of());
@@ -207,7 +207,7 @@ class GameRecommendationServiceImplTest {
         @DisplayName("empty candidate pool falls back to trending")
         void emptyCandidatePoolFallsBackToTrending() {
             VideoGame liked = newGame("Liked", List.of(rpgGenre), List.of(), List.of(studioA));
-            UserGame ug = new UserGame(user, liked, GameStatus.COMPLETED);
+            UserGame ug = new UserGame(user, liked, PlayStatus.COMPLETED);
             when(rateRepository.findAllByUserId(userId)).thenReturn(List.of());
             when(userGameRepository.findAllByUserId(userId)).thenReturn(List.of(ug));
             when(wishRepository.findVideoGameIdsByUserId(userId)).thenReturn(List.of());

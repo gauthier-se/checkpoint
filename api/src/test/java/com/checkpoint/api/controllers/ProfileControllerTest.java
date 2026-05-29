@@ -40,7 +40,6 @@ import com.checkpoint.api.dto.profile.CommonGameEntryDto;
 import com.checkpoint.api.dto.profile.ProfileComparisonDto;
 import com.checkpoint.api.dto.profile.RecentPlayDto;
 import com.checkpoint.api.dto.profile.UserProfileDto;
-import com.checkpoint.api.enums.GameStatus;
 import com.checkpoint.api.enums.PlayStatus;
 import com.checkpoint.api.enums.Priority;
 import com.checkpoint.api.exceptions.ProfilePrivateException;
@@ -296,7 +295,7 @@ class ProfileControllerTest {
             UserGameResponseDto game = new UserGameResponseDto(
                     UUID.randomUUID(), UUID.randomUUID(),
                     "Celeste", "https://example.com/celeste.jpg",
-                    LocalDate.of(2018, 1, 25), GameStatus.COMPLETED,
+                    LocalDate.of(2018, 1, 25), PlayStatus.COMPLETED,
                     LocalDateTime.now(), LocalDateTime.now(), null, 5.0
             );
             Page<UserGameResponseDto> page = new PageImpl<>(List.of(game));
@@ -317,7 +316,7 @@ class ProfileControllerTest {
         void getUserLibrary_shouldPassStatusFilter() throws Exception {
             // Given
             Page<UserGameResponseDto> emptyPage = new PageImpl<>(List.of());
-            when(profileService.getUserLibrary(eq("testuser"), isNull(), eq(GameStatus.COMPLETED), any(Pageable.class)))
+            when(profileService.getUserLibrary(eq("testuser"), isNull(), eq(PlayStatus.COMPLETED), any(Pageable.class)))
                     .thenReturn(emptyPage);
 
             // When / Then
@@ -464,7 +463,7 @@ class ProfileControllerTest {
             UUID gameId = UUID.randomUUID();
             CommonGameEntryDto entry = new CommonGameEntryDto(
                     gameId, "Elden Ring", "/covers/elden.png", LocalDate.of(2022, 2, 25),
-                    GameStatus.COMPLETED, GameStatus.PLAYING, 5.0, 4.0, 1.0);
+                    PlayStatus.COMPLETED, PlayStatus.ARE_PLAYING, 5.0, 4.0, 1.0);
             Page<CommonGameEntryDto> page = new PageImpl<>(
                     List.of(entry), PageRequest.of(0, 20), 1);
             ProfileComparisonDto comparison = new ProfileComparisonDto(
@@ -483,7 +482,7 @@ class ProfileControllerTest {
                     .andExpect(jsonPath("$.targetLibrarySize").value(4))
                     .andExpect(jsonPath("$.commonGames.content[0].title").value("Elden Ring"))
                     .andExpect(jsonPath("$.commonGames.content[0].viewerStatus").value("COMPLETED"))
-                    .andExpect(jsonPath("$.commonGames.content[0].targetStatus").value("PLAYING"))
+                    .andExpect(jsonPath("$.commonGames.content[0].targetStatus").value("ARE_PLAYING"))
                     .andExpect(jsonPath("$.commonGames.content[0].viewerRating").value(5.0))
                     .andExpect(jsonPath("$.commonGames.content[0].targetRating").value(4.0))
                     .andExpect(jsonPath("$.commonGames.content[0].ratingDiff").value(1.0))

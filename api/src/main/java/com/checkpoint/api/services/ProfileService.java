@@ -9,7 +9,7 @@ import com.checkpoint.api.dto.collection.BacklogResponseDto;
 import com.checkpoint.api.dto.collection.LikedGameResponseDto;
 import com.checkpoint.api.dto.collection.UserGameResponseDto;
 import com.checkpoint.api.dto.collection.WishResponseDto;
-import com.checkpoint.api.enums.GameStatus;
+import com.checkpoint.api.enums.PlayStatus;
 import com.checkpoint.api.dto.list.GameListCardDto;
 import com.checkpoint.api.dto.playlog.GamePlayLogResponseDto;
 import com.checkpoint.api.dto.profile.ProfileUpdatedDto;
@@ -80,7 +80,7 @@ public interface ProfileService {
      * @param pageable    pagination parameters
      * @return a page of user-game DTOs
      */
-    Page<UserGameResponseDto> getUserLibrary(String username, String viewerEmail, GameStatus status, Pageable pageable);
+    Page<UserGameResponseDto> getUserLibrary(String username, String viewerEmail, PlayStatus status, Pageable pageable);
 
     /**
      * Retrieves a paginated list of games in the given user's backlog.

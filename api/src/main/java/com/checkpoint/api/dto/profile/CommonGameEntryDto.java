@@ -3,7 +3,7 @@ package com.checkpoint.api.dto.profile;
 import java.time.LocalDate;
 import java.util.UUID;
 
-import com.checkpoint.api.enums.GameStatus;
+import com.checkpoint.api.enums.PlayStatus;
 
 /**
  * DTO representing a single game that two users have in common, with each user's
@@ -28,8 +28,8 @@ public record CommonGameEntryDto(
         String title,
         String coverUrl,
         LocalDate releaseDate,
-        GameStatus viewerStatus,
-        GameStatus targetStatus,
+        PlayStatus viewerStatus,
+        PlayStatus targetStatus,
         Double viewerRating,
         Double targetRating,
         Double ratingDiff

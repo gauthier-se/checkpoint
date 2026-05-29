@@ -15,7 +15,7 @@ import com.checkpoint.api.entities.User;
 import com.checkpoint.api.entities.UserGame;
 import com.checkpoint.api.entities.UserGamePlay;
 import com.checkpoint.api.entities.Wish;
-import com.checkpoint.api.enums.GameStatus;
+import com.checkpoint.api.enums.PlayStatus;
 import com.checkpoint.api.enums.Priority;
 import com.checkpoint.api.repositories.BacklogRepository;
 import com.checkpoint.api.repositories.LikeRepository;
@@ -78,7 +78,7 @@ public class GameInteractionServiceImpl implements GameInteractionService {
 
         Optional<UserGame> userGameOpt = userGameRepository.findByUserIdAndVideoGameId(user.getId(), videoGameId);
         boolean inLibrary = userGameOpt.isPresent();
-        GameStatus libraryStatus = userGameOpt.map(UserGame::getStatus).orElse(null);
+        PlayStatus libraryStatus = userGameOpt.map(UserGame::getStatus).orElse(null);
         String libraryNotes = userGameOpt.map(UserGame::getNotes).orElse(null);
 
         int playCount = (int) userGamePlayRepository.countByUserIdAndVideoGameId(user.getId(), videoGameId);

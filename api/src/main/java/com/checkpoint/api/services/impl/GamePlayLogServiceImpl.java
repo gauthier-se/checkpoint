@@ -23,7 +23,6 @@ import com.checkpoint.api.entities.User;
 import com.checkpoint.api.entities.UserGame;
 import com.checkpoint.api.entities.UserGamePlay;
 import com.checkpoint.api.entities.VideoGame;
-import com.checkpoint.api.enums.GameStatus;
 import com.checkpoint.api.enums.PlayStatus;
 import com.checkpoint.api.events.GameFinishedEvent;
 import com.checkpoint.api.events.PlayLogCreatedEvent;
@@ -97,8 +96,8 @@ public class GamePlayLogServiceImpl implements GamePlayLogService {
      * is upserted so that it always reflects the most recent play log rating.</p>
      *
      * <p>Logging a play also reconciles the user's collections: the game is removed
-     * from the wishlist and backlog if present, and upserted into the library with a
-     * {@link GameStatus} derived from the play's {@link PlayStatus}.</p>
+     * from the wishlist and backlog if present, and upserted into the library with the
+     * play's {@link PlayStatus}.</p>
      */
     @Override
     public GamePlayLogResponseDto logPlay(String userEmail, GamePlayLogRequestDto request) {
@@ -329,13 +328,13 @@ public class GamePlayLogServiceImpl implements GamePlayLogService {
      *
      * @param user       the authenticated user
      * @param videoGame  the played game
-     * @param playStatus the play's status (may be {@code null}; defaults to {@link GameStatus#PLAYING})
+     * @param playStatus the play's status (may be {@code null}; defaults to {@link PlayStatus#ARE_PLAYING})
      */
     private void reconcileUserCollections(User user, VideoGame videoGame, PlayStatus playStatus) {
         wishRepository.deleteByUserIdAndVideoGameId(user.getId(), videoGame.getId());
         backlogRepository.deleteByUserIdAndVideoGameId(user.getId(), videoGame.getId());
 
-        GameStatus newStatus = mapPlayStatusToGameStatus(playStatus);
+        PlayStatus newStatus = playStatus != null ? playStatus : PlayStatus.ARE_PLAYING;
 
         userGameRepository.findByUserIdAndVideoGameId(user.getId(), videoGame.getId())
                 .ifPresentOrElse(
@@ -345,21 +344,6 @@ public class GamePlayLogServiceImpl implements GamePlayLogService {
                         },
                         () -> userGameRepository.save(new UserGame(user, videoGame, newStatus))
                 );
-    }
-
-    /**
-     * Maps a {@link PlayStatus} to the corresponding library {@link GameStatus}.
-     * A {@code null} play status defaults to {@link GameStatus#PLAYING}.
-     */
-    private GameStatus mapPlayStatusToGameStatus(PlayStatus playStatus) {
-        if (playStatus == null) {
-            return GameStatus.PLAYING;
-        }
-        return switch (playStatus) {
-            case ARE_PLAYING, PLAYED, SHELVED -> GameStatus.PLAYING;
-            case COMPLETED -> GameStatus.COMPLETED;
-            case RETIRED, ABANDONED -> GameStatus.DROPPED;
-        };
     }
 
     /**

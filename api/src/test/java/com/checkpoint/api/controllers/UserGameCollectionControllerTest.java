@@ -33,7 +33,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import com.checkpoint.api.dto.collection.UserGameRequestDto;
 import com.checkpoint.api.dto.collection.UserGameResponseDto;
-import com.checkpoint.api.enums.GameStatus;
+import com.checkpoint.api.enums.PlayStatus;
 import com.checkpoint.api.exceptions.GameAlreadyInLibraryException;
 import com.checkpoint.api.exceptions.GameNotFoundException;
 import com.checkpoint.api.exceptions.GameNotInLibraryException;
@@ -75,10 +75,10 @@ class UserGameCollectionControllerTest {
             // Given
             UUID videoGameId = UUID.randomUUID();
             UUID userGameId = UUID.randomUUID();
-            UserGameRequestDto request = new UserGameRequestDto(videoGameId, GameStatus.PLAYING, null);
+            UserGameRequestDto request = new UserGameRequestDto(videoGameId, PlayStatus.ARE_PLAYING, null);
             UserGameResponseDto response = new UserGameResponseDto(
                     userGameId, videoGameId, "The Witcher 3", "cover.jpg",
-                    LocalDate.of(2015, 5, 19), GameStatus.PLAYING,
+                    LocalDate.of(2015, 5, 19), PlayStatus.ARE_PLAYING,
                     LocalDateTime.now(), LocalDateTime.now(), null, null);
 
             when(userGameCollectionService.addGameToLibrary(eq("user@example.com"), any(UserGameRequestDto.class)))
@@ -92,7 +92,7 @@ class UserGameCollectionControllerTest {
                     .andExpect(jsonPath("$.id").value(userGameId.toString()))
                     .andExpect(jsonPath("$.videoGameId").value(videoGameId.toString()))
                     .andExpect(jsonPath("$.title").value("The Witcher 3"))
-                    .andExpect(jsonPath("$.status").value("PLAYING"))
+                    .andExpect(jsonPath("$.status").value("ARE_PLAYING"))
                     .andExpect(jsonPath("$.notes").doesNotExist());
         }
 
@@ -103,10 +103,10 @@ class UserGameCollectionControllerTest {
             // Given
             UUID videoGameId = UUID.randomUUID();
             UUID userGameId = UUID.randomUUID();
-            UserGameRequestDto request = new UserGameRequestDto(videoGameId, GameStatus.PLAYING, "Strategy note");
+            UserGameRequestDto request = new UserGameRequestDto(videoGameId, PlayStatus.ARE_PLAYING, "Strategy note");
             UserGameResponseDto response = new UserGameResponseDto(
                     userGameId, videoGameId, "The Witcher 3", "cover.jpg",
-                    LocalDate.of(2015, 5, 19), GameStatus.PLAYING,
+                    LocalDate.of(2015, 5, 19), PlayStatus.ARE_PLAYING,
                     LocalDateTime.now(), LocalDateTime.now(), "Strategy note", null);
 
             when(userGameCollectionService.addGameToLibrary(eq("user@example.com"), any(UserGameRequestDto.class)))
@@ -126,7 +126,7 @@ class UserGameCollectionControllerTest {
         void addGame_shouldReturn409WhenAlreadyInLibrary() throws Exception {
             // Given
             UUID videoGameId = UUID.randomUUID();
-            UserGameRequestDto request = new UserGameRequestDto(videoGameId, GameStatus.PLAYING, null);
+            UserGameRequestDto request = new UserGameRequestDto(videoGameId, PlayStatus.ARE_PLAYING, null);
 
             when(userGameCollectionService.addGameToLibrary(eq("user@example.com"), any(UserGameRequestDto.class)))
                     .thenThrow(new GameAlreadyInLibraryException(videoGameId));
@@ -146,7 +146,7 @@ class UserGameCollectionControllerTest {
         void addGame_shouldReturn404WhenGameNotFound() throws Exception {
             // Given
             UUID videoGameId = UUID.randomUUID();
-            UserGameRequestDto request = new UserGameRequestDto(videoGameId, GameStatus.PLAYING, null);
+            UserGameRequestDto request = new UserGameRequestDto(videoGameId, PlayStatus.ARE_PLAYING, null);
 
             when(userGameCollectionService.addGameToLibrary(eq("user@example.com"), any(UserGameRequestDto.class)))
                     .thenThrow(new GameNotFoundException(videoGameId));
@@ -185,10 +185,10 @@ class UserGameCollectionControllerTest {
             // Given
             UUID videoGameId = UUID.randomUUID();
             UUID userGameId = UUID.randomUUID();
-            UserGameRequestDto request = new UserGameRequestDto(videoGameId, GameStatus.COMPLETED, "Finished it!");
+            UserGameRequestDto request = new UserGameRequestDto(videoGameId, PlayStatus.COMPLETED, "Finished it!");
             UserGameResponseDto response = new UserGameResponseDto(
                     userGameId, videoGameId, "The Witcher 3", "cover.jpg",
-                    LocalDate.of(2015, 5, 19), GameStatus.COMPLETED,
+                    LocalDate.of(2015, 5, 19), PlayStatus.COMPLETED,
                     LocalDateTime.now(), LocalDateTime.now(), "Finished it!", null);
 
             when(userGameCollectionService.updateGameStatus(eq("user@example.com"), eq(videoGameId), any(UserGameRequestDto.class)))
@@ -210,10 +210,10 @@ class UserGameCollectionControllerTest {
             // Given
             UUID videoGameId = UUID.randomUUID();
             UUID userGameId = UUID.randomUUID();
-            UserGameRequestDto request = new UserGameRequestDto(videoGameId, GameStatus.PLAYING, null);
+            UserGameRequestDto request = new UserGameRequestDto(videoGameId, PlayStatus.ARE_PLAYING, null);
             UserGameResponseDto response = new UserGameResponseDto(
                     userGameId, videoGameId, "The Witcher 3", "cover.jpg",
-                    LocalDate.of(2015, 5, 19), GameStatus.PLAYING,
+                    LocalDate.of(2015, 5, 19), PlayStatus.ARE_PLAYING,
                     LocalDateTime.now(), LocalDateTime.now(), null, null);
 
             when(userGameCollectionService.updateGameStatus(eq("user@example.com"), eq(videoGameId), any(UserGameRequestDto.class)))
@@ -234,7 +234,7 @@ class UserGameCollectionControllerTest {
             // Given
             UUID videoGameId = UUID.randomUUID();
             String tooLong = "x".repeat(2001);
-            UserGameRequestDto request = new UserGameRequestDto(videoGameId, GameStatus.PLAYING, tooLong);
+            UserGameRequestDto request = new UserGameRequestDto(videoGameId, PlayStatus.ARE_PLAYING, tooLong);
 
             // When / Then
             mockMvc.perform(put("/api/me/library/{videoGameId}", videoGameId)
@@ -249,7 +249,7 @@ class UserGameCollectionControllerTest {
         void updateStatus_shouldReturn404WhenNotInLibrary() throws Exception {
             // Given
             UUID videoGameId = UUID.randomUUID();
-            UserGameRequestDto request = new UserGameRequestDto(videoGameId, GameStatus.DROPPED, null);
+            UserGameRequestDto request = new UserGameRequestDto(videoGameId, PlayStatus.ABANDONED, null);
 
             when(userGameCollectionService.updateGameStatus(eq("user@example.com"), eq(videoGameId), any(UserGameRequestDto.class)))
                     .thenThrow(new GameNotInLibraryException(videoGameId));
@@ -276,7 +276,7 @@ class UserGameCollectionControllerTest {
             UUID userGameId = UUID.randomUUID();
             List<UserGameResponseDto> items = List.of(
                     new UserGameResponseDto(userGameId, videoGameId, "Elden Ring", "cover.jpg",
-                            LocalDate.of(2022, 2, 25), GameStatus.PLAYING,
+                            LocalDate.of(2022, 2, 25), PlayStatus.ARE_PLAYING,
                             LocalDateTime.now(), LocalDateTime.now(), null, 4.5)
             );
             Page<UserGameResponseDto> page = new PageImpl<>(items);
@@ -289,7 +289,7 @@ class UserGameCollectionControllerTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.content").isArray())
                     .andExpect(jsonPath("$.content[0].title").value("Elden Ring"))
-                    .andExpect(jsonPath("$.content[0].status").value("PLAYING"))
+                    .andExpect(jsonPath("$.content[0].status").value("ARE_PLAYING"))
                     .andExpect(jsonPath("$.content[0].userRating").value(4.5))
                     .andExpect(jsonPath("$.metadata.totalElements").value(1));
         }
@@ -318,11 +318,11 @@ class UserGameCollectionControllerTest {
         void getLibrary_shouldPassStatusFilter() throws Exception {
             // Given
             Page<UserGameResponseDto> emptyPage = new PageImpl<>(List.of());
-            when(userGameCollectionService.getUserLibrary(eq("user@example.com"), eq(GameStatus.PLAYING), any(Pageable.class)))
+            when(userGameCollectionService.getUserLibrary(eq("user@example.com"), eq(PlayStatus.ARE_PLAYING), any(Pageable.class)))
                     .thenReturn(emptyPage);
 
             // When / Then
-            mockMvc.perform(get("/api/me/library").param("status", "PLAYING"))
+            mockMvc.perform(get("/api/me/library").param("status", "ARE_PLAYING"))
                     .andExpect(status().isOk());
         }
 

@@ -23,7 +23,6 @@ import com.checkpoint.api.entities.UserGame;
 import com.checkpoint.api.entities.UserGamePlay;
 import com.checkpoint.api.entities.VideoGame;
 import com.checkpoint.api.entities.Wish;
-import com.checkpoint.api.enums.GameStatus;
 import com.checkpoint.api.enums.PlayStatus;
 import com.checkpoint.api.enums.Priority;
 import com.checkpoint.api.repositories.BacklogRepository;
@@ -84,7 +83,7 @@ class GameInteractionServiceImplTest {
     @DisplayName("should return aggregate status when all interactions exist")
     void shouldReturnStatusWhenAllExist() {
         // Given
-        UserGame userGame = new UserGame(testUser, testGame, GameStatus.PLAYING);
+        UserGame userGame = new UserGame(testUser, testGame, PlayStatus.ARE_PLAYING);
         userGame.setNotes("Currently in act 2");
         Rate rate = new Rate(testUser, testGame, 5);
 
@@ -118,7 +117,7 @@ class GameInteractionServiceImplTest {
         assertThat(result.inBacklog()).isTrue();
         assertThat(result.backlogPriority()).isEqualTo(Priority.MEDIUM);
         assertThat(result.inLibrary()).isTrue();
-        assertThat(result.libraryStatus()).isEqualTo(GameStatus.PLAYING);
+        assertThat(result.libraryStatus()).isEqualTo(PlayStatus.ARE_PLAYING);
         assertThat(result.libraryNotes()).isEqualTo("Currently in act 2");
         assertThat(result.playCount()).isEqualTo(3);
         assertThat(result.userRating()).isEqualTo(5);

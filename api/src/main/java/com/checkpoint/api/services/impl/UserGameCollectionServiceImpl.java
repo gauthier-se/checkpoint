@@ -17,7 +17,7 @@ import com.checkpoint.api.dto.collection.UserGameResponseDto;
 import com.checkpoint.api.entities.User;
 import com.checkpoint.api.entities.UserGame;
 import com.checkpoint.api.entities.VideoGame;
-import com.checkpoint.api.enums.GameStatus;
+import com.checkpoint.api.enums.PlayStatus;
 import com.checkpoint.api.events.GameFinishedEvent;
 import com.checkpoint.api.events.GameRemovedFromLibraryEvent;
 import com.checkpoint.api.events.GameStartedPlayingEvent;
@@ -74,10 +74,10 @@ public class UserGameCollectionServiceImpl implements UserGameCollectionService 
         UserGame saved = userGameRepository.save(userGame);
 
         log.info("Game {} added to library for user {} with status {}", videoGame.getTitle(), userEmail, request.status());
-        if (request.status() == GameStatus.PLAYING) {
+        if (request.status() == PlayStatus.ARE_PLAYING) {
             eventPublisher.publishEvent(new GameStartedPlayingEvent(user.getId(), videoGame.getId()));
         }
-        if (request.status() == GameStatus.COMPLETED) {
+        if (request.status() == PlayStatus.COMPLETED) {
             eventPublisher.publishEvent(new GameFinishedEvent(user.getId()));
         }
         return userGameMapper.toResponseDto(saved);
@@ -92,16 +92,16 @@ public class UserGameCollectionServiceImpl implements UserGameCollectionService 
         UserGame userGame = userGameRepository.findByUserIdAndVideoGameId(user.getId(), videoGameId)
                 .orElseThrow(() -> new GameNotInLibraryException(videoGameId));
 
-        GameStatus previousStatus = userGame.getStatus();
+        PlayStatus previousStatus = userGame.getStatus();
         userGame.setStatus(request.status());
         userGame.setNotes(request.notes());
         UserGame updated = userGameRepository.save(userGame);
 
         log.info("Game {} status updated to {} for user {}", videoGameId, request.status(), userEmail);
-        if (request.status() == GameStatus.PLAYING && previousStatus != GameStatus.PLAYING) {
+        if (request.status() == PlayStatus.ARE_PLAYING && previousStatus != PlayStatus.ARE_PLAYING) {
             eventPublisher.publishEvent(new GameStartedPlayingEvent(user.getId(), videoGameId));
         }
-        if (request.status() == GameStatus.COMPLETED && previousStatus != GameStatus.COMPLETED) {
+        if (request.status() == PlayStatus.COMPLETED && previousStatus != PlayStatus.COMPLETED) {
             eventPublisher.publishEvent(new GameFinishedEvent(user.getId()));
         }
         return userGameMapper.toResponseDto(updated);
@@ -109,7 +109,7 @@ public class UserGameCollectionServiceImpl implements UserGameCollectionService 
 
     @Override
     @Transactional(readOnly = true)
-    public Page<UserGameResponseDto> getUserLibrary(String userEmail, GameStatus status, Pageable pageable) {
+    public Page<UserGameResponseDto> getUserLibrary(String userEmail, PlayStatus status, Pageable pageable) {
         log.debug("Fetching library for user {} - page: {}, size: {}, status: {}, sort: {}",
                 userEmail, pageable.getPageNumber(), pageable.getPageSize(), status, pageable.getSort());
 

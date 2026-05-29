@@ -4,7 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import com.checkpoint.api.enums.GameStatus;
+import com.checkpoint.api.enums.PlayStatus;
 
 /**
  * Response DTO for a game in the user's collection.
@@ -27,7 +27,7 @@ public record UserGameResponseDto(
         String title,
         String coverUrl,
         LocalDate releaseDate,
-        GameStatus status,
+        PlayStatus status,
         LocalDateTime addedAt,
         LocalDateTime updatedAt,
         String notes,

@@ -3,7 +3,7 @@ package com.checkpoint.api.entities;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import com.checkpoint.api.enums.GameStatus;
+import com.checkpoint.api.enums.PlayStatus;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -22,7 +22,7 @@ import jakarta.persistence.UniqueConstraint;
 
 /**
  * Association entity between User and VideoGame for the user's personal game library.
- * A user can add a game to their collection with a specific status (PLAYING, COMPLETED, DROPPED).
+ * A user can add a game to their collection with a specific status (one of {@link PlayStatus}).
  * Each user–game pair is unique.
  */
 @Entity
@@ -37,7 +37,7 @@ public class UserGame {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private GameStatus status;
+    private PlayStatus status;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -71,7 +71,7 @@ public class UserGame {
 
     public UserGame() {}
 
-    public UserGame(User user, VideoGame videoGame, GameStatus status) {
+    public UserGame(User user, VideoGame videoGame, PlayStatus status) {
         this.user = user;
         this.videoGame = videoGame;
         this.status = status;
@@ -85,11 +85,11 @@ public class UserGame {
         this.id = id;
     }
 
-    public GameStatus getStatus() {
+    public PlayStatus getStatus() {
         return status;
     }
 
-    public void setStatus(GameStatus status) {
+    public void setStatus(PlayStatus status) {
         this.status = status;
     }
 

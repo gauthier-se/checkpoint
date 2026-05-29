@@ -1,8 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import type { Priority } from '@/types/collection'
-import type { GameInteractionStatusDto } from '@/types/interaction'
-import type { GameStatus } from '@/types/library'
+import type { GameInteractionStatusDto, PlayStatus } from '@/types/interaction'
+import { PLAY_STATUS_LABELS } from '@/lib/play-status'
 import { useAuth } from '@/hooks/use-auth'
 import {
   gameInteractionStatusQueryOptions,
@@ -135,7 +135,7 @@ export function useWishlistBacklogActions(gameId: string) {
   })
 
   const libraryMutation = useMutation({
-    mutationFn: (newStatus: GameStatus | null) =>
+    mutationFn: (newStatus: PlayStatus | null) =>
       updateLibraryStatus(
         gameId,
         newStatus
@@ -183,7 +183,7 @@ export function useWishlistBacklogActions(gameId: string) {
       if (newStatus === null) {
         toast.success('Removed from library')
       } else {
-        toast.success(`Library status set to ${newStatus}`)
+        toast.success(`Library status set to ${PLAY_STATUS_LABELS[newStatus]}`)
       }
     },
   })
@@ -200,7 +200,7 @@ export function useWishlistBacklogActions(gameId: string) {
       backlogMutation.mutate(priority),
     toggleLike: () => likeMutation.mutate(),
     // Sets the library status, or clears it when the game is already in that status.
-    toggleLibraryStatus: (target: GameStatus) =>
+    toggleLibraryStatus: (target: PlayStatus) =>
       libraryMutation.mutate(
         (status?.libraryStatus ?? null) === target ? null : target,
       ),

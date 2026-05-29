@@ -23,7 +23,7 @@ import com.checkpoint.api.entities.Review;
 import com.checkpoint.api.entities.User;
 import com.checkpoint.api.entities.UserGamePlay;
 import com.checkpoint.api.enums.BadgeCode;
-import com.checkpoint.api.enums.GameStatus;
+import com.checkpoint.api.enums.PlayStatus;
 import com.checkpoint.api.events.BadgeUnlockedEvent;
 import com.checkpoint.api.repositories.BadgeRepository;
 import com.checkpoint.api.repositories.LikeRepository;
@@ -130,7 +130,7 @@ public class BadgeAwardingServiceImpl implements BadgeAwardingService {
 
     @Override
     public void checkGameFinishedBadges(UUID userId) {
-        long count = userGameRepository.countByUserIdAndStatus(userId, GameStatus.COMPLETED);
+        long count = userGameRepository.countByUserIdAndStatus(userId, PlayStatus.COMPLETED);
         if (count >= 1) {
             awardIfEligible(userId, BadgeCode.FIRST_GAME_FINISHED);
         }

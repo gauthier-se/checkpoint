@@ -35,7 +35,6 @@ import com.checkpoint.api.entities.UserGame;
 import com.checkpoint.api.entities.UserGamePlay;
 import com.checkpoint.api.entities.VideoGame;
 import com.checkpoint.api.entities.Wish;
-import com.checkpoint.api.enums.GameStatus;
 import com.checkpoint.api.enums.PlayStatus;
 import com.checkpoint.api.enums.Priority;
 import com.checkpoint.api.exceptions.UserNotFoundException;
@@ -88,7 +87,7 @@ class DataExportServiceImplTest {
     @Test
     @DisplayName("Aggregates every personal data category with resolved game titles")
     void exportForUser_aggregatesAllCategories() {
-        testUser.setUserGames(Set.of(newUserGame(gameZelda, GameStatus.COMPLETED)));
+        testUser.setUserGames(Set.of(newUserGame(gameZelda, PlayStatus.COMPLETED)));
 
         UserGamePlay play = newPlay(gameZelda, platformSwitch, PlayStatus.PLAYED, 1200, 5);
         Tag funTag = newTag("fun");
@@ -136,7 +135,7 @@ class DataExportServiceImplTest {
         assertThat(dto.library()).singleElement()
                 .satisfies(entry1 -> {
                     assertThat(entry1.gameTitle()).isEqualTo("Tears of the Kingdom");
-                    assertThat(entry1.status()).isEqualTo(GameStatus.COMPLETED);
+                    assertThat(entry1.status()).isEqualTo(PlayStatus.COMPLETED);
                 });
 
         assertThat(dto.playLogs()).singleElement()
@@ -233,7 +232,7 @@ class DataExportServiceImplTest {
         return p;
     }
 
-    private UserGame newUserGame(VideoGame game, GameStatus status) {
+    private UserGame newUserGame(VideoGame game, PlayStatus status) {
         UserGame ug = new UserGame(testUser, game, status);
         ug.setId(UUID.randomUUID());
         ug.setCreatedAt(LocalDateTime.now().minusDays(5));

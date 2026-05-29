@@ -2,11 +2,14 @@ import { Link } from '@tanstack/react-router'
 import {
   Archive,
   BookOpen,
+  Bookmark,
   CheckCircle2,
+  Flag,
   Gamepad2,
   Heart,
   List,
   MessageSquare,
+  Pause,
   PlayCircle,
   Tag,
   ThumbsUp,
@@ -22,8 +25,11 @@ export type ProfileTabKey =
   | 'profile'
   | 'games'
   | 'playing'
+  | 'played'
   | 'completed'
-  | 'dropped'
+  | 'retired'
+  | 'shelved'
+  | 'abandoned'
   | 'journal'
   | 'wishlist'
   | 'backlog'
@@ -50,8 +56,11 @@ const TABS: ReadonlyArray<TabConfig> = [
   { value: 'profile', label: 'Profile', icon: User },
   { value: 'games', label: 'Games', icon: Gamepad2 },
   { value: 'playing', label: 'Playing', icon: PlayCircle },
+  { value: 'played', label: 'Played', icon: Flag },
   { value: 'completed', label: 'Completed', icon: CheckCircle2 },
-  { value: 'dropped', label: 'Dropped', icon: XCircle },
+  { value: 'retired', label: 'Retired', icon: Pause },
+  { value: 'shelved', label: 'Shelved', icon: Bookmark },
+  { value: 'abandoned', label: 'Abandoned', icon: XCircle },
   { value: 'journal', label: 'Journal', icon: BookOpen },
   { value: 'wishlist', label: 'Wishlist', icon: Heart },
   { value: 'backlog', label: 'Backlog', icon: Archive },
@@ -80,18 +89,21 @@ const PROFILE_INLINE_TABS = new Set<ProfileTabKey>([
 const GAMES_TABS = new Set<ProfileTabKey>([
   'games',
   'playing',
+  'played',
   'completed',
-  'dropped',
+  'retired',
+  'shelved',
+  'abandoned',
 ])
 
 const tabClass = (active: boolean) =>
   cn(
-    'inline-flex h-9 shrink-0 items-center gap-1.5 rounded-md border border-transparent px-3 text-sm font-medium whitespace-nowrap transition-all',
+    'inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md border border-transparent px-2 text-xs font-medium whitespace-nowrap transition-all',
     'focus-visible:outline-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]',
     active
       ? 'bg-primary text-primary-foreground shadow-sm'
       : 'text-foreground/60 hover:text-foreground',
-    '[&_svg]:size-3.5 [&_svg]:shrink-0',
+    '[&_svg]:size-3 [&_svg]:shrink-0',
   )
 
 /**
@@ -188,4 +200,11 @@ export type ProfileInlineTab =
   | 'following'
 
 /** Status tabs rendered as ?tab= variants on /profile/$username/games. */
-export type ProfileGamesTabKey = 'games' | 'playing' | 'completed' | 'dropped'
+export type ProfileGamesTabKey =
+  | 'games'
+  | 'playing'
+  | 'played'
+  | 'completed'
+  | 'retired'
+  | 'shelved'
+  | 'abandoned'
