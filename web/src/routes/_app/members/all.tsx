@@ -8,6 +8,8 @@ import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
 import { apiFetch } from '@/services/api'
 
+import { seo } from '@/lib/seo'
+
 const PAGE_SIZE = 20
 
 function parseOptionalString(value: unknown): string | undefined {
@@ -23,6 +25,9 @@ function buildBrowseUrl(params: MembersSearchParams): string {
 }
 
 export const Route = createFileRoute('/_app/members/all')({
+  head: () => ({
+    meta: seo({ title: 'All members — Checkpoint' }),
+  }),
   component: RouteComponent,
   validateSearch: (search: Record<string, unknown>): MembersSearchParams => ({
     page: Math.max(1, Math.floor(Number(search.page ?? 1)) || 1),

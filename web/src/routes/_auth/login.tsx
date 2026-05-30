@@ -3,6 +3,8 @@ import { useEffect } from 'react'
 import { toast } from 'sonner'
 import { LoginForm } from '@/components/auth/login-form'
 
+import { seo } from '@/lib/seo'
+
 type LoginSearchParams = {
   redirect?: string
   error?: string
@@ -18,6 +20,9 @@ const OAUTH_ERROR_MESSAGES: Record<string, string> = {
 }
 
 export const Route = createFileRoute('/_auth/login')({
+  head: () => ({
+    meta: seo({ title: 'Sign in — Checkpoint' }),
+  }),
   validateSearch: (search: Record<string, unknown>): LoginSearchParams => ({
     redirect: typeof search.redirect === 'string' ? search.redirect : undefined,
     error: typeof search.error === 'string' ? search.error : undefined,

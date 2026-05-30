@@ -26,6 +26,8 @@ import {
   recentReviewsQueryOptions,
 } from '@/queries/review'
 
+import { seo } from '@/lib/seo'
+
 const DISCOVERY_SIZE = 7
 
 export type GamesSearchParams = {
@@ -43,6 +45,9 @@ function parseOptionalNumber(value: unknown): number | undefined {
 }
 
 export const Route = createFileRoute('/_app/games/')({
+  head: () => ({
+    meta: seo({ title: 'Games — Checkpoint' }),
+  }),
   component: RouteComponent,
   validateSearch: (search: Record<string, unknown>): GamesSearchParams => ({
     page: parseOptionalNumber(search.page),

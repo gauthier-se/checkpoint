@@ -31,6 +31,7 @@ import {
   wishlistQuery,
 } from '@/components/collection/wishlist-tab'
 import { useAuth } from '@/hooks/use-auth'
+import { seo } from '@/lib/seo'
 
 // Search params
 
@@ -56,6 +57,9 @@ type ProfileSearchParams = {
 
 export const Route = createFileRoute('/_app/profile/$username')({
   component: UserProfilePage,
+  head: ({ params }) => ({
+    meta: seo({ title: `${params.username} — Checkpoint` }),
+  }),
   validateSearch: (search: Record<string, unknown>): ProfileSearchParams => {
     const rawTab = String(search.tab ?? 'profile')
     const tab = VALID_INLINE_TABS.includes(rawTab as ProfileInlineTab)

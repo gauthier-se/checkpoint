@@ -1,7 +1,12 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { CheckCircle2, Clock, ListTodo } from 'lucide-react'
 
+import { seo } from '@/lib/seo'
+
 export const Route = createFileRoute('/_app/roadmap')({
+  head: () => ({
+    meta: seo({ title: 'Roadmap — Checkpoint' }),
+  }),
   component: RoadmapPage,
 })
 

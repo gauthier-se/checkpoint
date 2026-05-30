@@ -5,6 +5,7 @@ import { ProfileTabBar } from '@/components/profile/profile-tab-bar'
 import { myListsQueryOptions, userListsQueryOptions } from '@/queries/lists'
 import { userProfileQueryOptions } from '@/queries/profile'
 import { authQueryOptions } from '@/hooks/use-auth'
+import { seo } from '@/lib/seo'
 
 type ProfileListsSearch = {
   page: number
@@ -12,6 +13,9 @@ type ProfileListsSearch = {
 
 export const Route = createFileRoute('/_app/profile_/$username/lists')({
   component: ProfileListsPage,
+  head: ({ params }) => ({
+    meta: seo({ title: `${params.username}'s lists — Checkpoint` }),
+  }),
   validateSearch: (search: Record<string, unknown>): ProfileListsSearch => ({
     page: Math.max(1, Math.floor(Number(search.page ?? 1)) || 1),
   }),

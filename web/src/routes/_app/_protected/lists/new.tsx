@@ -2,7 +2,12 @@ import { Link, createFileRoute } from '@tanstack/react-router'
 import { ArrowLeft } from 'lucide-react'
 import { ListForm } from '@/components/lists/list-form'
 
+import { seo } from '@/lib/seo'
+
 export const Route = createFileRoute('/_app/_protected/lists/new')({
+  head: () => ({
+    meta: seo({ title: 'New list — Checkpoint' }),
+  }),
   component: RouteComponent,
 })
 

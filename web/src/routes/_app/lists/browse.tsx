@@ -13,6 +13,8 @@ import { ListsPagination } from '@/components/lists/lists-pagination'
 import { Separator } from '@/components/ui/separator'
 import { apiFetch } from '@/services/api'
 
+import { seo } from '@/lib/seo'
+
 const PAGE_SIZE = 20
 
 const VALID_SORTS: ReadonlyArray<GameListSortOption> = [
@@ -49,6 +51,9 @@ function parseMinGames(value: unknown): number | undefined {
 }
 
 export const Route = createFileRoute('/_app/lists/browse')({
+  head: () => ({
+    meta: seo({ title: 'Browse lists — Checkpoint' }),
+  }),
   component: RouteComponent,
   validateSearch: (search: Record<string, unknown>): GameListsSearchParams => ({
     page: Math.max(1, Math.floor(Number(search.page ?? 1)) || 1),

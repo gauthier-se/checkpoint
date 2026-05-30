@@ -2,7 +2,12 @@ import { Link, Outlet, createFileRoute } from '@tanstack/react-router'
 import { Bell, Link2, Palette, Shield, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
+import { seo } from '@/lib/seo'
+
 export const Route = createFileRoute('/_app/_protected/settings')({
+  head: () => ({
+    meta: seo({ title: 'Settings — Checkpoint' }),
+  }),
   component: SettingsLayout,
 })
 

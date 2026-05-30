@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { useAuth } from '@/hooks/use-auth'
 import { resolvePictureUrl } from '@/lib/picture'
+import { seo } from '@/lib/seo'
 
 export const Route = createFileRoute('/_app/lists/$listId')({
   component: RouteComponent,
@@ -19,8 +20,18 @@ export const Route = createFileRoute('/_app/lists/$listId')({
     // During SSR, cookies aren't forwarded so private lists would fail.
     // Let the client-side query handle fetching with credentials.
     if (typeof window === 'undefined') return
-    await context.queryClient.ensureQueryData(listDetailQueryOptions(listId))
+    return context.queryClient.ensureQueryData(listDetailQueryOptions(listId))
   },
+  // loaderData is undefined during SSR (see loader above), so the title falls
+  // back to a generic label server-side and refines to the list name on the
+  // client once the authenticated query resolves.
+  head: ({ loaderData }) => ({
+    meta: seo({
+      title: loaderData
+        ? `${loaderData.title} — Checkpoint`
+        : 'List — Checkpoint',
+    }),
+  }),
 })
 
 function RouteComponent() {

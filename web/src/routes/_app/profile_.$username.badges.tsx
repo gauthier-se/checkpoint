@@ -4,9 +4,13 @@ import { ArrowLeft } from 'lucide-react'
 import { BadgeGrid } from '@/components/profile/badge-grid'
 import { ProfileTabBar } from '@/components/profile/profile-tab-bar'
 import { userProfileQueryOptions } from '@/queries/profile'
+import { seo } from '@/lib/seo'
 
 export const Route = createFileRoute('/_app/profile_/$username/badges')({
   component: ProfileBadgesPage,
+  head: ({ params }) => ({
+    meta: seo({ title: `${params.username}'s badges — Checkpoint` }),
+  }),
   loader: async ({ params: { username }, context }) => {
     return context.queryClient.ensureQueryData(
       userProfileQueryOptions(username),

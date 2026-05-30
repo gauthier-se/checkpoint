@@ -6,6 +6,7 @@ import { CommonGameRow } from '@/components/profile/common-game-row'
 import { ComparePagination } from '@/components/profile/compare-pagination'
 import { userCompareQueryOptions } from '@/queries/profile'
 import { isApiError } from '@/services/api'
+import { seo } from '@/lib/seo'
 
 type CompareSearch = {
   page: number
@@ -13,6 +14,9 @@ type CompareSearch = {
 
 export const Route = createFileRoute('/_app/profile_/$username/compare')({
   component: CompareProfilePage,
+  head: ({ params }) => ({
+    meta: seo({ title: `Compare with ${params.username} — Checkpoint` }),
+  }),
   validateSearch: (search: Record<string, unknown>): CompareSearch => ({
     page: Math.max(1, Math.floor(Number(search.page ?? 1)) || 1),
   }),

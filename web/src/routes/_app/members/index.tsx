@@ -11,11 +11,16 @@ import {
 } from '@/queries/members'
 import { useAuth } from '@/hooks/use-auth'
 
+import { seo } from '@/lib/seo'
+
 function parseOptionalString(value: unknown): string | undefined {
   return typeof value === 'string' && value.length > 0 ? value : undefined
 }
 
 export const Route = createFileRoute('/_app/members/')({
+  head: () => ({
+    meta: seo({ title: 'Members — Checkpoint' }),
+  }),
   component: RouteComponent,
   beforeLoad: ({ search }) => {
     // Preserve stale bookmarks: ?search/?page used to live on /members,

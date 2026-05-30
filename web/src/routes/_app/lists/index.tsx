@@ -12,12 +12,17 @@ import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
 import { useAuth } from '@/hooks/use-auth'
 
+import { seo } from '@/lib/seo'
+
 const POPULAR_SIZE = 5
 const TRENDING_SIZE = 12
 
 const TRENDING_CRITERIA = { page: 1, sort: 'recent' as const }
 
 export const Route = createFileRoute('/_app/lists/')({
+  head: () => ({
+    meta: seo({ title: 'Lists — Checkpoint' }),
+  }),
   component: RouteComponent,
   loader: async ({ context }) => {
     await Promise.all([

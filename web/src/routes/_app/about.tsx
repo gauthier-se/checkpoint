@@ -9,6 +9,8 @@ import {
   Users,
 } from 'lucide-react'
 
+import { seo } from '@/lib/seo'
+
 const XIcon = ({ className }: { className?: string }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -32,6 +34,9 @@ const DiscordIcon = ({ className }: { className?: string }) => (
 )
 
 export const Route = createFileRoute('/_app/about')({
+  head: () => ({
+    meta: seo({ title: 'About — Checkpoint' }),
+  }),
   component: AboutPage,
 })
 

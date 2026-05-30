@@ -11,6 +11,8 @@ import {
   userProfileQueryOptions,
 } from '@/queries/profile'
 
+import { seo } from '@/lib/seo'
+
 const VALID_TABS: Array<ProfileGamesTabKey> = [
   'games',
   'playing',
@@ -45,6 +47,9 @@ type ProfileGamesSearch = {
 }
 
 export const Route = createFileRoute('/_app/profile_/$username/games')({
+  head: ({ params }) => ({
+    meta: seo({ title: `${params.username}'s games — Checkpoint` }),
+  }),
   component: ProfileGamesPage,
   validateSearch: (search: Record<string, unknown>): ProfileGamesSearch => {
     const rawTab = String(search.tab ?? 'games')

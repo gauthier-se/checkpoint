@@ -11,6 +11,8 @@ import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { feedQueryOptions } from '@/queries/feed'
 
+import { seo } from '@/lib/seo'
+
 type FeedSearchParams = {
   page: number
   type?: FeedItemType
@@ -19,6 +21,9 @@ type FeedSearchParams = {
 const PAGE_SIZE = 20
 
 export const Route = createFileRoute('/_app/_protected/feed/')({
+  head: () => ({
+    meta: seo({ title: 'Feed — Checkpoint' }),
+  }),
   validateSearch: (search: Record<string, unknown>): FeedSearchParams => {
     const rawType = search.type
     const type = FEED_ITEM_TYPES.includes(rawType as FeedItemType)

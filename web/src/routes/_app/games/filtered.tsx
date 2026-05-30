@@ -12,6 +12,8 @@ import { apiFetch } from '@/services/api'
 import { genresQueryOptions, platformsQueryOptions } from '@/queries/catalog'
 import { triggerBarrelRoll } from '@/queries/easter-eggs'
 
+import { seo } from '@/lib/seo'
+
 const PAGE_SIZE = 32
 
 const VALID_SORTS = [
@@ -77,6 +79,9 @@ function buildCatalogUrl(params: FilteredGamesSearchParams): string {
 }
 
 export const Route = createFileRoute('/_app/games/filtered')({
+  head: () => ({
+    meta: seo({ title: 'Browse games — Checkpoint' }),
+  }),
   component: RouteComponent,
   validateSearch: (
     search: Record<string, unknown>,

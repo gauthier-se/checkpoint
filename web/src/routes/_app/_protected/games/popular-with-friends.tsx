@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { friendsPopularGamesPagedQueryOptions } from '@/queries/feed'
 
+import { seo } from '@/lib/seo'
+
 type PopularWithFriendsSearchParams = {
   page: number
 }
@@ -16,6 +18,9 @@ const PAGE_SIZE = 32
 export const Route = createFileRoute(
   '/_app/_protected/games/popular-with-friends',
 )({
+  head: () => ({
+    meta: seo({ title: 'Popular with friends — Checkpoint' }),
+  }),
   validateSearch: (
     search: Record<string, unknown>,
   ): PopularWithFriendsSearchParams => ({

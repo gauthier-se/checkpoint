@@ -1,4 +1,3 @@
-import { useEffect } from 'react'
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { ArrowLeft, ArrowRight, ChevronRight, List } from 'lucide-react'
@@ -9,6 +8,7 @@ import { ListsGrid } from '@/components/lists/lists-grid'
 import { getPageNumbers } from '@/lib/pagination'
 import { listsContainingGameQueryOptions } from '@/queries/lists'
 import { apiFetch } from '@/services/api'
+import { seo } from '@/lib/seo'
 
 const PAGE_SIZE = 20
 
@@ -35,6 +35,13 @@ export const Route = createFileRoute('/_app/games/$gameId_/lists')({
     ])
     return { game }
   },
+  head: ({ loaderData }) => ({
+    meta: seo({
+      title: loaderData
+        ? `Lists containing ${loaderData.game.title} — Checkpoint`
+        : 'Lists — Checkpoint',
+    }),
+  }),
 })
 
 function GameListsPage() {
@@ -46,12 +53,6 @@ function GameListsPage() {
   const { data } = useQuery(
     listsContainingGameQueryOptions(gameId, apiPage, PAGE_SIZE),
   )
-
-  const title = `Lists containing ${game.title}`
-
-  useEffect(() => {
-    document.title = `${title} — Checkpoint`
-  }, [title])
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-10">

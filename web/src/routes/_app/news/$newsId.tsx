@@ -1,4 +1,3 @@
-import { useEffect } from 'react'
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { ArrowLeft, ExternalLink, Newspaper } from 'lucide-react'
@@ -8,12 +7,20 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { resolvePictureUrl } from '@/lib/picture'
+import { seo } from '@/lib/seo'
 
 export const Route = createFileRoute('/_app/news/$newsId')({
   component: RouteComponent,
   loader: async ({ params: { newsId }, context }) => {
-    await context.queryClient.ensureQueryData(newsDetailQueryOptions(newsId))
+    return context.queryClient.ensureQueryData(newsDetailQueryOptions(newsId))
   },
+  head: ({ loaderData }) => ({
+    meta: seo({
+      title: loaderData
+        ? `${loaderData.title} — Checkpoint`
+        : 'News — Checkpoint',
+    }),
+  }),
 })
 
 function RouteComponent() {
@@ -30,10 +37,6 @@ function RouteComponent() {
   )
   const isImported = article.source !== 'MANUAL'
   const sourceLabel = article.feedName ?? article.source
-
-  useEffect(() => {
-    document.title = `${article.title} — Checkpoint`
-  }, [article.title])
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-10">

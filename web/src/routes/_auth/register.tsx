@@ -6,6 +6,8 @@ import type { SteamSignupPrefill } from '@/types/auth'
 import { RegisterForm } from '@/components/auth/register-form'
 import { apiFetch, isApiError } from '@/services/api'
 
+import { seo } from '@/lib/seo'
+
 type RegisterSearchParams = {
   steam_token?: string
 }
@@ -25,6 +27,9 @@ function steamSignupPrefillQuery(token: string) {
 }
 
 export const Route = createFileRoute('/_auth/register')({
+  head: () => ({
+    meta: seo({ title: 'Create account — Checkpoint' }),
+  }),
   validateSearch: (search: Record<string, unknown>): RegisterSearchParams => ({
     steam_token:
       typeof search.steam_token === 'string' ? search.steam_token : undefined,

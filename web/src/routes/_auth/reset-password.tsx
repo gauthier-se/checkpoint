@@ -1,11 +1,16 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { ResetPasswordForm } from '@/components/auth/reset-password-form'
 
+import { seo } from '@/lib/seo'
+
 type ResetPasswordSearchParams = {
   token?: string
 }
 
 export const Route = createFileRoute('/_auth/reset-password')({
+  head: () => ({
+    meta: seo({ title: 'Reset password — Checkpoint' }),
+  }),
   validateSearch: (
     search: Record<string, unknown>,
   ): ResetPasswordSearchParams => ({

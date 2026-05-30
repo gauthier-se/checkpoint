@@ -42,12 +42,21 @@ import {
   friendsTrendingGamesQueryOptions,
 } from '@/queries/feed'
 
+import { seo } from '@/lib/seo'
+
 interface HomeData {
   trending: Array<Game>
   news: Array<NewsArticle>
 }
 
 export const Route = createFileRoute('/_app/')({
+  head: () => ({
+    meta: seo({
+      title: 'Checkpoint — Your gaming journal',
+      description:
+        'Track the games you play, rate and review them, build lists, and follow what your friends are playing.',
+    }),
+  }),
   component: App,
   loader: async ({ context }): Promise<HomeData> => {
     const [trending, newsResponse] = await Promise.all([

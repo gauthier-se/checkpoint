@@ -7,6 +7,8 @@ import { LeaderboardTable } from '@/components/leaderboard/leaderboard-table'
 import { Button } from '@/components/ui/button'
 import { ButtonGroup } from '@/components/ui/button-group'
 
+import { seo } from '@/lib/seo'
+
 const LEADERBOARD_LIMIT = 50
 
 interface LeaderboardSearch {
@@ -14,6 +16,9 @@ interface LeaderboardSearch {
 }
 
 export const Route = createFileRoute('/_app/leaderboard')({
+  head: () => ({
+    meta: seo({ title: 'Leaderboard — Checkpoint' }),
+  }),
   component: LeaderboardPage,
   validateSearch: (search: Record<string, unknown>): LeaderboardSearch => ({
     sortBy: search.sortBy === 'level' ? 'level' : 'xp',

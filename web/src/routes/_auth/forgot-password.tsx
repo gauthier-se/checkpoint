@@ -1,7 +1,12 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { ForgotPasswordForm } from '@/components/auth/forgot-password-form'
 
+import { seo } from '@/lib/seo'
+
 export const Route = createFileRoute('/_auth/forgot-password')({
+  head: () => ({
+    meta: seo({ title: 'Forgot password — Checkpoint' }),
+  }),
   component: ForgotPasswordPage,
 })
 

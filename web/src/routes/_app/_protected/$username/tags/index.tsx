@@ -37,6 +37,8 @@ import {
 } from '@/queries/tags'
 import { isApiError } from '@/services/api'
 
+import { seo } from '@/lib/seo'
+
 const tagNameSchema = z.object({
   name: z
     .string()
@@ -45,6 +47,9 @@ const tagNameSchema = z.object({
 })
 
 export const Route = createFileRoute('/_app/_protected/$username/tags/')({
+  head: ({ params }) => ({
+    meta: seo({ title: `${params.username}'s tags — Checkpoint` }),
+  }),
   component: TagManagementPage,
   loader: async ({ context }) => {
     await context.queryClient.ensureQueryData(myTagsQueryOptions())

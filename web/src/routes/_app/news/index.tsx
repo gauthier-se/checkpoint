@@ -13,6 +13,8 @@ import { Separator } from '@/components/ui/separator'
 import { apiFetch } from '@/services/api'
 import { buildNewsUrl } from '@/queries/news'
 
+import { seo } from '@/lib/seo'
+
 const PAGE_SIZE = 12
 
 const VALID_SOURCES: ReadonlyArray<NewsSource> = ['MANUAL', 'STEAM', 'RSS']
@@ -45,6 +47,9 @@ function parseSort(value: unknown): NewsSortOption | undefined {
 }
 
 export const Route = createFileRoute('/_app/news/')({
+  head: () => ({
+    meta: seo({ title: 'News — Checkpoint' }),
+  }),
   component: RouteComponent,
   validateSearch: (search: Record<string, unknown>): NewsListSearchParams => ({
     page: Math.max(1, Math.floor(Number(search.page ?? 1)) || 1),

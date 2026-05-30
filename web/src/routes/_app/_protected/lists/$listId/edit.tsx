@@ -5,7 +5,12 @@ import { useEffect } from 'react'
 import { listDetailQueryOptions } from '@/queries/lists'
 import { ListForm } from '@/components/lists/list-form'
 
+import { seo } from '@/lib/seo'
+
 export const Route = createFileRoute('/_app/_protected/lists/$listId/edit')({
+  head: () => ({
+    meta: seo({ title: 'Edit list — Checkpoint' }),
+  }),
   component: RouteComponent,
   loader: async ({ params: { listId }, context }) => {
     await context.queryClient.ensureQueryData(listDetailQueryOptions(listId))

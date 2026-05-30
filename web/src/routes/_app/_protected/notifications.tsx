@@ -29,6 +29,8 @@ import { useAuth } from '@/hooks/use-auth'
 import { getPageNumbers } from '@/lib/pagination'
 import { cn } from '@/lib/utils'
 
+import { seo } from '@/lib/seo'
+
 const PAGE_SIZE = 20
 
 function isNotificationFilter(value: unknown): value is NotificationFilter {
@@ -53,6 +55,9 @@ function filterToQueryParams(filter: NotificationFilter): {
 }
 
 export const Route = createFileRoute('/_app/_protected/notifications')({
+  head: () => ({
+    meta: seo({ title: 'Notifications — Checkpoint' }),
+  }),
   validateSearch: (search: Record<string, unknown>): NotificationsSearch => ({
     page: Math.max(1, Math.floor(Number(search.page ?? 1)) || 1),
     filter: isNotificationFilter(search.filter) ? search.filter : 'all',

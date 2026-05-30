@@ -11,6 +11,7 @@ import { HotkeysProvider } from '@tanstack/react-hotkeys'
 import { ThemeProvider } from 'next-themes'
 import appCss from '../styles.css?inline'
 import type { QueryClient } from '@tanstack/react-query'
+import { seo } from '@/lib/seo'
 import { Toaster } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { ErrorBoundary } from '@/components/errors/error-boundary'
@@ -31,9 +32,22 @@ export const Route = createRootRouteWithContext<RouterContext>()({
         name: 'viewport',
         content: 'width=device-width, initial-scale=1',
       },
+      ...seo({
+        title: 'Checkpoint — Your gaming journal',
+        description:
+          'Checkpoint is your gaming journal — track the games you play, rate and review them, build lists, and follow what your friends are playing.',
+      }),
+    ],
+    links: [
+      { rel: 'icon', href: '/favicon.ico' },
       {
-        title: 'Checkpoint - Your gaming journal',
+        rel: 'icon',
+        type: 'image/png',
+        sizes: '192x192',
+        href: '/logo192.png',
       },
+      { rel: 'apple-touch-icon', href: '/logo192.png' },
+      { rel: 'manifest', href: '/manifest.json' },
     ],
     styles: [
       {

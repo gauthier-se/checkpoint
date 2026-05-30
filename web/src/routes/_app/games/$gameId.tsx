@@ -1,4 +1,4 @@
-import { Suspense, useEffect } from 'react'
+import { Suspense } from 'react'
 
 import { createFileRoute, useRouter } from '@tanstack/react-router'
 import { Play, Star } from 'lucide-react'
@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/dialog'
 import { Separator } from '@/components/ui/separator'
 import { similarGamesQueryOptions } from '@/queries/catalog'
+import { seo } from '@/lib/seo'
 import {
   friendReviewsQueryOptions,
   friendsActivityQueryOptions,
@@ -49,6 +50,13 @@ export const Route = createFileRoute('/_app/games/$gameId')({
     const res = await apiFetch(`/api/games/${gameId}`)
     return res.json() as Promise<GameDetail>
   },
+  head: ({ loaderData }) => ({
+    meta: seo({
+      title: loaderData
+        ? `${loaderData.title} — Checkpoint`
+        : 'Game — Checkpoint',
+    }),
+  }),
   errorComponent: ({ error, reset }) => {
     if (isApiError(error) && error.status === 404) {
       return (
@@ -81,10 +89,6 @@ function formatDuration(seconds: number | null): string {
 function RouteComponent() {
   const game = Route.useLoaderData()
   const router = useRouter()
-
-  useEffect(() => {
-    document.title = `${game.title} — Checkpoint`
-  }, [game.title])
 
   const hasTimeToBeat =
     game.timeToBeatNormally != null ||

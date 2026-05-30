@@ -49,9 +49,13 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { isApiError } from '@/services/api'
+import { seo } from '@/lib/seo'
 
 export const Route = createFileRoute('/_app/plays/$id')({
   component: PlayLogDetailPage,
+  head: () => ({
+    meta: seo({ title: 'Play log — Checkpoint' }),
+  }),
   loader: async ({ params: { id }, context }) => {
     if (typeof window === 'undefined') return
     await context.queryClient.ensureQueryData(playLogDetailQueryOptions(id))
