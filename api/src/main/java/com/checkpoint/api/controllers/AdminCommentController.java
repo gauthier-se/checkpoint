@@ -9,6 +9,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.checkpoint.api.services.AdminCommentService;
@@ -17,6 +18,7 @@ import com.checkpoint.api.services.AdminCommentService;
  * REST controller for admin comment management operations.
  * All endpoints require the {@code ROLE_ADMIN} authority.
  */
+@Tag(name = "Admin", description = "Admin: comment moderation")
 @RestController
 @RequestMapping("/api/admin/comments")
 @PreAuthorize("hasRole('ADMIN')")

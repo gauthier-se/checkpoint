@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.checkpoint.api.dto.admin.AdminReportedReviewDto;
@@ -26,6 +27,7 @@ import com.checkpoint.api.services.AdminReviewService;
  * REST controller for admin review management operations.
  * All endpoints require the {@code ROLE_ADMIN} authority.
  */
+@Tag(name = "Admin", description = "Admin: review moderation")
 @RestController
 @RequestMapping("/api/admin/reviews")
 @PreAuthorize("hasRole('ADMIN')")

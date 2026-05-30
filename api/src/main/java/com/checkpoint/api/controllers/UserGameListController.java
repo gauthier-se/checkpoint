@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.checkpoint.api.dto.catalog.PagedResponseDto;
@@ -37,6 +38,7 @@ import jakarta.validation.Valid;
  * REST controller for authenticated user game list operations.
  * All endpoints require authentication.
  */
+@Tag(name = "Lists", description = "Current user custom game lists")
 @RestController
 @RequestMapping("/api/me/lists")
 public class UserGameListController {

@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.checkpoint.api.dto.export.UserDataExportDto;
@@ -27,6 +28,7 @@ import jakarta.servlet.http.HttpServletResponse;
  * REST controller for authenticated account-management operations
  * (the user acting on their own account).
  */
+@Tag(name = "Account and Profile", description = "Current user account settings and security")
 @RestController
 @RequestMapping("/api/me")
 public class AccountController {

@@ -10,6 +10,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.checkpoint.api.dto.social.FriendGameActivityDto;
@@ -23,6 +24,7 @@ import com.checkpoint.api.services.GameSocialService;
  * <p>Both endpoints respond {@code 200} with an empty payload for anonymous or
  * follow-less viewers; the frontend hides the corresponding section.</p>
  */
+@Tag(name = "Games", description = "Reviews and comments on a game")
 @RestController
 @RequestMapping("/api/games/{gameId}")
 public class GameSocialController {

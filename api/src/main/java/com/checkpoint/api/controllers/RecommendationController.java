@@ -10,6 +10,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.checkpoint.api.dto.catalog.RecommendedGameDto;
@@ -21,6 +22,7 @@ import com.checkpoint.api.services.GameRecommendationService;
  * <p>Authentication is enforced upstream by the JWT filter — endpoints under
  * {@code /api/me/**} are unreachable for anonymous callers.</p>
  */
+@Tag(name = "Gamification", description = "Personalized game recommendations")
 @RestController
 @RequestMapping("/api/me/games")
 public class RecommendationController {

@@ -10,6 +10,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.checkpoint.api.dto.catalog.GameCardDto;
@@ -22,6 +23,7 @@ import com.checkpoint.api.services.FeedService;
  * Controller for the authenticated user's activity feed and friends trending data.
  * All endpoints require authentication.
  */
+@Tag(name = "Notifications and Feed", description = "Current user activity feed")
 @RestController
 @RequestMapping("/api/me")
 public class FeedController {

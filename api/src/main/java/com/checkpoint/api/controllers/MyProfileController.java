@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -28,6 +29,7 @@ import jakarta.validation.Valid;
  * <p>Provides endpoints for the current user to update their profile
  * information and manage their profile picture.</p>
  */
+@Tag(name = "Account and Profile", description = "Current user profile editing")
 @RestController
 @RequestMapping("/api/me")
 public class MyProfileController {

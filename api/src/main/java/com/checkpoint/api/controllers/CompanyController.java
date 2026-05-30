@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.checkpoint.api.dto.catalog.CompanyCatalogDto;
@@ -15,6 +16,7 @@ import com.checkpoint.api.services.CompanyCatalogService;
 /**
  * REST controller for public company catalog endpoints.
  */
+@Tag(name = "Games", description = "Game companies catalog")
 @RestController
 @RequestMapping("/api/companies")
 public class CompanyController {

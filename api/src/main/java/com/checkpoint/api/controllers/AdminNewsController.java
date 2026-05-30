@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.checkpoint.api.dto.catalog.NewsRequestDto;
@@ -35,6 +36,7 @@ import com.checkpoint.api.services.NewsService;
  * REST controller for admin news management operations.
  * All endpoints require the {@code ROLE_ADMIN} authority.
  */
+@Tag(name = "Admin", description = "Admin: news management")
 @RestController
 @RequestMapping("/api/admin/news")
 @PreAuthorize("hasRole('ADMIN')")

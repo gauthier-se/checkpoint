@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.checkpoint.api.dto.catalog.PagedResponseDto;
@@ -34,6 +35,7 @@ import jakarta.validation.Valid;
  * REST controller for user-scoped tag management.
  * Handles both authenticated (/api/me/tags) and public (/api/users/{username}/tags) endpoints.
  */
+@Tag(name = "Gamification", description = "Game tags")
 @RestController
 public class TagController {
 

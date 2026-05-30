@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.checkpoint.api.dto.catalog.PagedResponseDto;
@@ -26,6 +27,7 @@ import com.checkpoint.api.services.LikeService;
  * REST controller for like/unlike toggle on reviews, game lists, and comments.
  * All endpoints require authentication.
  */
+@Tag(name = "Reviews and Comments", description = "Likes on reviews, comments and lists")
 @RestController
 public class LikeController {
 

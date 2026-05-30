@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.checkpoint.api.dto.catalog.PagedResponseDto;
@@ -30,6 +31,7 @@ import com.checkpoint.api.services.FollowService;
  * <p>The toggle follow endpoint requires authentication.
  * The followers/following list endpoints are public.</p>
  */
+@Tag(name = "Account and Profile", description = "Following and followers")
 @RestController
 @RequestMapping("/api/users")
 public class FollowController {

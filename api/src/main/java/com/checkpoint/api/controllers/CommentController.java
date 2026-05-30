@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.checkpoint.api.dto.catalog.PagedResponseDto;
@@ -32,6 +33,7 @@ import jakarta.validation.Valid;
  * REST controller for comments on reviews and game lists.
  * GET endpoints are public; POST/PUT/DELETE require authentication.
  */
+@Tag(name = "Reviews and Comments", description = "Comments on reviews")
 @RestController
 public class CommentController {
 

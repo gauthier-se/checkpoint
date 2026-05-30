@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.checkpoint.api.dto.catalog.GameCardDto;
@@ -32,6 +33,7 @@ import com.checkpoint.api.services.GameTrendingService;
  * REST controller for public game catalog endpoints.
  * Provides paginated access to the game catalog and game details.
  */
+@Tag(name = "Games", description = "Game catalog: search, detail, trending and discovery")
 @RestController
 @RequestMapping("/api/games")
 public class GameController {

@@ -10,6 +10,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.checkpoint.api.dto.playlog.PlayLogDetailDto;
@@ -21,6 +22,7 @@ import com.checkpoint.api.services.PlayLogService;
  * <p>Reads are public; authentication is optional and only used to populate
  * viewer-specific flags ({@code isOwner}, {@code isLikedByViewer}).</p>
  */
+@Tag(name = "Play Logs", description = "Public play log entries")
 @RestController
 @RequestMapping("/api/plays")
 public class PlayLogController {

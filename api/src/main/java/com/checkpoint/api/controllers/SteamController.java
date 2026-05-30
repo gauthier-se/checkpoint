@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.checkpoint.api.dto.steam.LinkSteamRequestDto;
@@ -24,6 +25,7 @@ import jakarta.validation.Valid;
  * <p>This endpoint covers the <em>manual</em> link path where the user types their SteamID64.
  * The OpenID 2.0 flow lives on {@code /api/auth/steam/openid/**} in {@link AuthController}.</p>
  */
+@Tag(name = "Steam", description = "Steam account linking and library import")
 @RestController
 @RequestMapping("/api/me/steam")
 public class SteamController {

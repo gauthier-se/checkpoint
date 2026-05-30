@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.checkpoint.api.dto.catalog.ReportRequestDto;
@@ -25,6 +26,7 @@ import jakarta.validation.Valid;
  *
  * <p>Allows authenticated users to report a review for moderation.</p>
  */
+@Tag(name = "Reviews and Comments", description = "Report inappropriate reviews")
 @RestController
 @RequestMapping("/api/reviews/{reviewId}/report")
 public class ReportController {
