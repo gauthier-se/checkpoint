@@ -56,6 +56,17 @@ public interface GameImportService {
     BulkImportStats bulkImport(List<IgdbGameDto> games);
 
     /**
+     * Same as {@link #bulkImport(List)} but reports live progress through the
+     * supplied listener after each game, so an asynchronous job can expose
+     * how far along it is. Each game is persisted in its own transaction.
+     *
+     * @param games    the IGDB game DTOs to import
+     * @param progress the listener notified after every processed game
+     * @return statistics describing the outcome
+     */
+    BulkImportStats bulkImport(List<IgdbGameDto> games, ImportProgressListener progress);
+
+    /**
      * Result object containing import statistics.
      */
     record ImportResult(int created, int updated, int failed, List<VideoGame> games) {}

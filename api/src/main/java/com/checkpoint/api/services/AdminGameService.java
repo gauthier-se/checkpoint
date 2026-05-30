@@ -1,17 +1,19 @@
 package com.checkpoint.api.services;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
-import com.checkpoint.api.dto.admin.BulkImportResultDto;
 import com.checkpoint.api.dto.admin.CreateGameRequestDto;
 import com.checkpoint.api.dto.admin.ExternalGameDto;
+import com.checkpoint.api.dto.admin.ImportJobStatusDto;
 import com.checkpoint.api.dto.admin.UpdateGameRequestDto;
 import com.checkpoint.api.entities.VideoGame;
 import com.checkpoint.api.exceptions.ExternalApiUnavailableException;
 import com.checkpoint.api.exceptions.ExternalGameNotFoundException;
 import com.checkpoint.api.exceptions.GameNotFoundException;
 import com.checkpoint.api.exceptions.GameReferencedException;
+import com.checkpoint.api.exceptions.ImportAlreadyRunningException;
 
 /**
  * Service interface for admin game management operations.
@@ -41,25 +43,37 @@ public interface AdminGameService {
     VideoGame importGameByExternalId(Long externalId);
 
     /**
-     * Bulk-imports the top-rated games from IGDB. Already-imported games are
-     * skipped (deduplication by igdbId). Runs synchronously.
+     * Starts an asynchronous bulk import of the most popular games from IGDB
+     * (ordered by rating count). Already-imported games are skipped
+     * (deduplication by igdbId). Returns immediately with the job status;
+     * progress is tracked via {@link #findImportJob(UUID)}.
      *
      * @param limit          maximum number of games to fetch from IGDB
      * @param minRatingCount minimum number of IGDB ratings to qualify as "popular"
-     * @return summary of the operation
-     * @throws ExternalApiUnavailableException if IGDB API is unreachable
+     * @return the initial job status (state {@code PENDING}/{@code RUNNING})
+     * @throws ImportAlreadyRunningException if another import is already in progress
      */
-    BulkImportResultDto bulkImportTopRatedGames(int limit, int minRatingCount);
+    ImportJobStatusDto startTopRatedImport(int limit, int minRatingCount);
 
     /**
-     * Bulk-imports recently released games from IGDB. Already-imported games
-     * are skipped (deduplication by igdbId). Runs synchronously.
+     * Starts an asynchronous bulk import of recently released games from IGDB.
+     * Already-imported games are skipped (deduplication by igdbId). Returns
+     * immediately with the job status.
      *
      * @param limit maximum number of games to fetch from IGDB
-     * @return summary of the operation
-     * @throws ExternalApiUnavailableException if IGDB API is unreachable
+     * @return the initial job status (state {@code PENDING}/{@code RUNNING})
+     * @throws ImportAlreadyRunningException if another import is already in progress
      */
-    BulkImportResultDto bulkImportRecentGames(int limit);
+    ImportJobStatusDto startRecentImport(int limit);
+
+    /**
+     * Returns the current status of a bulk-import job, or empty if unknown
+     * (never started, or evicted after completion).
+     *
+     * @param jobId the job identifier
+     * @return the job status snapshot if found
+     */
+    Optional<ImportJobStatusDto> findImportJob(UUID jobId);
 
     /**
      * Manually creates a new video game from the supplied admin payload.

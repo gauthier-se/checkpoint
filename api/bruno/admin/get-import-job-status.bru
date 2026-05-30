@@ -1,0 +1,83 @@
+meta {
+  name: Get Import Job Status
+  type: http
+  seq: 22
+}
+
+get {
+  url: {{baseUrl}}/api/admin/games/import/jobs/{{importJobId}}
+  body: none
+  auth: bearer
+}
+
+vars:pre-request {
+  importJobId: 8d1f1c2e-2b6a-4f0e-9a3a-7b5c9e0d1a2b
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  # Get Import Job Status
+
+  Returns the current status of an asynchronous bulk-import job started by
+  "Bulk Import Top-Rated Games" or "Bulk Import Recent Releases". Poll this
+  endpoint to track progress until `state` is `COMPLETED` or `FAILED`.
+
+  The `importJobId` variable is set automatically by the two start requests
+  (via their post-response script); you can also paste a job id manually into
+  the pre-request var above.
+
+  ## Authentication
+
+  - **Bearer Token**: JWT token obtained from `/api/auth/token`
+  - **Required Role**: `ROLE_ADMIN`
+
+  ## Path Parameters
+
+  - `jobId`: The import job UUID
+
+  ## Response
+
+  Returns the job status snapshot:
+  - `jobId`: The job identifier
+  - `type`: `TOP_RATED` or `RECENT`
+  - `state`: `PENDING`, `RUNNING`, `COMPLETED` or `FAILED`
+  - `requestedLimit`, `minRatingCount`: The requested parameters
+  - `totalFetched`: Number of games fetched from IGDB (0 until known)
+  - `processed`: Number of games processed so far
+  - `imported`: Number of newly persisted games
+  - `skipped`: Number of games skipped (already exist)
+  - `failed`: Number of games whose import threw an exception
+  - `errors`: List of titles (or IGDB IDs) for failed games (capped)
+  - `errorMessage`: Fatal error message when the whole job failed, else null
+  - `startedAt`, `finishedAt`: Timestamps (`finishedAt` null while running)
+
+  ## Example Response
+
+  ```json
+  {
+    "jobId": "8d1f1c2e-2b6a-4f0e-9a3a-7b5c9e0d1a2b",
+    "type": "TOP_RATED",
+    "state": "COMPLETED",
+    "requestedLimit": 1000,
+    "minRatingCount": 100,
+    "totalFetched": 1000,
+    "processed": 1000,
+    "imported": 920,
+    "skipped": 78,
+    "failed": 2,
+    "errors": ["Some Broken Game", "IGDB#123456"],
+    "errorMessage": null,
+    "startedAt": "2026-05-30T08:00:00Z",
+    "finishedAt": "2026-05-30T08:03:12Z"
+  }
+  ```
+
+  ## Error Responses
+
+  - **401 Unauthorized**: Missing or invalid JWT token
+  - **403 Forbidden**: User does not have `ROLE_ADMIN`
+  - **404 Not Found**: No job with the given id (never started, or evicted after completion)
+}

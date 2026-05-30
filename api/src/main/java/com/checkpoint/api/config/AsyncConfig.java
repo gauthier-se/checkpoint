@@ -33,6 +33,25 @@ public class AsyncConfig {
     }
 
     /**
+     * Dedicated single-thread executor for bulk-import jobs. Kept separate from
+     * {@link #taskExecutor()} (which serves gamification events) so a long import
+     * cannot starve event processing. The single thread also serializes imports:
+     * only one runs at a time.
+     *
+     * @return the configured executor
+     */
+    @Bean(name = "importExecutor")
+    public Executor importExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(1);
+        executor.setMaxPoolSize(1);
+        executor.setQueueCapacity(3);
+        executor.setThreadNamePrefix("game-import-");
+        executor.initialize();
+        return executor;
+    }
+
+    /**
      * Exposes the system UTC clock as a bean so time-dependent services can be
      * tested deterministically by replacing it with a fixed clock.
      *

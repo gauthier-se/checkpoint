@@ -127,17 +127,58 @@ public class IgdbApiClientImpl implements IgdbApiClient {
         return executeQuery("/games", query);
     }
 
+    /**
+     * Number of games requested per {@code /games} page.
+     *
+     * <p>IGDB caps a {@code /games} response at 500 rows, but with the full
+     * {@link #GAME_FIELDS} set (covers, genres, platforms, screenshots,
+     * artworks, videos, …) a 500-row page can exceed the proxy's 10&nbsp;MB
+     * response limit and is rejected with HTTP 413. We therefore page in smaller
+     * chunks (~50&nbsp;KB/game ⇒ well under 10&nbsp;MB at this size). The loop in
+     * {@link #fetchTopRatedGames} handles any page size, so this only changes how
+     * many requests are issued.</p>
+     */
+    private static final int GAMES_PAGE_SIZE = 200;
+
+    /**
+     * Fetches the most well-known games from IGDB, ordered by popularity
+     * ({@code total_rating_count} descending — the number of ratings is a good
+     * proxy for how widely known a game is). Games below {@code minRatingCount}
+     * are excluded so obscure titles never enter the catalogue.
+     *
+     * <p>Because a single response is size-limited (see {@link #GAMES_PAGE_SIZE}),
+     * this pages through results with {@code limit}/{@code offset} until it has
+     * collected {@code limit} games or runs out of qualifying ones. Each page is
+     * a separate request and is therefore rate-limited by {@link #executeQuery}.</p>
+     */
     @Override
     public List<IgdbGameDto> fetchTopRatedGames(int limit, int minRatingCount) {
-        log.info("Fetching top {} rated games from IGDB (min {} ratings)", limit, minRatingCount);
+        log.info("Fetching {} most popular games from IGDB (min {} ratings)", limit, minRatingCount);
 
-        String query = GAME_FIELDS + String.format("""
-                where total_rating_count >= %d & total_rating != null;
-                sort total_rating desc;
-                limit %d;
-                """, minRatingCount, limit);
+        List<IgdbGameDto> all = new ArrayList<>();
+        int offset = 0;
+        while (all.size() < limit) {
+            int pageSize = Math.min(GAMES_PAGE_SIZE, limit - all.size());
+            String query = GAME_FIELDS + String.format("""
+                    where total_rating_count >= %d;
+                    sort total_rating_count desc;
+                    limit %d;
+                    offset %d;
+                    """, minRatingCount, pageSize, offset);
 
-        return executeQuery("/games", query);
+            List<IgdbGameDto> page = executeQuery("/games", query);
+            if (page.isEmpty()) {
+                break; // no more qualifying games
+            }
+            all.addAll(page);
+            if (page.size() < pageSize) {
+                break; // last (partial) page
+            }
+            offset += page.size();
+        }
+
+        // The final page may overshoot the requested limit; trim to be exact.
+        return all.size() > limit ? new ArrayList<>(all.subList(0, limit)) : all;
     }
 
     /**
@@ -287,6 +328,62 @@ public class IgdbApiClientImpl implements IgdbApiClient {
         } catch (Exception e) {
             log.warn("Failed to fetch time-to-beat for IGDB game {}: {}", igdbGameId, e.getMessage());
             return null;
+        }
+    }
+
+    /**
+     * Maximum number of game IDs to request per {@code /game_time_to_beat} call.
+     * The endpoint caps each response at 500 rows.
+     */
+    private static final int TIME_TO_BEAT_BATCH_SIZE = 500;
+
+    @Override
+    public Map<Long, IgdbTimeToBeatDto> fetchTimeToBeatForGames(Collection<Long> igdbGameIds) {
+        if (igdbGameIds == null || igdbGameIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        List<Long> ordered = new ArrayList<>(igdbGameIds);
+        log.info("Fetching time-to-beat for {} games from IGDB (batched)", ordered.size());
+
+        Map<Long, IgdbTimeToBeatDto> result = new HashMap<>();
+        for (int i = 0; i < ordered.size(); i += TIME_TO_BEAT_BATCH_SIZE) {
+            List<Long> batch = ordered.subList(
+                    i, Math.min(i + TIME_TO_BEAT_BATCH_SIZE, ordered.size()));
+            for (IgdbTimeToBeatDto ttb : fetchTimeToBeatBatch(batch)) {
+                if (ttb.gameId() != null) {
+                    result.put(ttb.gameId(), ttb);
+                }
+            }
+        }
+        return result;
+    }
+
+    private List<IgdbTimeToBeatDto> fetchTimeToBeatBatch(List<Long> batch) {
+        RateLimiter.waitForPermission(rateLimiter);
+
+        String ids = batch.stream()
+                .map(String::valueOf)
+                .collect(Collectors.joining(","));
+
+        String query = String.format("""
+                fields game_id, normally, hastily, completely;
+                where game_id = (%s);
+                limit %d;
+                """, ids, TIME_TO_BEAT_BATCH_SIZE);
+
+        try {
+            List<IgdbTimeToBeatDto> result = igdbClient.post()
+                    .uri("/game_time_to_beat")
+                    .contentType(MediaType.TEXT_PLAIN)
+                    .body(query)
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<List<IgdbTimeToBeatDto>>() {});
+
+            return result != null ? result : Collections.emptyList();
+        } catch (Exception e) {
+            log.warn("Failed to fetch time-to-beat batch of {} games: {}", batch.size(), e.getMessage());
+            return Collections.emptyList();
         }
     }
 

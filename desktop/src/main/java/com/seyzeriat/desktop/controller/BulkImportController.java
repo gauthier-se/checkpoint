@@ -1,16 +1,14 @@
 package com.seyzeriat.desktop.controller;
 
 import java.io.IOException;
-import java.net.http.HttpTimeoutException;
 import java.util.List;
 import java.util.Optional;
 
 import com.seyzeriat.desktop.HelloApplication;
-import com.seyzeriat.desktop.dto.BulkImportResult;
+import com.seyzeriat.desktop.dto.ImportJobStatus;
 import com.seyzeriat.desktop.service.ApiService;
 
 import javafx.application.Platform;
-import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -23,10 +21,15 @@ import javafx.scene.control.SpinnerValueFactory;
 /**
  * Controller for the Bulk Import view.
  * Lets an admin batch-import top-rated or recent games from IGDB.
+ *
+ * <p>Imports run asynchronously on the server: starting one returns a job id,
+ * which this controller polls until the job reaches a terminal state, updating
+ * a live progress label as it goes.</p>
  */
 public class BulkImportController {
 
     private static final int SAFE_LIMIT_THRESHOLD = 200;
+    private static final long POLL_INTERVAL_MS = 2000L;
 
     @FXML private Spinner<Integer> topRatedLimitSpinner;
     @FXML private Spinner<Integer> minRatingCountSpinner;
@@ -43,10 +46,13 @@ public class BulkImportController {
     private final ApiService apiService = new ApiService();
     private HelloApplication application;
 
+    /** Guards the polling loop so it can be stopped (e.g. when a new import starts). */
+    private volatile boolean polling;
+
     @FXML
     public void initialize() {
         topRatedLimitSpinner.setValueFactory(
-                new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 500, 100));
+                new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 5000, 100));
         minRatingCountSpinner.setValueFactory(
                 new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 10000, 100));
         recentLimitSpinner.setValueFactory(
@@ -70,7 +76,7 @@ public class BulkImportController {
         startImport(
                 topRatedStatusLabel,
                 "Import des jeux les mieux notés en cours...",
-                () -> apiService.bulkImportTopRated(limit, minRatingCount)
+                () -> apiService.startTopRatedImport(limit, minRatingCount)
         );
     }
 
@@ -85,7 +91,7 @@ public class BulkImportController {
         startImport(
                 recentStatusLabel,
                 "Import des sorties récentes en cours...",
-                () -> apiService.bulkImportRecent(limit)
+                () -> apiService.startRecentImport(limit)
         );
     }
 
@@ -96,53 +102,68 @@ public class BulkImportController {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Confirmation");
         alert.setHeaderText("Import volumineux");
-        alert.setContentText("Vous allez importer " + limit + " jeux. L'opération peut prendre plusieurs minutes et risque d'échouer si la réponse est trop volumineuse. Continuer ?");
+        alert.setContentText("Vous allez importer " + limit + " jeux. L'opération peut prendre plusieurs minutes. Continuer ?");
         Optional<ButtonType> result = alert.showAndWait();
         return result.isPresent() && result.get() == ButtonType.OK;
     }
 
-    private void startImport(Label cardStatusLabel, String runningMessage, ImportCall call) {
+    /**
+     * Starts an import job and polls its status on a background thread until it
+     * reaches a terminal state, updating the UI on the JavaFX thread.
+     */
+    private void startImport(Label cardStatusLabel, String runningMessage, JobStarter starter) {
         setRunning(true, runningMessage);
         cardStatusLabel.setText("");
+        polling = true;
 
-        Task<BulkImportResult> task = new Task<>() {
-            @Override
-            protected BulkImportResult call() throws Exception {
-                return call.invoke();
+        Thread worker = new Thread(() -> {
+            try {
+                ImportJobStatus job = starter.start();
+                String jobId = job.getJobId();
+                Platform.runLater(() -> cardStatusLabel.setText(formatProgress(job)));
+
+                while (polling) {
+                    ImportJobStatus status = apiService.getImportJob(jobId);
+                    if (status == null) {
+                        Platform.runLater(() -> {
+                            setRunning(false, "");
+                            cardStatusLabel.setText("Statut indisponible (job introuvable).");
+                        });
+                        return;
+                    }
+                    Platform.runLater(() -> cardStatusLabel.setText(formatProgress(status)));
+
+                    if (status.isTerminal()) {
+                        Platform.runLater(() -> finish(cardStatusLabel, status));
+                        return;
+                    }
+                    Thread.sleep(POLL_INTERVAL_MS);
+                }
+            } catch (ApiService.UnauthorizedException ex) {
+                Platform.runLater(this::redirectToLogin);
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+            } catch (Exception ex) {
+                Platform.runLater(() -> {
+                    setRunning(false, "");
+                    cardStatusLabel.setText("Erreur : " + describeFailure(ex));
+                    globalStatusLabel.setText("Échec de l'import.");
+                });
+            } finally {
+                polling = false;
             }
-        };
+        }, "bulk-import-poll");
+        worker.setDaemon(true);
+        worker.start();
+    }
 
-        task.setOnSucceeded(event -> Platform.runLater(() -> {
-            setRunning(false, "");
-            BulkImportResult result = task.getValue();
-            cardStatusLabel.setText(formatSummary(result));
-            globalStatusLabel.setText("Import terminé.");
-        }));
-
-        task.setOnFailed(event -> Platform.runLater(() -> {
-            Throwable ex = task.getException();
-            setRunning(false, "");
-            if (ex instanceof ApiService.UnauthorizedException) {
-                redirectToLogin();
-                return;
-            }
-            cardStatusLabel.setText("Erreur : " + describeFailure(ex));
-            globalStatusLabel.setText("Échec de l'import.");
-        }));
-
-        new Thread(task, "bulk-import-thread").start();
+    private void finish(Label cardStatusLabel, ImportJobStatus status) {
+        setRunning(false, "");
+        cardStatusLabel.setText(formatSummary(status));
+        globalStatusLabel.setText(status.isFailed() ? "Échec de l'import." : "Import terminé.");
     }
 
     private String describeFailure(Throwable ex) {
-        if (ex instanceof HttpTimeoutException) {
-            return "La requête a expiré. Essayez avec un nombre de jeux plus petit.";
-        }
-        if (ex instanceof OutOfMemoryError) {
-            return "La réponse est trop volumineuse. Réduisez le nombre de jeux importés.";
-        }
-        if (ex instanceof IOException && ex.getMessage() != null && ex.getMessage().contains("status 413")) {
-            return "Le serveur a refusé la requête (limite de taille dépassée). Réduisez le nombre de jeux.";
-        }
         return ex != null && ex.getMessage() != null ? ex.getMessage() : "erreur inconnue";
     }
 
@@ -153,14 +174,34 @@ public class BulkImportController {
         globalStatusLabel.setText(message);
     }
 
-    private String formatSummary(BulkImportResult result) {
+    /** Live one-liner shown while the job runs. */
+    private String formatProgress(ImportJobStatus status) {
         StringBuilder sb = new StringBuilder();
-        sb.append(result.getImported()).append(" importé(s), ");
-        sb.append(result.getSkipped()).append(" ignoré(s) (déjà existants), ");
-        sb.append(result.getFailed()).append(" échec(s)");
-        sb.append(" sur ").append(result.getTotalFetched()).append(" récupéré(s).");
+        if (status.getTotalFetched() > 0) {
+            sb.append(status.getProcessed()).append(" / ").append(status.getTotalFetched()).append(" traités");
+        } else {
+            sb.append(status.getProcessed()).append(" traités");
+        }
+        sb.append(" — ").append(status.getImported()).append(" importé(s), ")
+                .append(status.getSkipped()).append(" ignoré(s), ")
+                .append(status.getFailed()).append(" échec(s)");
+        return sb.toString();
+    }
 
-        List<String> errors = result.getErrors();
+    /** Final summary shown once the job is terminal. */
+    private String formatSummary(ImportJobStatus status) {
+        if (status.isFailed()) {
+            String reason = status.getErrorMessage() != null ? status.getErrorMessage() : "erreur inconnue";
+            return "Échec : " + reason;
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append(status.getImported()).append(" importé(s), ");
+        sb.append(status.getSkipped()).append(" ignoré(s) (déjà existants), ");
+        sb.append(status.getFailed()).append(" échec(s)");
+        sb.append(" sur ").append(status.getTotalFetched()).append(" récupéré(s).");
+
+        List<String> errors = status.getErrors();
         if (errors != null && !errors.isEmpty()) {
             int shown = Math.min(errors.size(), 3);
             sb.append(" Échecs : ");
@@ -186,7 +227,7 @@ public class BulkImportController {
     }
 
     @FunctionalInterface
-    private interface ImportCall {
-        BulkImportResult invoke() throws Exception;
+    private interface JobStarter {
+        ImportJobStatus start() throws IOException, InterruptedException, ApiService.UnauthorizedException;
     }
 }

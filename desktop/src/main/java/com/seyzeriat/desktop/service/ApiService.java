@@ -14,12 +14,12 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.seyzeriat.desktop.dto.AnalyticsResult;
-import com.seyzeriat.desktop.dto.BulkImportResult;
 import com.seyzeriat.desktop.dto.CatalogOption;
 import com.seyzeriat.desktop.dto.ExternalGameResult;
 import com.seyzeriat.desktop.dto.GameDetailResult;
 import com.seyzeriat.desktop.dto.GameFormPayload;
 import com.seyzeriat.desktop.dto.GameSummaryResult;
+import com.seyzeriat.desktop.dto.ImportJobStatus;
 import com.seyzeriat.desktop.dto.ImportedGameResult;
 import com.seyzeriat.desktop.dto.NewsRequestPayload;
 import com.seyzeriat.desktop.dto.NewsResult;
@@ -118,65 +118,94 @@ public class ApiService {
     }
 
     /**
-     * Bulk-imports the top-rated games from IGDB. May take several minutes
-     * for large batches due to IGDB rate limiting (1 req/sec).
+     * Starts an asynchronous import of the most popular games from IGDB.
+     * Returns immediately with the job status; poll {@link #getImportJob(String)}
+     * for progress.
      *
-     * @param limit          number of games to fetch (max 500)
+     * @param limit          number of games to fetch (max 5000)
      * @param minRatingCount minimum IGDB rating count to qualify as popular
-     * @return summary of the operation
-     * @throws IOException           if the request fails
+     * @return the initial job status (with a jobId)
+     * @throws IOException           if the request fails or an import is already running (409)
      * @throws InterruptedException  if the request is interrupted
      * @throws UnauthorizedException if the token is expired or invalid
      */
-    public BulkImportResult bulkImportTopRated(int limit, int minRatingCount)
+    public ImportJobStatus startTopRatedImport(int limit, int minRatingCount)
             throws IOException, InterruptedException, UnauthorizedException {
 
         String url = BASE_URL + "/api/admin/games/import/top-rated"
                 + "?limit=" + limit + "&minRatingCount=" + minRatingCount;
 
-        HttpRequest.Builder builder = HttpRequest.newBuilder()
-                .uri(URI.create(url))
-                .timeout(Duration.ofSeconds(120))
-                .header("Accept", "application/json")
-                .POST(HttpRequest.BodyPublishers.noBody());
-
-        HttpResponse<String> response = sendWithAuth(builder);
-
-        if (response.statusCode() != 200) {
-            throw new IOException("Bulk top-rated import failed with status " + response.statusCode() + ": " + response.body());
-        }
-
-        return objectMapper.readValue(response.body(), BulkImportResult.class);
+        return startImportJob(url);
     }
 
     /**
-     * Bulk-imports recently released games from IGDB. May take several
-     * minutes for large batches due to IGDB rate limiting (1 req/sec).
+     * Starts an asynchronous import of recently released games from IGDB.
+     * Returns immediately with the job status; poll {@link #getImportJob(String)}
+     * for progress.
      *
      * @param limit number of games to fetch (max 500)
-     * @return summary of the operation
-     * @throws IOException           if the request fails
+     * @return the initial job status (with a jobId)
+     * @throws IOException           if the request fails or an import is already running (409)
      * @throws InterruptedException  if the request is interrupted
      * @throws UnauthorizedException if the token is expired or invalid
      */
-    public BulkImportResult bulkImportRecent(int limit)
+    public ImportJobStatus startRecentImport(int limit)
             throws IOException, InterruptedException, UnauthorizedException {
 
         String url = BASE_URL + "/api/admin/games/import/recent?limit=" + limit;
 
+        return startImportJob(url);
+    }
+
+    private ImportJobStatus startImportJob(String url)
+            throws IOException, InterruptedException, UnauthorizedException {
+
         HttpRequest.Builder builder = HttpRequest.newBuilder()
                 .uri(URI.create(url))
-                .timeout(Duration.ofSeconds(120))
                 .header("Accept", "application/json")
                 .POST(HttpRequest.BodyPublishers.noBody());
 
         HttpResponse<String> response = sendWithAuth(builder);
 
-        if (response.statusCode() != 200) {
-            throw new IOException("Bulk recent import failed with status " + response.statusCode() + ": " + response.body());
+        if (response.statusCode() == 409) {
+            throw new IOException("Un import est déjà en cours. Attendez qu'il se termine avant d'en lancer un autre.");
+        }
+        if (response.statusCode() != 202 && response.statusCode() != 200) {
+            throw new IOException("Import start failed with status " + response.statusCode() + ": " + response.body());
         }
 
-        return objectMapper.readValue(response.body(), BulkImportResult.class);
+        return objectMapper.readValue(response.body(), ImportJobStatus.class);
+    }
+
+    /**
+     * Fetches the current status of an import job.
+     *
+     * @param jobId the job identifier
+     * @return the job status, or {@code null} if the job is unknown (404, e.g. evicted)
+     * @throws IOException           if the request fails
+     * @throws InterruptedException  if the request is interrupted
+     * @throws UnauthorizedException if the token is expired or invalid
+     */
+    public ImportJobStatus getImportJob(String jobId)
+            throws IOException, InterruptedException, UnauthorizedException {
+
+        String url = BASE_URL + "/api/admin/games/import/jobs/" + jobId;
+
+        HttpRequest.Builder builder = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("Accept", "application/json")
+                .GET();
+
+        HttpResponse<String> response = sendWithAuth(builder);
+
+        if (response.statusCode() == 404) {
+            return null;
+        }
+        if (response.statusCode() != 200) {
+            throw new IOException("Failed to fetch import job with status " + response.statusCode() + ": " + response.body());
+        }
+
+        return objectMapper.readValue(response.body(), ImportJobStatus.class);
     }
 
     /**

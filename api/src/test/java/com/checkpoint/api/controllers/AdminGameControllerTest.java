@@ -14,10 +14,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -31,15 +33,16 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import com.checkpoint.api.dto.admin.BulkImportResultDto;
 import com.checkpoint.api.dto.admin.CreateGameRequestDto;
 import com.checkpoint.api.dto.admin.ExternalGameDto;
+import com.checkpoint.api.dto.admin.ImportJobStatusDto;
 import com.checkpoint.api.dto.admin.UpdateGameRequestDto;
 import com.checkpoint.api.entities.VideoGame;
 import com.checkpoint.api.exceptions.ExternalApiUnavailableException;
 import com.checkpoint.api.exceptions.ExternalGameNotFoundException;
 import com.checkpoint.api.exceptions.GameNotFoundException;
 import com.checkpoint.api.exceptions.GameReferencedException;
+import com.checkpoint.api.exceptions.ImportAlreadyRunningException;
 import com.checkpoint.api.security.ApiAuthenticationEntryPoint;
 import com.checkpoint.api.security.JwtAuthenticationFilter;
 import com.checkpoint.api.services.AdminGameService;
@@ -221,64 +224,96 @@ class AdminGameControllerTest {
         }
     }
 
+    private static ImportJobStatusDto pendingJob(String type, int limit, int minRatingCount) {
+        return new ImportJobStatusDto(
+                UUID.randomUUID().toString(), type, "PENDING",
+                limit, minRatingCount, 0, 0, 0, 0, 0,
+                List.of(), null, Instant.now(), null);
+    }
+
     @Nested
     @DisplayName("POST /api/admin/games/import/top-rated")
     class BulkImportTopRatedTests {
 
         @Test
-        @DisplayName("Should bulk-import top rated games and return summary")
-        void shouldBulkImportTopRated() throws Exception {
-            BulkImportResultDto summary = new BulkImportResultDto(10, 7, 2, 1, List.of("Failing Game"));
-            when(adminGameService.bulkImportTopRatedGames(50, 200)).thenReturn(summary);
+        @DisplayName("Should start an async top-rated import and return 202 with the job")
+        void shouldStartTopRatedImport() throws Exception {
+            ImportJobStatusDto job = pendingJob("TOP_RATED", 50, 200);
+            when(adminGameService.startTopRatedImport(50, 200)).thenReturn(job);
 
             mockMvc.perform(post("/api/admin/games/import/top-rated")
                             .param("limit", "50")
                             .param("minRatingCount", "200"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.totalFetched").value(10))
-                    .andExpect(jsonPath("$.imported").value(7))
-                    .andExpect(jsonPath("$.skipped").value(2))
-                    .andExpect(jsonPath("$.failed").value(1))
-                    .andExpect(jsonPath("$.errors[0]").value("Failing Game"));
+                    .andExpect(status().isAccepted())
+                    .andExpect(jsonPath("$.jobId").value(job.jobId()))
+                    .andExpect(jsonPath("$.type").value("TOP_RATED"))
+                    .andExpect(jsonPath("$.state").value("PENDING"));
 
-            verify(adminGameService).bulkImportTopRatedGames(50, 200);
+            verify(adminGameService).startTopRatedImport(50, 200);
         }
 
         @Test
         @DisplayName("Should use defaults when no parameters are provided")
         void shouldUseDefaults() throws Exception {
-            when(adminGameService.bulkImportTopRatedGames(anyInt(), anyInt()))
-                    .thenReturn(new BulkImportResultDto(0, 0, 0, 0, List.of()));
+            when(adminGameService.startTopRatedImport(anyInt(), anyInt()))
+                    .thenReturn(pendingJob("TOP_RATED", 100, 100));
 
             mockMvc.perform(post("/api/admin/games/import/top-rated"))
-                    .andExpect(status().isOk());
+                    .andExpect(status().isAccepted());
 
-            verify(adminGameService).bulkImportTopRatedGames(100, 100);
+            verify(adminGameService).startTopRatedImport(100, 100);
         }
 
         @Test
-        @DisplayName("Should cap limit at 500")
+        @DisplayName("Should cap limit at 5000")
         void shouldCapLimit() throws Exception {
-            when(adminGameService.bulkImportTopRatedGames(anyInt(), anyInt()))
-                    .thenReturn(new BulkImportResultDto(0, 0, 0, 0, List.of()));
+            when(adminGameService.startTopRatedImport(anyInt(), anyInt()))
+                    .thenReturn(pendingJob("TOP_RATED", 5000, 50));
 
             mockMvc.perform(post("/api/admin/games/import/top-rated")
-                            .param("limit", "9999")
+                            .param("limit", "99999")
                             .param("minRatingCount", "50"))
-                    .andExpect(status().isOk());
+                    .andExpect(status().isAccepted());
 
-            verify(adminGameService).bulkImportTopRatedGames(500, 50);
+            verify(adminGameService).startTopRatedImport(5000, 50);
         }
 
         @Test
-        @DisplayName("Should return 503 when external API is unavailable")
-        void shouldReturn503WhenExternalApiUnavailable() throws Exception {
-            when(adminGameService.bulkImportTopRatedGames(anyInt(), anyInt()))
-                    .thenThrow(new ExternalApiUnavailableException("IGDB API is unavailable"));
+        @DisplayName("Should return 409 when an import is already running")
+        void shouldReturn409WhenAlreadyRunning() throws Exception {
+            when(adminGameService.startTopRatedImport(anyInt(), anyInt()))
+                    .thenThrow(new ImportAlreadyRunningException());
 
             mockMvc.perform(post("/api/admin/games/import/top-rated"))
-                    .andExpect(status().isServiceUnavailable())
-                    .andExpect(jsonPath("$.error").value("Service Unavailable"));
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.error").value("Conflict"));
+        }
+    }
+
+    @Nested
+    @DisplayName("GET /api/admin/games/import/jobs/{jobId}")
+    class ImportJobStatusEndpointTests {
+
+        @Test
+        @DisplayName("Should return the job status when it exists")
+        void shouldReturnJobStatus() throws Exception {
+            ImportJobStatusDto job = pendingJob("TOP_RATED", 100, 100);
+            UUID id = UUID.fromString(job.jobId());
+            when(adminGameService.findImportJob(id)).thenReturn(Optional.of(job));
+
+            mockMvc.perform(get("/api/admin/games/import/jobs/" + id))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.jobId").value(job.jobId()));
+        }
+
+        @Test
+        @DisplayName("Should return 404 when the job is unknown")
+        void shouldReturn404WhenUnknown() throws Exception {
+            UUID id = UUID.randomUUID();
+            when(adminGameService.findImportJob(id)).thenReturn(Optional.empty());
+
+            mockMvc.perform(get("/api/admin/games/import/jobs/" + id))
+                    .andExpect(status().isNotFound());
         }
     }
 
@@ -433,57 +468,43 @@ class AdminGameControllerTest {
     class BulkImportRecentTests {
 
         @Test
-        @DisplayName("Should bulk-import recent games and return summary")
-        void shouldBulkImportRecent() throws Exception {
-            BulkImportResultDto summary = new BulkImportResultDto(20, 18, 1, 1, List.of("Broken Game"));
-            when(adminGameService.bulkImportRecentGames(20)).thenReturn(summary);
+        @DisplayName("Should start an async recent import and return 202 with the job")
+        void shouldStartRecentImport() throws Exception {
+            ImportJobStatusDto job = pendingJob("RECENT", 20, 0);
+            when(adminGameService.startRecentImport(20)).thenReturn(job);
 
             mockMvc.perform(post("/api/admin/games/import/recent")
                             .param("limit", "20"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.totalFetched").value(20))
-                    .andExpect(jsonPath("$.imported").value(18))
-                    .andExpect(jsonPath("$.skipped").value(1))
-                    .andExpect(jsonPath("$.failed").value(1))
-                    .andExpect(jsonPath("$.errors[0]").value("Broken Game"));
+                    .andExpect(status().isAccepted())
+                    .andExpect(jsonPath("$.type").value("RECENT"))
+                    .andExpect(jsonPath("$.state").value("PENDING"));
 
-            verify(adminGameService).bulkImportRecentGames(20);
+            verify(adminGameService).startRecentImport(20);
         }
 
         @Test
         @DisplayName("Should use default limit when not provided")
         void shouldUseDefaultLimit() throws Exception {
-            when(adminGameService.bulkImportRecentGames(anyInt()))
-                    .thenReturn(new BulkImportResultDto(0, 0, 0, 0, List.of()));
+            when(adminGameService.startRecentImport(anyInt()))
+                    .thenReturn(pendingJob("RECENT", 100, 0));
 
             mockMvc.perform(post("/api/admin/games/import/recent"))
-                    .andExpect(status().isOk());
+                    .andExpect(status().isAccepted());
 
-            verify(adminGameService).bulkImportRecentGames(100);
+            verify(adminGameService).startRecentImport(100);
         }
 
         @Test
         @DisplayName("Should cap limit at 500")
         void shouldCapLimit() throws Exception {
-            when(adminGameService.bulkImportRecentGames(anyInt()))
-                    .thenReturn(new BulkImportResultDto(0, 0, 0, 0, List.of()));
+            when(adminGameService.startRecentImport(anyInt()))
+                    .thenReturn(pendingJob("RECENT", 500, 0));
 
             mockMvc.perform(post("/api/admin/games/import/recent")
                             .param("limit", "9999"))
-                    .andExpect(status().isOk());
+                    .andExpect(status().isAccepted());
 
-            verify(adminGameService).bulkImportRecentGames(500);
-        }
-
-        @Test
-        @DisplayName("Should return 503 when external API is unavailable")
-        void shouldReturn503WhenExternalApiUnavailable() throws Exception {
-            when(adminGameService.bulkImportRecentGames(anyInt()))
-                    .thenThrow(new ExternalApiUnavailableException("IGDB API is unavailable"));
-
-            mockMvc.perform(post("/api/admin/games/import/recent"))
-                    .andExpect(status().isServiceUnavailable())
-                    .andExpect(jsonPath("$.error").value("Service Unavailable"));
+            verify(adminGameService).startRecentImport(500);
         }
     }
 }

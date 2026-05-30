@@ -25,6 +25,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.checkpoint.api.client.IgdbApiClient;
 import com.checkpoint.api.dto.admin.CreateGameRequestDto;
+import com.checkpoint.api.dto.admin.ImportJobStatusDto;
 import com.checkpoint.api.dto.admin.UpdateGameRequestDto;
 import com.checkpoint.api.entities.Company;
 import com.checkpoint.api.entities.Genre;
@@ -32,6 +33,11 @@ import com.checkpoint.api.entities.Platform;
 import com.checkpoint.api.entities.VideoGame;
 import com.checkpoint.api.exceptions.GameNotFoundException;
 import com.checkpoint.api.exceptions.GameReferencedException;
+import com.checkpoint.api.exceptions.ImportAlreadyRunningException;
+import com.checkpoint.api.jobs.ImportJobRegistry;
+import com.checkpoint.api.jobs.ImportJobRunner;
+import com.checkpoint.api.jobs.ImportJobStatus;
+import com.checkpoint.api.jobs.ImportType;
 import com.checkpoint.api.repositories.BacklogRepository;
 import com.checkpoint.api.repositories.CompanyRepository;
 import com.checkpoint.api.repositories.FavoriteRepository;
@@ -56,6 +62,8 @@ class AdminGameServiceImplTest {
 
     @Mock private IgdbApiClient igdbApiClient;
     @Mock private GameImportService gameImportService;
+    @Mock private ImportJobRegistry importJobRegistry;
+    @Mock private ImportJobRunner importJobRunner;
     @Mock private VideoGameRepository videoGameRepository;
     @Mock private GenreRepository genreRepository;
     @Mock private PlatformRepository platformRepository;
@@ -75,8 +83,8 @@ class AdminGameServiceImplTest {
     @BeforeEach
     void setUp() {
         service = new AdminGameServiceImpl(
-                igdbApiClient, gameImportService, videoGameRepository,
-                genreRepository, platformRepository, companyRepository,
+                igdbApiClient, gameImportService, importJobRegistry, importJobRunner,
+                videoGameRepository, genreRepository, platformRepository, companyRepository,
                 userGameRepository, userGamePlayRepository, reviewRepository,
                 backlogRepository, wishRepository, favoriteRepository,
                 rateRepository, likeRepository, gameListEntryRepository
@@ -113,6 +121,57 @@ class AdminGameServiceImplTest {
         g.setCompanies(new HashSet<>());
         g.setDlcs(new HashSet<>());
         return g;
+    }
+
+    @Nested
+    @DisplayName("startTopRatedImport / startRecentImport")
+    class StartImportTests {
+
+        @Test
+        @DisplayName("Should register a TOP_RATED job and hand it to the runner")
+        void shouldStartTopRatedImport() {
+            ImportJobStatus job = new ImportJobStatus(UUID.randomUUID(), ImportType.TOP_RATED, 1000, 50);
+            when(importJobRegistry.startJob(ImportType.TOP_RATED, 1000, 50)).thenReturn(job);
+
+            ImportJobStatusDto dto = service.startTopRatedImport(1000, 50);
+
+            assertThat(dto.jobId()).isEqualTo(job.getJobId().toString());
+            assertThat(dto.type()).isEqualTo("TOP_RATED");
+            verify(importJobRunner).run(job);
+        }
+
+        @Test
+        @DisplayName("Should register a RECENT job with minRatingCount 0")
+        void shouldStartRecentImport() {
+            ImportJobStatus job = new ImportJobStatus(UUID.randomUUID(), ImportType.RECENT, 200, 0);
+            when(importJobRegistry.startJob(ImportType.RECENT, 200, 0)).thenReturn(job);
+
+            ImportJobStatusDto dto = service.startRecentImport(200);
+
+            assertThat(dto.type()).isEqualTo("RECENT");
+            verify(importJobRunner).run(job);
+        }
+
+        @Test
+        @DisplayName("Should propagate ImportAlreadyRunningException and not start a runner")
+        void shouldRejectWhenAlreadyRunning() {
+            when(importJobRegistry.startJob(ImportType.TOP_RATED, 1000, 50))
+                    .thenThrow(new ImportAlreadyRunningException());
+
+            assertThatThrownBy(() -> service.startTopRatedImport(1000, 50))
+                    .isInstanceOf(ImportAlreadyRunningException.class);
+
+            verify(importJobRunner, never()).run(any());
+        }
+
+        @Test
+        @DisplayName("findImportJob returns the job status when present")
+        void shouldFindImportJob() {
+            ImportJobStatus job = new ImportJobStatus(UUID.randomUUID(), ImportType.TOP_RATED, 1000, 50);
+            when(importJobRegistry.find(job.getJobId())).thenReturn(java.util.Optional.of(job));
+
+            assertThat(service.findImportJob(job.getJobId())).isPresent();
+        }
     }
 
     @Nested

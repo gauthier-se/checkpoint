@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -13,9 +14,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.checkpoint.api.client.IgdbApiClient;
-import com.checkpoint.api.dto.admin.BulkImportResultDto;
 import com.checkpoint.api.dto.admin.CreateGameRequestDto;
 import com.checkpoint.api.dto.admin.ExternalGameDto;
+import com.checkpoint.api.dto.admin.ImportJobStatusDto;
 import com.checkpoint.api.dto.admin.UpdateGameRequestDto;
 import com.checkpoint.api.dto.igdb.IgdbGameDto;
 import com.checkpoint.api.entities.Company;
@@ -27,6 +28,10 @@ import com.checkpoint.api.exceptions.ExternalGameNotFoundException;
 import com.checkpoint.api.exceptions.GameNotFoundException;
 import com.checkpoint.api.exceptions.GameReferencedException;
 import com.checkpoint.api.exceptions.IgdbApiException;
+import com.checkpoint.api.jobs.ImportJobRegistry;
+import com.checkpoint.api.jobs.ImportJobRunner;
+import com.checkpoint.api.jobs.ImportJobStatus;
+import com.checkpoint.api.jobs.ImportType;
 import com.checkpoint.api.repositories.BacklogRepository;
 import com.checkpoint.api.repositories.CompanyRepository;
 import com.checkpoint.api.repositories.FavoriteRepository;
@@ -42,7 +47,6 @@ import com.checkpoint.api.repositories.VideoGameRepository;
 import com.checkpoint.api.repositories.WishRepository;
 import com.checkpoint.api.services.AdminGameService;
 import com.checkpoint.api.services.GameImportService;
-import com.checkpoint.api.services.GameImportService.BulkImportStats;
 
 /**
  * Implementation of {@link AdminGameService}.
@@ -50,13 +54,14 @@ import com.checkpoint.api.services.GameImportService.BulkImportStats;
  * plus manual CRUD on video games.
  */
 @Service
-@Transactional
 public class AdminGameServiceImpl implements AdminGameService {
 
     private static final Logger log = LoggerFactory.getLogger(AdminGameServiceImpl.class);
 
     private final IgdbApiClient igdbApiClient;
     private final GameImportService gameImportService;
+    private final ImportJobRegistry importJobRegistry;
+    private final ImportJobRunner importJobRunner;
     private final VideoGameRepository videoGameRepository;
     private final GenreRepository genreRepository;
     private final PlatformRepository platformRepository;
@@ -73,6 +78,8 @@ public class AdminGameServiceImpl implements AdminGameService {
 
     public AdminGameServiceImpl(IgdbApiClient igdbApiClient,
                                 GameImportService gameImportService,
+                                ImportJobRegistry importJobRegistry,
+                                ImportJobRunner importJobRunner,
                                 VideoGameRepository videoGameRepository,
                                 GenreRepository genreRepository,
                                 PlatformRepository platformRepository,
@@ -88,6 +95,8 @@ public class AdminGameServiceImpl implements AdminGameService {
                                 GameListEntryRepository gameListEntryRepository) {
         this.igdbApiClient = igdbApiClient;
         this.gameImportService = gameImportService;
+        this.importJobRegistry = importJobRegistry;
+        this.importJobRunner = importJobRunner;
         this.videoGameRepository = videoGameRepository;
         this.genreRepository = genreRepository;
         this.platformRepository = platformRepository;
@@ -162,8 +171,8 @@ public class AdminGameServiceImpl implements AdminGameService {
     }
 
     @Override
-    public BulkImportResultDto bulkImportTopRatedGames(int limit, int minRatingCount) {
-        log.info("Bulk importing top {} rated games (min {} ratings)", limit, minRatingCount);
+    public ImportJobStatusDto startTopRatedImport(int limit, int minRatingCount) {
+        log.info("Starting async top-rated import (limit={}, minRatingCount={})", limit, minRatingCount);
 
         if (limit <= 0) {
             throw new IllegalArgumentException("Limit must be a positive number");
@@ -172,35 +181,32 @@ public class AdminGameServiceImpl implements AdminGameService {
             throw new IllegalArgumentException("Minimum rating count cannot be negative");
         }
 
-        try {
-            List<IgdbGameDto> games = igdbApiClient.fetchTopRatedGames(limit, minRatingCount);
-            BulkImportStats stats = gameImportService.bulkImport(games);
-            return toDto(stats);
-        } catch (IgdbApiException e) {
-            log.error("IGDB API error during bulk top-rated import: {}", e.getMessage(), e);
-            throw new ExternalApiUnavailableException("External game API is currently unavailable", e);
-        }
+        ImportJobStatus job = importJobRegistry.startJob(ImportType.TOP_RATED, limit, minRatingCount);
+        importJobRunner.run(job);
+        return job.toDto();
     }
 
     @Override
-    public BulkImportResultDto bulkImportRecentGames(int limit) {
-        log.info("Bulk importing {} recently released games", limit);
+    public ImportJobStatusDto startRecentImport(int limit) {
+        log.info("Starting async recent import (limit={})", limit);
 
         if (limit <= 0) {
             throw new IllegalArgumentException("Limit must be a positive number");
         }
 
-        try {
-            List<IgdbGameDto> games = igdbApiClient.fetchRecentlyReleasedGames(limit);
-            BulkImportStats stats = gameImportService.bulkImport(games);
-            return toDto(stats);
-        } catch (IgdbApiException e) {
-            log.error("IGDB API error during bulk recent import: {}", e.getMessage(), e);
-            throw new ExternalApiUnavailableException("External game API is currently unavailable", e);
-        }
+        ImportJobStatus job = importJobRegistry.startJob(ImportType.RECENT, limit, 0);
+        importJobRunner.run(job);
+        return job.toDto();
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public Optional<ImportJobStatusDto> findImportJob(UUID jobId) {
+        return importJobRegistry.find(jobId).map(ImportJobStatus::toDto);
+    }
+
+    @Override
+    @Transactional
     public VideoGame createGame(CreateGameRequestDto request) {
         String trimmedTitle = request.title().trim();
         log.info("Admin manual create game: '{}'", trimmedTitle);
@@ -224,6 +230,7 @@ public class AdminGameServiceImpl implements AdminGameService {
     }
 
     @Override
+    @Transactional
     public VideoGame updateGame(UUID gameId, UpdateGameRequestDto request) {
         log.info("Admin manual update game: {}", gameId);
 
@@ -249,6 +256,7 @@ public class AdminGameServiceImpl implements AdminGameService {
     }
 
     @Override
+    @Transactional
     public void deleteGame(UUID gameId) {
         log.info("Admin manual delete game: {}", gameId);
 
@@ -350,16 +358,6 @@ public class AdminGameServiceImpl implements AdminGameService {
             throw new IllegalArgumentException("One or more company IDs are unknown");
         }
         return new HashSet<>(found);
-    }
-
-    private BulkImportResultDto toDto(BulkImportStats stats) {
-        return new BulkImportResultDto(
-                stats.totalFetched(),
-                stats.imported(),
-                stats.skipped(),
-                stats.failed(),
-                stats.errors()
-        );
     }
 
     /**

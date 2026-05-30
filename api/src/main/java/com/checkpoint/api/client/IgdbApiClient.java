@@ -58,6 +58,20 @@ public interface IgdbApiClient {
     IgdbTimeToBeatDto fetchTimeToBeat(long igdbGameId);
 
     /**
+     * Fetches the time-to-beat statistics for many games in a single batched
+     * operation. The {@code /game_time_to_beat} endpoint caps each response at
+     * 500 rows, so the input is chunked internally. Best-effort: a chunk that
+     * fails is logged and skipped, so the import is never blocked.
+     *
+     * <p>This is the bulk-import counterpart of {@link #fetchTimeToBeat(long)}:
+     * it replaces one request per game with one request per 500 games.</p>
+     *
+     * @param igdbGameIds the IGDB game IDs to look up
+     * @return an IGDB game ID → time-to-beat map; games without data are absent
+     */
+    Map<Long, IgdbTimeToBeatDto> fetchTimeToBeatForGames(Collection<Long> igdbGameIds);
+
+    /**
      * Resolves a list of Steam application IDs to IGDB game IDs via IGDB's
      * {@code /external_games} endpoint (category 1 = Steam).
      *

@@ -18,9 +18,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.checkpoint.api.dto.admin.BulkImportResultDto;
 import com.checkpoint.api.dto.admin.CreateGameRequestDto;
 import com.checkpoint.api.dto.admin.ExternalGameDto;
+import com.checkpoint.api.dto.admin.ImportJobStatusDto;
 import com.checkpoint.api.dto.admin.UpdateGameRequestDto;
 import com.checkpoint.api.dto.catalog.GameDetailDto;
 import com.checkpoint.api.entities.VideoGame;
@@ -42,7 +42,10 @@ public class AdminGameController {
 
     private static final Logger log = LoggerFactory.getLogger(AdminGameController.class);
     private static final int MAX_SEARCH_LIMIT = 50;
-    private static final int MAX_BULK_LIMIT = 500;
+    /** Top-rated imports paginate IGDB, so they can collect far more than one page. */
+    private static final int MAX_TOP_RATED_LIMIT = 5000;
+    /** Recent imports use a single IGDB request, which is hard-capped at 500 rows. */
+    private static final int MAX_RECENT_LIMIT = 500;
 
     private final AdminGameService adminGameService;
 
@@ -97,50 +100,58 @@ public class AdminGameController {
     }
 
     /**
-     * Bulk-imports the top-rated games from IGDB. Already-imported games are
-     * skipped (deduplication by IGDB ID). Runs synchronously and may take
-     * several minutes for large batches due to IGDB rate limiting.
+     * Starts an asynchronous bulk import of the most popular games from IGDB
+     * (ordered by rating count). Returns immediately with a job; poll
+     * {@code GET /games/import/jobs/{jobId}} for progress.
      *
-     * @param limit          number of games to fetch (default 100, max 500)
+     * @param limit          number of games to fetch (default 100, max 5000)
      * @param minRatingCount minimum IGDB rating count to qualify (default 100)
-     * @return summary of the operation
+     * @return 202 Accepted with the initial job status; 409 if an import is already running
      */
     @PostMapping("/games/import/top-rated")
-    public ResponseEntity<BulkImportResultDto> bulkImportTopRated(
+    public ResponseEntity<ImportJobStatusDto> bulkImportTopRated(
             @RequestParam(defaultValue = "100") int limit,
             @RequestParam(defaultValue = "100") int minRatingCount) {
 
-        int effectiveLimit = Math.min(Math.max(1, limit), MAX_BULK_LIMIT);
+        int effectiveLimit = Math.min(Math.max(1, limit), MAX_TOP_RATED_LIMIT);
         int effectiveMinRating = Math.max(0, minRatingCount);
-        log.info("Admin bulk top-rated import request: limit={}, minRatingCount={}",
+        log.info("Admin async top-rated import request: limit={}, minRatingCount={}",
                 effectiveLimit, effectiveMinRating);
 
-        BulkImportResultDto result = adminGameService.bulkImportTopRatedGames(effectiveLimit, effectiveMinRating);
-
-        log.info("Bulk top-rated import done: {} imported, {} skipped, {} failed (of {} fetched)",
-                result.imported(), result.skipped(), result.failed(), result.totalFetched());
-        return ResponseEntity.ok(result);
+        ImportJobStatusDto job = adminGameService.startTopRatedImport(effectiveLimit, effectiveMinRating);
+        return ResponseEntity.accepted().body(job);
     }
 
     /**
-     * Bulk-imports recently released games from IGDB. Already-imported games
-     * are skipped (deduplication by IGDB ID). Runs synchronously.
+     * Starts an asynchronous bulk import of recently released games from IGDB.
+     * Returns immediately with a job; poll {@code GET /games/import/jobs/{jobId}}
+     * for progress.
      *
      * @param limit number of games to fetch (default 100, max 500)
-     * @return summary of the operation
+     * @return 202 Accepted with the initial job status; 409 if an import is already running
      */
     @PostMapping("/games/import/recent")
-    public ResponseEntity<BulkImportResultDto> bulkImportRecent(
+    public ResponseEntity<ImportJobStatusDto> bulkImportRecent(
             @RequestParam(defaultValue = "100") int limit) {
 
-        int effectiveLimit = Math.min(Math.max(1, limit), MAX_BULK_LIMIT);
-        log.info("Admin bulk recent import request: limit={}", effectiveLimit);
+        int effectiveLimit = Math.min(Math.max(1, limit), MAX_RECENT_LIMIT);
+        log.info("Admin async recent import request: limit={}", effectiveLimit);
 
-        BulkImportResultDto result = adminGameService.bulkImportRecentGames(effectiveLimit);
+        ImportJobStatusDto job = adminGameService.startRecentImport(effectiveLimit);
+        return ResponseEntity.accepted().body(job);
+    }
 
-        log.info("Bulk recent import done: {} imported, {} skipped, {} failed (of {} fetched)",
-                result.imported(), result.skipped(), result.failed(), result.totalFetched());
-        return ResponseEntity.ok(result);
+    /**
+     * Returns the current status of a bulk-import job.
+     *
+     * @param jobId the job identifier
+     * @return 200 with the job status, or 404 if unknown (never started or evicted)
+     */
+    @GetMapping("/games/import/jobs/{jobId}")
+    public ResponseEntity<ImportJobStatusDto> getImportJob(@PathVariable UUID jobId) {
+        return adminGameService.findImportJob(jobId)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     /**

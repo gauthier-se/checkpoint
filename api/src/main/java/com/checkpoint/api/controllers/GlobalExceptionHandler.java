@@ -30,6 +30,7 @@ import com.checkpoint.api.exceptions.GameAlreadyInLibraryException;
 import com.checkpoint.api.exceptions.GameNotFoundException;
 import com.checkpoint.api.exceptions.GameNotInLibraryException;
 import com.checkpoint.api.exceptions.GameReferencedException;
+import com.checkpoint.api.exceptions.ImportAlreadyRunningException;
 import com.checkpoint.api.exceptions.GameAlreadyInBacklogException;
 import com.checkpoint.api.exceptions.GameAlreadyInWishlistException;
 import com.checkpoint.api.exceptions.GameNotInBacklogException;
@@ -246,6 +247,27 @@ public class GlobalExceptionHandler {
                 "Game cannot be deleted because it is referenced by existing data",
                 LocalDateTime.now(),
                 ex.getBlockingReferences()
+        );
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    /**
+     * Handles ImportAlreadyRunningException when an admin starts a bulk import
+     * while another one is still in progress.
+     *
+     * @param ex the exception
+     * @return error response with 409 status
+     */
+    @ExceptionHandler(ImportAlreadyRunningException.class)
+    public ResponseEntity<ErrorResponse> handleImportAlreadyRunning(ImportAlreadyRunningException ex) {
+        log.warn("Import already running: {}", ex.getMessage());
+
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.CONFLICT.value(),
+                "Conflict",
+                ex.getMessage(),
+                LocalDateTime.now()
         );
 
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);

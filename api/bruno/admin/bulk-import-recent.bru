@@ -18,13 +18,24 @@ auth:bearer {
   token: {{token}}
 }
 
-docs {
-  # Bulk Import Recent Releases
+script:post-response {
+  if (res.getStatus() === 202 && res.getBody() && res.getBody().jobId) {
+    bru.setVar("importJobId", res.getBody().jobId);
+  }
+}
 
-  Batch-imports recently released games from IGDB into the local database.
+docs {
+  # Bulk Import Recent Releases (async)
+
+  Starts an **asynchronous** batch import of recently released games from IGDB.
   Already-imported games are skipped (deduplication via `igdbId`).
-  Runs synchronously and may take several minutes for large batches due
-  to IGDB rate limiting (1 req/sec).
+
+  The endpoint returns immediately with **202 Accepted** and a job descriptor.
+  Poll `GET /api/admin/games/import/jobs/{jobId}` ("Get Import Job Status") to
+  follow progress until the job reaches `COMPLETED` or `FAILED`.
+
+  This request stores the returned `jobId` into the `importJobId` Bruno variable
+  so the status request can pick it up automatically.
 
   ## Authentication
 
@@ -34,25 +45,38 @@ docs {
   ## Query Parameters
 
   - **limit** (optional, default 100, max 500): Number of games to fetch from IGDB
+    (recent import uses a single IGDB request, hard-capped at 500 rows)
 
   ## Response
 
-  Returns a summary of the operation:
-  - `totalFetched`: Number of games returned by IGDB
-  - `imported`: Number of newly persisted games
-  - `skipped`: Number of games skipped (already exist)
-  - `failed`: Number of games whose import threw an exception
+  **202 Accepted** with the initial job status:
+  - `jobId`: Identifier to poll for progress
+  - `type`: `RECENT`
+  - `state`: `PENDING` or `RUNNING`
+  - `requestedLimit`: Echoed request parameter (`minRatingCount` is 0 for recent)
+  - `totalFetched`, `processed`, `imported`, `skipped`, `failed`: Live counters (0 at start)
   - `errors`: List of titles (or IGDB IDs) for failed games
+  - `errorMessage`: Fatal error message if the whole job failed, else null
+  - `startedAt`, `finishedAt`: Timestamps (`finishedAt` null while running)
 
   ## Example Response
 
   ```json
   {
-    "totalFetched": 50,
-    "imported": 48,
-    "skipped": 1,
-    "failed": 1,
-    "errors": ["Unreleased Demo"]
+    "jobId": "3a9c5e7d-1b2f-4c8a-9e0d-6f4b2c1a8d3e",
+    "type": "RECENT",
+    "state": "RUNNING",
+    "requestedLimit": 50,
+    "minRatingCount": 0,
+    "totalFetched": 0,
+    "processed": 0,
+    "imported": 0,
+    "skipped": 0,
+    "failed": 0,
+    "errors": [],
+    "errorMessage": null,
+    "startedAt": "2026-05-30T08:00:00Z",
+    "finishedAt": null
   }
   ```
 
@@ -60,5 +84,5 @@ docs {
 
   - **401 Unauthorized**: Missing or invalid JWT token
   - **403 Forbidden**: User does not have `ROLE_ADMIN`
-  - **503 Service Unavailable**: IGDB API is down or rate limited
+  - **409 Conflict**: Another import is already running
 }
