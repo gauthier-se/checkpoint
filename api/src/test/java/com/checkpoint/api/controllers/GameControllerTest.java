@@ -34,6 +34,7 @@ import com.checkpoint.api.dto.catalog.GameDetailDto;
 import com.checkpoint.api.dto.catalog.GameDetailDto.CompanyDto;
 import com.checkpoint.api.dto.catalog.GameDetailDto.GenreDto;
 import com.checkpoint.api.dto.catalog.GameDetailDto.PlatformDto;
+import com.checkpoint.api.dto.profile.RatingDistributionEntryDto;
 import com.checkpoint.api.dto.list.GameListCardDto;
 import com.checkpoint.api.exceptions.GameNotFoundException;
 import com.checkpoint.api.security.ApiAuthenticationEntryPoint;
@@ -135,6 +136,7 @@ class GameControllerTest {
                 LocalDate.of(2015, 5, 19),
                 4.8,
                 1500L,
+                List.of(new RatingDistributionEntryDto(10, 800L), new RatingDistributionEntryDto(9, 700L)),
                 List.of(new GenreDto(UUID.randomUUID(), "RPG")),
                 List.of(new PlatformDto(UUID.randomUUID(), "PC")),
                 List.of(new CompanyDto(UUID.randomUUID(), "CD Projekt RED"))
@@ -152,7 +154,9 @@ class GameControllerTest {
                 .andExpect(jsonPath("$.genres").isArray())
                 .andExpect(jsonPath("$.genres[0].name").value("RPG"))
                 .andExpect(jsonPath("$.platforms[0].name").value("PC"))
-                .andExpect(jsonPath("$.companies[0].name").value("CD Projekt RED"));
+                .andExpect(jsonPath("$.companies[0].name").value("CD Projekt RED"))
+                .andExpect(jsonPath("$.ratingDistribution[0].score").value(10))
+                .andExpect(jsonPath("$.ratingDistribution[0].count").value(800));
     }
 
     @Test

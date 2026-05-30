@@ -9,6 +9,7 @@ import {
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { XpProgressBar } from './xp-progress-bar'
+import { RatingDistributionChart } from './rating-distribution-chart'
 import { BadgeGrid, hasMoreBadges } from './badge-grid'
 import { FavoriteGamesSection } from './favorite-games-section'
 import { RecentActivitySection } from './recent-activity-section'
@@ -144,6 +145,12 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
         level={profile.level}
         xpPoint={profile.xpPoint}
         xpThreshold={profile.xpThreshold}
+        className="max-w-md"
+      />
+
+      {/* Rating distribution */}
+      <RatingDistributionChart
+        distribution={profile.ratingDistribution}
         className="max-w-md"
       />
 

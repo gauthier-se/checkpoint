@@ -16,9 +16,11 @@ import com.checkpoint.api.dto.catalog.GameDetailDto;
 import com.checkpoint.api.dto.catalog.GameDetailDto.CompanyDto;
 import com.checkpoint.api.dto.catalog.GameDetailDto.GenreDto;
 import com.checkpoint.api.dto.catalog.GameDetailDto.PlatformDto;
+import com.checkpoint.api.dto.profile.RatingDistributionEntryDto;
 import com.checkpoint.api.entities.VideoGame;
 import com.checkpoint.api.exceptions.GameNotFoundException;
 import com.checkpoint.api.repositories.BacklogRepository;
+import com.checkpoint.api.repositories.RateRepository;
 import com.checkpoint.api.repositories.VideoGameRepository;
 import com.checkpoint.api.repositories.WishRepository;
 import com.checkpoint.api.services.GameCatalogService;
@@ -36,13 +38,16 @@ public class GameCatalogServiceImpl implements GameCatalogService {
     private final VideoGameRepository videoGameRepository;
     private final BacklogRepository backlogRepository;
     private final WishRepository wishRepository;
+    private final RateRepository rateRepository;
 
     public GameCatalogServiceImpl(VideoGameRepository videoGameRepository,
                                   BacklogRepository backlogRepository,
-                                  WishRepository wishRepository) {
+                                  WishRepository wishRepository,
+                                  RateRepository rateRepository) {
         this.videoGameRepository = videoGameRepository;
         this.backlogRepository = backlogRepository;
         this.wishRepository = wishRepository;
+        this.rateRepository = rateRepository;
     }
 
     @Override
@@ -84,14 +89,17 @@ public class GameCatalogServiceImpl implements GameCatalogService {
         // Get rating statistics
         Double averageRating = game.getAverageRating();
         Long ratingCount = videoGameRepository.countRatings(id);
+        List<RatingDistributionEntryDto> ratingDistribution =
+                rateRepository.findDistributionByVideoGameId(id);
 
-        return mapToGameDetailDto(game, averageRating, ratingCount);
+        return mapToGameDetailDto(game, averageRating, ratingCount, ratingDistribution);
     }
 
     /**
      * Maps a VideoGame entity to a GameDetailDto.
      */
-    private GameDetailDto mapToGameDetailDto(VideoGame game, Double averageRating, Long ratingCount) {
+    private GameDetailDto mapToGameDetailDto(VideoGame game, Double averageRating, Long ratingCount,
+                                             List<RatingDistributionEntryDto> ratingDistribution) {
         List<GenreDto> genres = game.getGenres().stream()
                 .map(g -> new GenreDto(g.getId(), g.getName()))
                 .toList();
@@ -122,6 +130,7 @@ public class GameCatalogServiceImpl implements GameCatalogService {
                 game.getReleaseDate(),
                 roundedRating,
                 ratingCount != null ? ratingCount : 0L,
+                ratingDistribution,
                 genres,
                 platforms,
                 companies

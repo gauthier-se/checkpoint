@@ -64,6 +64,9 @@ class ProfileServiceImplTest {
     private LikeRepository likeRepository;
 
     @Mock
+    private com.checkpoint.api.repositories.RateRepository rateRepository;
+
+    @Mock
     private UserGameRepository userGameRepository;
 
     @Mock
@@ -108,7 +111,7 @@ class ProfileServiceImplTest {
     void setUp() {
         profileService = new ProfileServiceImpl(
                 userRepository, reviewRepository, wishRepository,
-                userGamePlayRepository, likeRepository,
+                userGamePlayRepository, likeRepository, rateRepository,
                 userGameRepository, backlogRepository, badgeRepository,
                 gameListService, storageService,
                 profileMapper, reviewMapper, wishMapper,

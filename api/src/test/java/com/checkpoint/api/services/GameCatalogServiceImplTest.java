@@ -50,11 +50,15 @@ class GameCatalogServiceImplTest {
     @Mock
     private WishRepository wishRepository;
 
+    @Mock
+    private com.checkpoint.api.repositories.RateRepository rateRepository;
+
     private GameCatalogServiceImpl gameCatalogService;
 
     @BeforeEach
     void setUp() {
-        gameCatalogService = new GameCatalogServiceImpl(videoGameRepository, backlogRepository, wishRepository);
+        gameCatalogService = new GameCatalogServiceImpl(
+                videoGameRepository, backlogRepository, wishRepository, rateRepository);
     }
 
     @Test
@@ -134,6 +138,9 @@ class GameCatalogServiceImplTest {
         when(videoGameRepository.findByIdWithRelationships(gameId)).thenReturn(Optional.of(game));
         game.setAverageRating(4.8);
         when(videoGameRepository.countRatings(gameId)).thenReturn(1500L);
+        when(rateRepository.findDistributionByVideoGameId(gameId)).thenReturn(
+                List.of(new com.checkpoint.api.dto.profile.RatingDistributionEntryDto(10, 800L),
+                        new com.checkpoint.api.dto.profile.RatingDistributionEntryDto(9, 700L)));
 
         // When
         GameDetailDto result = gameCatalogService.getGameDetails(gameId);
@@ -144,6 +151,9 @@ class GameCatalogServiceImplTest {
         assertThat(result.description()).isEqualTo("An epic RPG adventure");
         assertThat(result.averageRating()).isEqualTo(4.8);
         assertThat(result.ratingCount()).isEqualTo(1500L);
+        assertThat(result.ratingDistribution()).hasSize(2);
+        assertThat(result.ratingDistribution().get(0).score()).isEqualTo(10);
+        assertThat(result.ratingDistribution().get(0).count()).isEqualTo(800L);
         assertThat(result.genres()).hasSize(1);
         assertThat(result.genres().get(0).name()).isEqualTo("RPG");
         assertThat(result.platforms()).hasSize(1);

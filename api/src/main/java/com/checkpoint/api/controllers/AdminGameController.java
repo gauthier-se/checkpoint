@@ -206,6 +206,7 @@ public class AdminGameController {
                 game.getReleaseDate(),
                 null,
                 null,
+                java.util.List.of(),
                 game.getGenres().stream()
                         .map(genre -> new GameDetailDto.GenreDto(genre.getId(), genre.getName()))
                         .toList(),

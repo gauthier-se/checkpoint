@@ -5,6 +5,7 @@ import java.util.List;
 import com.checkpoint.api.dto.profile.BadgeDto;
 import com.checkpoint.api.dto.profile.FavoriteDto;
 import com.checkpoint.api.dto.profile.ProfileUpdatedDto;
+import com.checkpoint.api.dto.profile.RatingDistributionEntryDto;
 import com.checkpoint.api.dto.profile.RecentPlayDto;
 import com.checkpoint.api.dto.profile.UserProfileDto;
 import com.checkpoint.api.entities.Badge;
@@ -26,15 +27,17 @@ public interface ProfileMapper {
      * @param recentPlays    the user's recent play projections (pre-computed by the service)
      * @param followerCount  the number of followers
      * @param followingCount the number of users being followed
-     * @param reviewCount    the number of reviews written
-     * @param wishlistCount  the number of games in the wishlist
-     * @param isFollowing    whether the viewer is following this user (null if not authenticated)
-     * @param isOwner        whether the viewer is the profile owner
+     * @param reviewCount        the number of reviews written
+     * @param wishlistCount      the number of games in the wishlist
+     * @param ratingDistribution the user's ratings grouped by score (sparse, 1&ndash;10)
+     * @param isFollowing        whether the viewer is following this user (null if not authenticated)
+     * @param isOwner            whether the viewer is the profile owner
      * @return the user profile DTO
      */
     UserProfileDto toUserProfileDto(User user, List<Badge> catalog, List<RecentPlayDto> recentPlays,
                                      Long followerCount, Long followingCount,
                                      Long reviewCount, Long wishlistCount,
+                                     List<RatingDistributionEntryDto> ratingDistribution,
                                      Boolean isFollowing, Boolean isOwner);
 
     /**
