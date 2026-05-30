@@ -174,6 +174,9 @@ public interface VideoGameRepository extends JpaRepository<VideoGame, UUID>, Vid
               AND vg.id NOT IN (
                   SELECT b.videoGame.id FROM Backlog b WHERE b.user.id = :userId
               )
+              AND vg.id NOT IN (
+                  SELECT r.videoGame.id FROM Rate r WHERE r.user.id = :userId
+              )
             GROUP BY vg.id
             """)
     List<UUID> findCandidateIdsForRecommendation(
@@ -224,6 +227,9 @@ public interface VideoGameRepository extends JpaRepository<VideoGame, UUID>, Vid
               )
               AND vg.id NOT IN (
                   SELECT b.videoGame.id FROM Backlog b WHERE b.user.id = :viewerId
+              )
+              AND vg.id NOT IN (
+                  SELECT r.videoGame.id FROM Rate r WHERE r.user.id = :viewerId
               )
             GROUP BY vg.id
             """)

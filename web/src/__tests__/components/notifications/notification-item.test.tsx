@@ -78,12 +78,12 @@ describe('getNotificationHref', () => {
     expect(href).toBe('/profile/bob')
   })
 
-  it('returns /profile/{username}#badges for BADGE_UNLOCKED', () => {
+  it('returns /profile/{username}/badges for BADGE_UNLOCKED', () => {
     const href = getNotificationHref(
       makeNotification({ type: 'BADGE_UNLOCKED' }),
       'bob',
     )
-    expect(href).toBe('/profile/bob#badges')
+    expect(href).toBe('/profile/bob/badges')
   })
 
   it('falls back to /profile when the username is null', () => {

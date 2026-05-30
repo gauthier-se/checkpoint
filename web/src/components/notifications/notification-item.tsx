@@ -35,7 +35,7 @@ export function getNotificationHref(
     case 'LEVEL_UP':
       return currentUsername ? `/profile/${currentUsername}` : '/profile'
     case 'BADGE_UNLOCKED':
-      return currentUsername ? `/profile/${currentUsername}#badges` : '/profile'
+      return currentUsername ? `/profile/${currentUsername}/badges` : '/profile'
     default:
       return '/'
   }

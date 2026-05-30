@@ -2,7 +2,11 @@ import { useState } from 'react'
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft, ArrowRight, Bell, CheckCheck, X } from 'lucide-react'
-import type { NotificationFilter, NotificationType } from '@/types/notification'
+import type {
+  Notification,
+  NotificationFilter,
+  NotificationType,
+} from '@/types/notification'
 import {
   NOTIFICATION_FILTERS,
   NOTIFICATION_FILTER_LABELS,
@@ -117,11 +121,19 @@ function NotificationsPage() {
     navigate({ search: { filter: newFilter, page: 1 } })
   }
 
-  const handleItemClick = (id: string, isRead: boolean, href: string) => {
-    if (!isRead) {
-      markReadMutation.mutate(id)
+  const handleItemClick = (notification: Notification) => {
+    if (!notification.isRead) {
+      markReadMutation.mutate(notification.id)
     }
-    navigate({ to: href })
+    if (
+      notification.type === 'BADGE_UNLOCKED' ||
+      notification.type === 'LEVEL_UP'
+    ) {
+      queryClient.removeQueries({
+        queryKey: ['users', user?.username, 'profile'],
+      })
+    }
+    navigate({ to: getNotificationHref(notification, user?.username ?? null) })
   }
 
   const toggleSelect = (id: string) => {
@@ -240,13 +252,7 @@ function NotificationsPage() {
               selectable={selectMode}
               selected={selectedIds.has(notification.id)}
               onToggleSelect={() => toggleSelect(notification.id)}
-              onClick={() =>
-                handleItemClick(
-                  notification.id,
-                  notification.isRead,
-                  getNotificationHref(notification, user?.username ?? null),
-                )
-              }
+              onClick={() => handleItemClick(notification)}
             />
           ))
         )}

@@ -70,7 +70,7 @@ export function BadgeGrid({ badges, limit }: BadgeGridProps) {
               <TooltipTrigger asChild>
                 <div
                   className={cn(
-                    'flex flex-col items-center gap-1 rounded-lg p-3',
+                    'flex h-24 flex-col items-center justify-start gap-2 rounded-lg p-3',
                     badge.earned
                       ? 'bg-muted'
                       : 'bg-muted/30 opacity-50 grayscale',
@@ -90,14 +90,16 @@ export function BadgeGrid({ badges, limit }: BadgeGridProps) {
                       )}
                     />
                   )}
-                  <span
-                    className={cn(
-                      'text-center text-xs font-medium leading-tight',
-                      !badge.earned && 'text-muted-foreground',
-                    )}
-                  >
-                    {badge.name}
-                  </span>
+                  <div className="flex flex-1 items-center justify-center">
+                    <span
+                      className={cn(
+                        'text-center text-xs font-medium leading-tight line-clamp-2',
+                        !badge.earned && 'text-muted-foreground',
+                      )}
+                    >
+                      {badge.name}
+                    </span>
+                  </div>
                 </div>
               </TooltipTrigger>
               <TooltipContent>
@@ -118,11 +120,13 @@ export function BadgeGrid({ badges, limit }: BadgeGridProps) {
             hiddenLocked.map((badge) => (
               <Tooltip key={badge.id}>
                 <TooltipTrigger asChild>
-                  <div className="bg-muted/30 flex flex-col items-center gap-1 rounded-lg p-3 opacity-50 grayscale">
-                    <Award className="text-muted-foreground size-8" />
-                    <span className="text-muted-foreground text-center text-xs font-medium leading-tight">
-                      ???
-                    </span>
+                  <div className="flex h-24 flex-col items-center justify-start gap-2 rounded-lg bg-muted/30 p-3 opacity-50 grayscale">
+                    <Award className="size-8 text-muted-foreground" />
+                    <div className="flex flex-1 items-center justify-center">
+                      <span className="text-center text-xs font-medium leading-tight text-muted-foreground line-clamp-2">
+                        ???
+                      </span>
+                    </div>
                   </div>
                 </TooltipTrigger>
                 <TooltipContent>

@@ -1,5 +1,6 @@
-import { useState } from 'react'
-import { Outlet, createFileRoute } from '@tanstack/react-router'
+import { useEffect, useRef, useState } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { Outlet, createFileRoute, useRouter } from '@tanstack/react-router'
 import { Footer } from '@/components/layout/footer'
 import { Header } from '@/components/layout/header'
 import { KeyboardShortcutsDialog } from '@/components/keyboard-shortcuts-dialog'
@@ -25,6 +26,27 @@ export const Route = createFileRoute('/_app')({
 
 function AppLayout() {
   useNotificationsWebSocket()
+  const router = useRouter()
+  const { data: user } = useQuery(authQueryOptions)
+
+  const queryClient = useQueryClient()
+
+  // Detect SSR auth failure recovery: if the server rendered as anonymous but the
+  // client successfully authenticated on mount, we must invalidate the router to
+  // refetch loader data (like MemberCard follow states) with the user session.
+  const isHydrated = useRef(false)
+  useEffect(() => {
+    if (!isHydrated.current) {
+      isHydrated.current = true
+      return
+    }
+    // If the user object is now present but we didn't have it during SSR/initial hydration,
+    // invalidate everything to refresh the data.
+    if (user) {
+      void queryClient.invalidateQueries()
+      void router.invalidate()
+    }
+  }, [user?.id, router, queryClient])
   const [helpOpen, setHelpOpen] = useState(false)
   const openHelp = () => setHelpOpen(true)
 

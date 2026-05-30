@@ -175,16 +175,16 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
       {/* Favorites */}
       <FavoriteGamesSection favorites={profile.favorites} isOwner={isOwner} />
 
+      {/* Recent activity */}
+      <RecentActivitySection
+        recentPlays={profile.recentPlays}
+        isOwner={isOwner}
+      />
+
       {/* Recent games preview */}
       <RecentGamesSection
         username={profile.username}
         isPrivate={profile.isPrivate}
-        isOwner={isOwner}
-      />
-
-      {/* Recent activity */}
-      <RecentActivitySection
-        recentPlays={profile.recentPlays}
         isOwner={isOwner}
       />
     </div>

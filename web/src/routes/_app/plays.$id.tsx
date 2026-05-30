@@ -4,6 +4,7 @@ import {
   ArrowLeft,
   Calendar,
   Clock,
+  Flag,
   Gamepad2,
   Heart,
   Loader2,
@@ -24,6 +25,7 @@ import { triggerReviewView } from '@/queries/easter-eggs'
 import { useAuth } from '@/hooks/use-auth'
 import { CommentSection } from '@/components/comments/comment-section'
 import { PlayLogDialog } from '@/components/games/play-log-dialog'
+import { ReportReviewDialog } from '@/components/reviews/report-review-dialog'
 import { ScoreStars } from '@/components/games/score-stars'
 import { MentionText } from '@/components/shared/mention-text'
 import {
@@ -112,6 +114,9 @@ function PlayLogDetailPage() {
   const [isEditing, setIsEditing] = useState(false)
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false)
   const [showSpoilers, setShowSpoilers] = useState(false)
+  const [reportingReviewId, setReportingReviewId] = useState<string | null>(
+    null,
+  )
 
   const { data: gameDetail } = useQuery({
     ...gameDetailQueryOptions(play?.videoGameId ?? ''),
@@ -350,6 +355,11 @@ function PlayLogDetailPage() {
                 isOwner={play.isOwner}
                 showSpoilers={showSpoilers}
                 onRevealSpoilers={() => setShowSpoilers(true)}
+                onReport={
+                  user && !play.isOwner
+                    ? () => setReportingReviewId(play.review!.id)
+                    : undefined
+                }
               />
             </>
           )}
@@ -371,6 +381,16 @@ function PlayLogDetailPage() {
           initialPlayLog={play}
           onSuccess={() => {
             void queryClient.invalidateQueries({ queryKey: ['plays', id] })
+          }}
+        />
+      )}
+
+      {reportingReviewId && (
+        <ReportReviewDialog
+          reviewId={reportingReviewId}
+          open={true}
+          onOpenChange={(open) => {
+            if (!open) setReportingReviewId(null)
           }}
         />
       )}
@@ -412,6 +432,7 @@ interface ReviewBlockProps {
   isOwner: boolean
   showSpoilers: boolean
   onRevealSpoilers: () => void
+  onReport?: () => void
 }
 
 function ReviewBlock({
@@ -419,6 +440,7 @@ function ReviewBlock({
   isOwner,
   showSpoilers,
   onRevealSpoilers,
+  onReport,
 }: ReviewBlockProps) {
   const isHidden = review.haveSpoilers && !showSpoilers && !isOwner
   return (
@@ -459,6 +481,16 @@ function ReviewBlock({
           <MessageSquare className="size-4" />
           {review.commentCount}
         </span>
+        {onReport && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-muted-foreground hover:text-destructive ml-auto"
+            onClick={onReport}
+          >
+            <Flag className="size-4" />
+          </Button>
+        )}
       </div>
     </div>
   )
