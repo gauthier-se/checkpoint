@@ -12,8 +12,10 @@ interface ReviewCardProps {
 export function ReviewCard({ review }: ReviewCardProps) {
   return (
     <Link
-      to="/games/$gameId"
-      params={{ gameId: review.gameId }}
+      to={review.playLogId ? '/plays/$id' : '/games/$gameId'}
+      params={
+        review.playLogId ? { id: review.playLogId } : { gameId: review.gameId }
+      }
       className="group flex h-full"
     >
       <Card className="flex h-full w-full flex-col gap-3 overflow-hidden p-3 transition-colors group-hover:border-foreground/40">

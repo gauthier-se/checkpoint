@@ -1,6 +1,7 @@
 import { createServerFn } from '@tanstack/react-start'
 import { getRequestHeader } from '@tanstack/react-start/server'
 import type { User } from '@/types/user'
+import { logDebug } from '@/debug-cookie'
 
 // Throws when no auth cookie is present so the loader leaves the cache empty
 // and the client refetches after hydration. Returns null only when the cookie
@@ -9,6 +10,7 @@ export const fetchCurrentUserServerFn = createServerFn({
   method: 'GET',
 }).handler(async (): Promise<User | null> => {
   const cookie = getRequestHeader('cookie')
+  logDebug(`fetchCurrentUserServerFn: cookie retrieved=${cookie}`)
   if (!cookie?.includes('checkpoint_token=')) {
     throw new Error('auth_cookie_unavailable')
   }

@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Flag, Gamepad2, MessageSquare, RefreshCw } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { Link } from '@tanstack/react-router'
 
 import type { PlayStatus } from '@/types/interaction'
 import type { ReviewsResponse } from '@/types/review'
@@ -68,9 +69,6 @@ export function ReviewList({
   const [reportingReviewId, setReportingReviewId] = useState<string | null>(
     null,
   )
-  const [expandedComments, setExpandedComments] = useState<
-    Record<string, boolean>
-  >({})
   const size = 10
 
   const queryClient = useQueryClient()
@@ -191,11 +189,28 @@ export function ReviewList({
                       )}
                     </CardTitle>
                     <CardDescription className="flex items-center gap-2 mt-0.5">
-                      {new Date(review.createdAt).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                      })}
+                      {review.playLogId ? (
+                        <Link
+                          to="/plays/$id"
+                          params={{ id: review.playLogId }}
+                          className="hover:underline"
+                        >
+                          {new Date(review.createdAt).toLocaleDateString(
+                            'en-US',
+                            {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric',
+                            },
+                          )}
+                        </Link>
+                      ) : (
+                        new Date(review.createdAt).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                        })
+                      )}
                       {review.platformName && (
                         <>
                           <span className="text-muted-foreground/30">•</span>
@@ -216,20 +231,25 @@ export function ReviewList({
                     disabled={!user}
                     isPending={likeMutation.isPending}
                   />
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="gap-1"
-                    onClick={() =>
-                      setExpandedComments((prev) => ({
-                        ...prev,
-                        [review.id]: !prev[review.id],
-                      }))
-                    }
-                  >
-                    <MessageSquare className="size-4" />
-                    {review.commentsCount}
-                  </Button>
+                  {review.playLogId ? (
+                    <Link
+                      to="/plays/$id"
+                      params={{ id: review.playLogId }}
+                      className="inline-flex items-center gap-1 h-8 px-3 text-xs rounded-md hover:bg-accent hover:text-accent-foreground"
+                    >
+                      <MessageSquare className="size-4" />
+                      {review.commentsCount}
+                    </Link>
+                  ) : (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="gap-1 pointer-events-none"
+                    >
+                      <MessageSquare className="size-4" />
+                      {review.commentsCount}
+                    </Button>
+                  )}
                   {user && user.id !== review.user.id && (
                     <Button
                       variant="ghost"
@@ -260,7 +280,17 @@ export function ReviewList({
               ) : (
                 <div className="mt-3">
                   <p className="text-sm leading-relaxed whitespace-pre-line">
-                    <MentionText content={review.content} />
+                    {review.playLogId ? (
+                      <Link
+                        to="/plays/$id"
+                        params={{ id: review.playLogId }}
+                        className="hover:underline"
+                      >
+                        <MentionText content={review.content} />
+                      </Link>
+                    ) : (
+                      <MentionText content={review.content} />
+                    )}
                   </p>
                   {review.haveSpoilers && (
                     <Button
@@ -275,11 +305,6 @@ export function ReviewList({
                 </div>
               )}
             </CardContent>
-            {expandedComments[review.id] && (
-              <div className="border-t px-6 py-4">
-                <CommentSection targetType="review" targetId={review.id} />
-              </div>
-            )}
           </Card>
         ))}
       </div>

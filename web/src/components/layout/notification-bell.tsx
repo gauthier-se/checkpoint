@@ -96,6 +96,14 @@ function NotificationPanel({ onClose }: { onClose: () => void }) {
     if (!notification.isRead) {
       markReadMutation.mutate(notification.id)
     }
+    if (
+      notification.type === 'BADGE_UNLOCKED' ||
+      notification.type === 'LEVEL_UP'
+    ) {
+      queryClient.removeQueries({
+        queryKey: ['users', user?.username, 'profile'],
+      })
+    }
     onClose()
     navigate({ to: getNotificationHref(notification, user?.username ?? null) })
   }

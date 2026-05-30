@@ -112,6 +112,7 @@ public class VideoGame {
         joinColumns = @JoinColumn(name = "video_game_id"),
         inverseJoinColumns = @JoinColumn(name = "platform_id")
     )
+    @jakarta.persistence.OrderBy("name ASC")
     private Set<Platform> platforms = new HashSet<>();
 
     // Relationship: VideoGame can have multiple genres (ManyToMany)
@@ -122,6 +123,7 @@ public class VideoGame {
         joinColumns = @JoinColumn(name = "video_game_id"),
         inverseJoinColumns = @JoinColumn(name = "genre_id")
     )
+    @jakarta.persistence.OrderBy("name ASC")
     private Set<Genre> genres = new HashSet<>();
 
     // Relationship: VideoGame can belong to 0 or 1 series
@@ -136,6 +138,7 @@ public class VideoGame {
         joinColumns = @JoinColumn(name = "video_game_id"),
         inverseJoinColumns = @JoinColumn(name = "company_id")
     )
+    @jakarta.persistence.OrderBy("name ASC")
     private Set<Company> companies = new HashSet<>();
 
     // Relationship: VideoGame can have multiple pictures

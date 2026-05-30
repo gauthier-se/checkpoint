@@ -1,5 +1,6 @@
 import { Link, useRouter } from '@tanstack/react-router'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useEffect, useState } from 'react'
 import { UserMinus, UserPlus } from 'lucide-react'
 import type { MemberCard as MemberCardType } from '@/types/member'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -14,6 +15,12 @@ interface MemberCardProps {
 
 export function MemberCard({ member }: MemberCardProps) {
   const { user } = useAuth()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   const queryClient = useQueryClient()
   const router = useRouter()
 
@@ -65,7 +72,7 @@ export function MemberCard({ member }: MemberCardProps) {
           reviews
         </span>
       </div>
-      {canFollow && (
+      {mounted && canFollow && (
         <Button
           variant={member.isFollowing ? 'outline' : 'default'}
           size="sm"

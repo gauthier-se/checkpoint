@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { useHotkey } from '@tanstack/react-hotkeys'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Link } from '@tanstack/react-router'
 import {
   Boxes,
   Check,
@@ -52,6 +53,12 @@ interface GameQuickActionsProps {
 
 export function GameQuickActions({ game }: GameQuickActionsProps) {
   const { user } = useAuth()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   const queryClient = useQueryClient()
   const isDesktop = useIsDesktop()
   const [playLogOpen, setPlayLogOpen] = useState(false)
@@ -578,19 +585,21 @@ export function GameQuickActions({ game }: GameQuickActionsProps) {
       </div>
     )
 
+    if (!mounted) {
+      return <div className="h-9" />
+    }
+
     if (disabled) {
       return (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div className="inline-block cursor-not-allowed">
-              {/* Note: we wrap in a div so the tooltip triggers even when buttons are disabled */}
-              {buttons}
-            </div>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Log in to manage your collection and play logs.</p>
-          </TooltipContent>
-        </Tooltip>
+        <p className="text-muted-foreground text-sm">
+          <Link
+            to="/login"
+            className="font-medium underline hover:text-foreground"
+          >
+            Sign in
+          </Link>{' '}
+          to log, rate, or review this game.
+        </p>
       )
     }
 

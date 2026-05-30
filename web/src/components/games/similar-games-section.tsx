@@ -15,7 +15,7 @@ export function SimilarGamesSection({ gameId }: SimilarGamesSectionProps) {
   }
 
   return (
-    <DiscoverySection title="Similar games">
+    <DiscoverySection title="You may also like...">
       <GameGrid games={data} columns={7} />
     </DiscoverySection>
   )

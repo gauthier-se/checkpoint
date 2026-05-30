@@ -33,18 +33,10 @@ import { apiFetch, isApiError } from '@/services/api'
 export const Route = createFileRoute('/_app/games/$gameId')({
   component: RouteComponent,
   loader: async ({ params: { gameId }, context }) => {
-    // Start fetching social signals in the background — empty payloads for
-    // anonymous viewers, so this is always safe to kick off.
-    void context.queryClient.prefetchQuery(friendsActivityQueryOptions(gameId))
-    void context.queryClient.prefetchQuery(
-      friendsWantToPlayQueryOptions(gameId),
-    )
-    void context.queryClient.prefetchQuery(
-      friendReviewsQueryOptions(gameId, 0, 10),
-    )
-    void context.queryClient.prefetchQuery(
-      popularGameReviewsQueryOptions(gameId, 6),
-    )
+    // We intentionally don't prefetch the social queries (friends activity, etc.)
+    // here because background prefetching during SSR loses the request context
+    // and causes the backend to see the request as anonymous. They will fetch
+    // naturally on the client.
 
     // prefetch lists + similar games so SSR renders those sections
     await Promise.all([

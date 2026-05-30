@@ -1,4 +1,5 @@
 import { getRequestCookieServerFn } from '@/services/auth-server'
+import { logDebug } from '@/debug-cookie'
 
 /**
  * Typed error thrown by `apiFetch` whenever the server returns a non-2xx
@@ -60,12 +61,14 @@ export async function apiFetch(
   init?: RequestInit,
 ): Promise<Response> {
   const isServer = typeof window === 'undefined'
-  const base = isServer ? (process.env.API_INTERNAL_URL ?? '') : ''
+  const base = isServer
+    ? (process.env.API_INTERNAL_URL ?? 'http://localhost:8080')
+    : ''
 
   const headers = new Headers(init?.headers)
-  if (isServer && !headers.has('cookie')) {
+  if (isServer && !headers.has('cookie') && !headers.has('Cookie')) {
     const cookie = await getRequestCookieServerFn()
-    if (cookie) headers.set('cookie', cookie)
+    if (cookie) headers.set('Cookie', cookie)
   }
 
   let res: Response
