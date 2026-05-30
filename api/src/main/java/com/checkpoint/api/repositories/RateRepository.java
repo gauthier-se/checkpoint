@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.checkpoint.api.dto.profile.RatingDistributionEntryDto;
 import com.checkpoint.api.entities.Rate;
 
 /**
@@ -95,4 +96,38 @@ public interface RateRepository extends JpaRepository<Rate, UUID> {
             """)
     boolean existsRateChangedAtLeastByUserId(@Param("userId") UUID userId,
                                               @Param("threshold") int threshold);
+
+    /**
+     * Returns the distribution of a user's ratings grouped by score. The result
+     * is sparse: only scores the user has actually used appear, so callers must
+     * fill the missing scores with a zero count when rendering all ten bars.
+     *
+     * @param userId the user ID
+     * @return one entry per used score, in ascending score order
+     */
+    @Query("""
+            SELECT new com.checkpoint.api.dto.profile.RatingDistributionEntryDto(r.score, COUNT(r))
+            FROM Rate r
+            WHERE r.user.id = :userId
+            GROUP BY r.score
+            ORDER BY r.score
+            """)
+    List<RatingDistributionEntryDto> findDistributionByUserId(@Param("userId") UUID userId);
+
+    /**
+     * Returns the distribution of a video game's ratings (across all users)
+     * grouped by score. The result is sparse, like
+     * {@link #findDistributionByUserId(UUID)}.
+     *
+     * @param videoGameId the video game ID
+     * @return one entry per used score, in ascending score order
+     */
+    @Query("""
+            SELECT new com.checkpoint.api.dto.profile.RatingDistributionEntryDto(r.score, COUNT(r))
+            FROM Rate r
+            WHERE r.videoGame.id = :videoGameId
+            GROUP BY r.score
+            ORDER BY r.score
+            """)
+    List<RatingDistributionEntryDto> findDistributionByVideoGameId(@Param("videoGameId") UUID videoGameId);
 }

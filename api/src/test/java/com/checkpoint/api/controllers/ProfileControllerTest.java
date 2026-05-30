@@ -38,6 +38,7 @@ import com.checkpoint.api.dto.playlog.GamePlayLogResponseDto;
 import com.checkpoint.api.dto.profile.BadgeDto;
 import com.checkpoint.api.dto.profile.CommonGameEntryDto;
 import com.checkpoint.api.dto.profile.ProfileComparisonDto;
+import com.checkpoint.api.dto.profile.RatingDistributionEntryDto;
 import com.checkpoint.api.dto.profile.RecentPlayDto;
 import com.checkpoint.api.dto.profile.UserProfileDto;
 import com.checkpoint.api.enums.PlayStatus;
@@ -93,6 +94,7 @@ class ProfileControllerTest {
                     List.of(),
                     List.of(recentPlay),
                     10L, 5L, 3L, 7L,
+                    List.of(new RatingDistributionEntryDto(9, 2L)),
                     null, false, LocalDateTime.now()
             );
 
@@ -119,6 +121,8 @@ class ProfileControllerTest {
                     .andExpect(jsonPath("$.recentPlays[0].hasReview").value(true))
                     .andExpect(jsonPath("$.recentPlays[0].isReplay").value(false))
                     .andExpect(jsonPath("$.recentPlays[0].isLiked").value(true))
+                    .andExpect(jsonPath("$.ratingDistribution[0].score").value(9))
+                    .andExpect(jsonPath("$.ratingDistribution[0].count").value(2))
                     .andExpect(jsonPath("$.isOwner").value(false));
         }
 
@@ -131,6 +135,7 @@ class ProfileControllerTest {
                     UUID.randomUUID(), "testuser", null, null,
                     1, 0, 1000, false,
                     List.of(), List.of(), List.of(), 0L, 0L, 0L, 0L,
+                    List.of(),
                     true, false, LocalDateTime.now()
             );
 

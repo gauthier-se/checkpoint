@@ -20,11 +20,12 @@ import java.util.UUID;
  * @param recentPlays    the user's 5 most recent play logs (empty if private and viewer is not owner)
  * @param followerCount  the number of followers
  * @param followingCount the number of users being followed
- * @param reviewCount    the number of reviews written
- * @param wishlistCount  the number of games in the wishlist
- * @param isFollowing    whether the viewer is following this user (null if not authenticated)
- * @param isOwner        whether the viewer is the profile owner
- * @param createdAt      when the user account was created
+ * @param reviewCount        the number of reviews written
+ * @param wishlistCount      the number of games in the wishlist
+ * @param ratingDistribution the user's ratings grouped by score (sparse, 1&ndash;10)
+ * @param isFollowing        whether the viewer is following this user (null if not authenticated)
+ * @param isOwner            whether the viewer is the profile owner
+ * @param createdAt          when the user account was created
  */
 public record UserProfileDto(
         UUID id,
@@ -42,6 +43,7 @@ public record UserProfileDto(
         Long followingCount,
         Long reviewCount,
         Long wishlistCount,
+        List<RatingDistributionEntryDto> ratingDistribution,
         Boolean isFollowing,
         Boolean isOwner,
         LocalDateTime createdAt

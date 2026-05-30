@@ -88,6 +88,9 @@ class ProfileServiceImplTest {
     private LikeRepository likeRepository;
 
     @Mock
+    private com.checkpoint.api.repositories.RateRepository rateRepository;
+
+    @Mock
     private UserGameRepository userGameRepository;
 
     @Mock
@@ -134,7 +137,7 @@ class ProfileServiceImplTest {
         profileMapper = new ProfileMapperImpl();
         profileService = new ProfileServiceImpl(
                 userRepository, reviewRepository, wishRepository,
-                userGamePlayRepository, likeRepository,
+                userGamePlayRepository, likeRepository, rateRepository,
                 userGameRepository, backlogRepository, badgeRepository,
                 gameListService, storageService, profileMapper, reviewMapper, wishMapper,
                 likedGameMapper, userGameMapper, backlogMapper, gamePlayLogMapper, onboardingService);
@@ -156,6 +159,10 @@ class ProfileServiceImplTest {
 
         // Default: no recent plays. Lenient so tests not exercising this path don't fail.
         lenient().when(userGamePlayRepository.findRecentByUserId(any(UUID.class), any(Pageable.class)))
+                .thenReturn(List.of());
+
+        // Default: empty rating distribution. Lenient for the same reason.
+        lenient().when(rateRepository.findDistributionByUserId(any(UUID.class)))
                 .thenReturn(List.of());
     }
 

@@ -24,6 +24,7 @@ import com.checkpoint.api.dto.list.GameListCardDto;
 import com.checkpoint.api.dto.onboarding.OnboardingSteps;
 import com.checkpoint.api.dto.playlog.GamePlayLogResponseDto;
 import com.checkpoint.api.dto.profile.ProfileUpdatedDto;
+import com.checkpoint.api.dto.profile.RatingDistributionEntryDto;
 import com.checkpoint.api.dto.profile.RecentPlayDto;
 import com.checkpoint.api.dto.profile.UpdateProfileDto;
 import com.checkpoint.api.dto.profile.UserProfileDto;
@@ -45,6 +46,7 @@ import com.checkpoint.api.mapper.WishMapper;
 import com.checkpoint.api.repositories.BacklogRepository;
 import com.checkpoint.api.repositories.BadgeRepository;
 import com.checkpoint.api.repositories.LikeRepository;
+import com.checkpoint.api.repositories.RateRepository;
 import com.checkpoint.api.repositories.ReviewRepository;
 import com.checkpoint.api.repositories.UserGamePlayRepository;
 import com.checkpoint.api.repositories.UserGameRepository;
@@ -73,6 +75,7 @@ public class ProfileServiceImpl implements ProfileService {
     private final WishRepository wishRepository;
     private final UserGamePlayRepository userGamePlayRepository;
     private final LikeRepository likeRepository;
+    private final RateRepository rateRepository;
     private final UserGameRepository userGameRepository;
     private final BacklogRepository backlogRepository;
     private final BadgeRepository badgeRepository;
@@ -95,6 +98,7 @@ public class ProfileServiceImpl implements ProfileService {
                                WishRepository wishRepository,
                                UserGamePlayRepository userGamePlayRepository,
                                LikeRepository likeRepository,
+                               RateRepository rateRepository,
                                UserGameRepository userGameRepository,
                                BacklogRepository backlogRepository,
                                BadgeRepository badgeRepository,
@@ -113,6 +117,7 @@ public class ProfileServiceImpl implements ProfileService {
         this.wishRepository = wishRepository;
         this.userGamePlayRepository = userGamePlayRepository;
         this.likeRepository = likeRepository;
+        this.rateRepository = rateRepository;
         this.userGameRepository = userGameRepository;
         this.backlogRepository = backlogRepository;
         this.badgeRepository = badgeRepository;
@@ -156,10 +161,12 @@ public class ProfileServiceImpl implements ProfileService {
 
         List<RecentPlayDto> recentPlays = buildRecentPlays(user, isOwner);
         List<com.checkpoint.api.entities.Badge> badgeCatalog = badgeRepository.findAll();
+        List<RatingDistributionEntryDto> ratingDistribution =
+                rateRepository.findDistributionByUserId(user.getId());
 
         return profileMapper.toUserProfileDto(
                 user, badgeCatalog, recentPlays, followerCount, followingCount,
-                reviewCount, wishlistCount, isFollowing, isOwner);
+                reviewCount, wishlistCount, ratingDistribution, isFollowing, isOwner);
     }
 
     /**

@@ -27,6 +27,11 @@ export interface RecentPlay {
   createdAt: string
 }
 
+export interface RatingDistributionEntry {
+  score: number
+  count: number
+}
+
 export interface UserProfile {
   id: string
   username: string
@@ -43,6 +48,7 @@ export interface UserProfile {
   followingCount: number
   reviewCount: number
   wishlistCount: number
+  ratingDistribution: Array<RatingDistributionEntry>
   isFollowing: boolean | null
   isOwner: boolean
   createdAt: string

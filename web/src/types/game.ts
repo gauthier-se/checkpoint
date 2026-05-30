@@ -33,6 +33,11 @@ export interface Company {
   name: string
 }
 
+export interface RatingDistributionEntry {
+  score: number
+  count: number
+}
+
 export interface GameDetail {
   id: string
   title: string
@@ -46,6 +51,7 @@ export interface GameDetail {
   releaseDate: string
   averageRating: number | null
   ratingCount: number
+  ratingDistribution: Array<RatingDistributionEntry>
   genres: Array<Genre>
   platforms: Array<Platform>
   companies: Array<Company>

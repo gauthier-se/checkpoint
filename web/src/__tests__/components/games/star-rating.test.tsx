@@ -55,6 +55,7 @@ const TEST_GAME: GameDetail = {
   releaseDate: '2025-01-01',
   averageRating: null,
   ratingCount: 0,
+  ratingDistribution: [],
   genres: [],
   platforms: [],
   companies: [],

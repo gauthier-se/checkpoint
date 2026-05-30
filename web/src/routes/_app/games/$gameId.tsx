@@ -10,6 +10,7 @@ import { FriendWantToPlaySection } from '@/components/games/friend-want-to-play-
 import { GameListsSection } from '@/components/games/game-lists-section'
 import { PopularGameReviewsSection } from '@/components/games/popular-game-reviews-section'
 import { GameQuickActions } from '@/components/games/quick-actions'
+import { RatingDistributionChart } from '@/components/profile/rating-distribution-chart'
 import { SimilarGamesSection } from '@/components/games/similar-games-section'
 import { Button } from '@/components/ui/button'
 import {
@@ -174,6 +175,13 @@ function RouteComponent() {
                   {game.ratingCount > 1 ? 'ratings' : 'rating'})
                 </span>
               </div>
+            )}
+
+            {game.ratingCount > 0 && (
+              <RatingDistributionChart
+                distribution={game.ratingDistribution}
+                className="max-w-xs"
+              />
             )}
 
             {game.genres.length > 0 && (

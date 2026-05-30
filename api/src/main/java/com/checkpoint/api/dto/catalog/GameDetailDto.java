@@ -4,6 +4,8 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
+import com.checkpoint.api.dto.profile.RatingDistributionEntryDto;
+
 /**
  * DTO for detailed game information.
  * Contains all information needed for a game detail page.
@@ -21,6 +23,7 @@ public record GameDetailDto(
         LocalDate releaseDate,
         Double averageRating,
         Long ratingCount,
+        List<RatingDistributionEntryDto> ratingDistribution,
         List<GenreDto> genres,
         List<PlatformDto> platforms,
         List<CompanyDto> companies
