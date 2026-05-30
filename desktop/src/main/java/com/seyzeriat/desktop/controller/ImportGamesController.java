@@ -6,7 +6,7 @@ import java.util.Set;
 
 import com.seyzeriat.desktop.HelloApplication;
 import com.seyzeriat.desktop.dto.ExternalGameResult;
-import com.seyzeriat.desktop.service.ApiService;
+import com.seyzeriat.desktop.service.GameService;
 
 import javafx.application.Platform;
 import javafx.concurrent.Task;
@@ -36,9 +36,13 @@ public class ImportGamesController {
     @FXML private ProgressIndicator searchProgress;
     @FXML private ScrollPane scrollPane;
 
-    private final ApiService apiService = new ApiService();
+    private final GameService gameService;
     private final Set<Long> importedIds = new HashSet<>();
     private HelloApplication application;
+
+    public ImportGamesController(GameService gameService) {
+        this.gameService = gameService;
+    }
 
     @FXML
     public void initialize() {
@@ -65,7 +69,7 @@ public class ImportGamesController {
         Task<List<ExternalGameResult>> searchTask = new Task<>() {
             @Override
             protected List<ExternalGameResult> call() throws Exception {
-                return apiService.searchExternalGames(query, 20);
+                return gameService.searchExternalGames(query, 20);
             }
         };
 
@@ -180,7 +184,7 @@ public class ImportGamesController {
         Task<Void> importTask = new Task<>() {
             @Override
             protected Void call() throws Exception {
-                apiService.importGame(game.getExternalId());
+                gameService.importGame(game.getExternalId());
                 return null;
             }
         };
@@ -214,7 +218,7 @@ public class ImportGamesController {
     }
 
     private boolean isUnauthorized(Throwable ex) {
-        return ex instanceof ApiService.UnauthorizedException;
+        return ex instanceof com.seyzeriat.desktop.exception.UnauthorizedException;
     }
 
     private void redirectToLogin() {

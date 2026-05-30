@@ -37,7 +37,7 @@
             <TableColumn fx:id="gameColumn" text="Jeu" prefWidth="180"/>
             <TableColumn fx:id="authorColumn" text="Auteur" prefWidth="130"/>
             <TableColumn fx:id="contentColumn" text="Extrait" prefWidth="200"/>
-            <TableColumn fx:id="actionColumn" text="Actions" prefWidth="390"/>
+            <TableColumn fx:id="actionColumn" text="Actions" prefWidth="480"/>
         </columns>
         <placeholder>
             <Label text="Aucun avis signalé." styleClass="status-label"/>

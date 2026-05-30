@@ -6,7 +6,7 @@ import com.seyzeriat.desktop.HelloApplication;
 import com.seyzeriat.desktop.dto.PagedResponse;
 import com.seyzeriat.desktop.dto.ReviewReportResult;
 import com.seyzeriat.desktop.dto.ReviewResult;
-import com.seyzeriat.desktop.service.ApiService;
+import com.seyzeriat.desktop.service.ReviewService;
 
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
@@ -46,8 +46,12 @@ public class ReviewReportsController {
     @FXML private Button nextButton;
     @FXML private Button refreshButton;
 
-    private final ApiService apiService = new ApiService();
+    private final ReviewService reviewService;
     private HelloApplication application;
+
+    public ReviewReportsController(ReviewService reviewService) {
+        this.reviewService = reviewService;
+    }
     private ReviewResult review;
 
     private int currentPage = 0;
@@ -87,8 +91,7 @@ public class ReviewReportsController {
         }
 
         try {
-            FXMLLoader loader = new FXMLLoader(
-                    getClass().getResource("/com/seyzeriat/desktop/reviews-view.fxml"));
+            FXMLLoader loader = application.createLoader("/com/seyzeriat/desktop/reviews-view.fxml");
             Node reviewsView = loader.load();
 
             ReviewModerationController controller = loader.getController();
@@ -135,7 +138,7 @@ public class ReviewReportsController {
         Task<PagedResponse<ReviewReportResult>> fetchTask = new Task<>() {
             @Override
             protected PagedResponse<ReviewReportResult> call() throws Exception {
-                return apiService.getReviewReports(review.getId(), page, PAGE_SIZE);
+                return reviewService.getReviewReports(review.getId(), page, PAGE_SIZE);
             }
         };
 
@@ -156,7 +159,7 @@ public class ReviewReportsController {
         fetchTask.setOnFailed(event -> Platform.runLater(() -> {
             setLoading(false);
             Throwable ex = fetchTask.getException();
-            if (ex instanceof ApiService.UnauthorizedException) {
+            if (ex instanceof com.seyzeriat.desktop.exception.UnauthorizedException) {
                 redirectToLogin();
                 return;
             }

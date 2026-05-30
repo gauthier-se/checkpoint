@@ -38,7 +38,7 @@
             <TableColumn fx:id="reporterColumn" text="Signalé par" prefWidth="120"/>
             <TableColumn fx:id="reasonColumn" text="Raison" prefWidth="180"/>
             <TableColumn fx:id="contentColumn" text="Contenu signalé" prefWidth="230"/>
-            <TableColumn fx:id="actionColumn" text="Actions" prefWidth="160"/>
+            <TableColumn fx:id="actionColumn" text="Actions" prefWidth="240"/>
         </columns>
         <placeholder>
             <Label text="Aucun signalement." styleClass="status-label"/>

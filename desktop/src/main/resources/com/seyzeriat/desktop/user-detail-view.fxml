@@ -74,9 +74,9 @@
                 <padding>
                     <Insets top="10"/>
                 </padding>
-                <Button fx:id="clearBioBtn" text="Supprimer la bio" onAction="#onClearBio" styleClass="search-button"/>
-                <Button fx:id="clearPictureBtn" text="Supprimer la photo" onAction="#onClearPicture" styleClass="search-button"/>
-                <Button fx:id="banBtn" text="Bannir" onAction="#onToggleBan" styleClass="logout-button"/>
+                <Button fx:id="clearBioBtn" text="Supprimer la bio" onAction="#onClearBio" styleClass="destructive-button"/>
+                <Button fx:id="clearPictureBtn" text="Supprimer la photo" onAction="#onClearPicture" styleClass="destructive-button"/>
+                <Button fx:id="banBtn" text="Bannir" onAction="#onToggleBan" styleClass="destructive-button"/>
             </HBox>
         </VBox>
     </ScrollPane>

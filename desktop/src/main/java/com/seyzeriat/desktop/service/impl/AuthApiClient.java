@@ -1,4 +1,4 @@
-package com.seyzeriat.desktop.service;
+package com.seyzeriat.desktop.service.impl;
 
 import java.io.IOException;
 import java.net.URI;
@@ -7,34 +7,30 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.seyzeriat.desktop.dto.LoginResponseDto;
+import com.seyzeriat.desktop.exception.AuthenticationException;
+import com.seyzeriat.desktop.service.AuthenticationService;
+import com.seyzeriat.desktop.service.TokenManager;
 
-/**
- * Service responsible for authenticating against the Checkpoint API.
- *
- * <p>Sends credentials to {@code POST /api/auth/token} (the dedicated Desktop
- * JWT endpoint) and stores the received token pair in {@link TokenManager}.</p>
- */
-public class AuthService {
+public class AuthApiClient implements AuthenticationService {
 
     private static final String BASE_URL = "http://localhost:8080";
 
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
 
-    public AuthService() {
-        this.httpClient = HttpClient.newHttpClient();
-        this.objectMapper = new ObjectMapper();
+    public AuthApiClient() {
+        this(HttpClient.newHttpClient());
     }
 
-    /**
-     * Authenticate with email and password.
-     * Stores both the access token and refresh token in {@link TokenManager}.
-     *
-     * @param email    the user's email
-     * @param password the user's password
-     * @throws AuthenticationException if the credentials are invalid or the server is unreachable
-     */
+    public AuthApiClient(HttpClient httpClient) {
+        this.httpClient = httpClient;
+        this.objectMapper = new ObjectMapper();
+        this.objectMapper.registerModule(new JavaTimeModule());
+    }
+
+    @Override
     public void login(String email, String password) throws AuthenticationException {
         String jsonBody = String.format("{\"email\":\"%s\",\"password\":\"%s\"}", email, password);
 
@@ -69,13 +65,7 @@ public class AuthService {
         }
     }
 
-    /**
-     * Exchanges the stored refresh token for a new token pair.
-     * Updates {@link TokenManager} with the new access and refresh tokens.
-     *
-     * @throws AuthenticationException if no refresh token is stored, the token is invalid/expired,
-     *                                 or the server is unreachable
-     */
+    @Override
     public void refreshTokens() throws AuthenticationException {
         String refreshToken = TokenManager.getInstance().getRefreshToken();
         if (refreshToken == null || refreshToken.isBlank()) {
@@ -117,19 +107,8 @@ public class AuthService {
         }
     }
 
-    /**
-     * Clear the stored tokens (logout).
-     */
+    @Override
     public void logout() {
         TokenManager.getInstance().clear();
-    }
-
-    /**
-     * Exception thrown when authentication fails.
-     */
-    public static class AuthenticationException extends Exception {
-        public AuthenticationException(String message) {
-            super(message);
-        }
     }
 }

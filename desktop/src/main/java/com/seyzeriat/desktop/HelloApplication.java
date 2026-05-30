@@ -2,6 +2,8 @@ package com.seyzeriat.desktop;
 
 import java.io.IOException;
 import java.util.Objects;
+import java.awt.Taskbar;
+import java.awt.Toolkit;
 
 import com.seyzeriat.desktop.controller.AnalyticsController;
 import com.seyzeriat.desktop.controller.BulkImportController;
@@ -21,6 +23,8 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -42,6 +46,25 @@ public class HelloApplication extends Application {
                 getClass().getResource("styles.css")).toExternalForm();
 
         stage.setTitle("Checkpoint — Administration");
+        
+        Image icon = new Image(Objects.requireNonNull(
+                getClass().getResourceAsStream("/com/seyzeriat/desktop/images/logo.png")));
+        stage.getIcons().add(icon);
+
+        // macOS Dock Icon support
+        try {
+            if (Taskbar.isTaskbarSupported()) {
+                Taskbar taskbar = Taskbar.getTaskbar();
+                if (taskbar.isSupported(Taskbar.Feature.ICON_IMAGE)) {
+                    java.awt.Image awtIcon = Toolkit.getDefaultToolkit().getImage(
+                            getClass().getResource("/com/seyzeriat/desktop/images/logo.png"));
+                    taskbar.setIconImage(awtIcon);
+                }
+            }
+        } catch (Exception e) {
+            // Ignore if taskbar is not supported (e.g. headless or unsupported OS)
+            System.err.println("Taskbar icon not supported: " + e.getMessage());
+        }
 
         // Always start with the login screen
         showLoginView();
@@ -55,7 +78,7 @@ public class HelloApplication extends Application {
         TokenManager.getInstance().clear();
 
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("login-view.fxml"));
+            FXMLLoader loader = createLoader("login-view.fxml");
             Node loginView = loader.load();
 
             LoginController controller = loader.getController();
@@ -107,7 +130,15 @@ public class HelloApplication extends Application {
         sidebar.setMinWidth(220);
         sidebar.getStyleClass().add("sidebar");
 
+        Image logoImage = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/com/seyzeriat/desktop/images/logo.png")));
+        ImageView logoView = new ImageView(logoImage);
+        logoView.setFitWidth(28);
+        logoView.setFitHeight(28);
+        logoView.setPreserveRatio(true);
+
         Label appTitle = new Label("Checkpoint");
+        appTitle.setGraphic(logoView);
+        appTitle.setGraphicTextGap(12);
         appTitle.getStyleClass().add("app-title");
 
         Button analyticsBtn = createNavButton("Tableau de bord", this::showAnalyticsView);
@@ -154,7 +185,7 @@ public class HelloApplication extends Application {
 
     private void showAnalyticsView() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("analytics-view.fxml"));
+            FXMLLoader loader = createLoader("analytics-view.fxml");
             Node analyticsView = loader.load();
 
             AnalyticsController controller = loader.getController();
@@ -169,7 +200,7 @@ public class HelloApplication extends Application {
 
     private void showImportGamesView() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("import-games-view.fxml"));
+            FXMLLoader loader = createLoader("import-games-view.fxml");
             Node importView = loader.load();
 
             ImportGamesController controller = loader.getController();
@@ -184,7 +215,7 @@ public class HelloApplication extends Application {
 
     private void showBulkImportView() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("bulk-import-view.fxml"));
+            FXMLLoader loader = createLoader("bulk-import-view.fxml");
             Node bulkImportView = loader.load();
 
             BulkImportController controller = loader.getController();
@@ -199,7 +230,7 @@ public class HelloApplication extends Application {
 
     private void showManageGamesView() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("manage-games-view.fxml"));
+            FXMLLoader loader = createLoader("manage-games-view.fxml");
             Node manageGamesView = loader.load();
 
             ManageGamesController controller = loader.getController();
@@ -214,7 +245,7 @@ public class HelloApplication extends Application {
 
     private void showUsersView() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("users-view.fxml"));
+            FXMLLoader loader = createLoader("users-view.fxml");
             Node usersView = loader.load();
 
             UserManagementController controller = loader.getController();
@@ -229,7 +260,7 @@ public class HelloApplication extends Application {
 
     private void showReviewsView() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("reviews-view.fxml"));
+            FXMLLoader loader = createLoader("reviews-view.fxml");
             Node reviewsView = loader.load();
 
             ReviewModerationController controller = loader.getController();
@@ -244,7 +275,7 @@ public class HelloApplication extends Application {
 
     private void showReportsView() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("reports-view.fxml"));
+            FXMLLoader loader = createLoader("reports-view.fxml");
             Node reportsView = loader.load();
 
             ReportModerationController controller = loader.getController();
@@ -259,7 +290,7 @@ public class HelloApplication extends Application {
 
     private void showNewsView() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("news-management-view.fxml"));
+            FXMLLoader loader = createLoader("news-management-view.fxml");
             Node newsView = loader.load();
 
             NewsManagementController controller = loader.getController();
@@ -280,5 +311,11 @@ public class HelloApplication extends Application {
      */
     public void setContent(Node content) {
         contentArea.getChildren().setAll(content);
+    }
+
+    public FXMLLoader createLoader(String fxml) {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource(fxml));
+        loader.setControllerFactory(com.seyzeriat.desktop.di.DependencyContainer.getInstance()::createController);
+        return loader;
     }
 }

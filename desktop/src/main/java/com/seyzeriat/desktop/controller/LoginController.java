@@ -1,7 +1,7 @@
 package com.seyzeriat.desktop.controller;
 
 import com.seyzeriat.desktop.HelloApplication;
-import com.seyzeriat.desktop.service.AuthService;
+import com.seyzeriat.desktop.service.AuthenticationService;
 
 import javafx.application.Platform;
 import javafx.concurrent.Task;
@@ -27,7 +27,11 @@ public class LoginController {
     @FXML private Button loginButton;
     @FXML private ProgressIndicator loginProgress;
 
-    private final AuthService authService = new AuthService();
+    private final AuthenticationService authService;
+
+    public LoginController(AuthenticationService authService) {
+        this.authService = authService;
+    }
 
     /**
      * Reference to the application instance, set by {@link HelloApplication}

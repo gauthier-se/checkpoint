@@ -6,7 +6,8 @@ import java.util.Optional;
 import com.seyzeriat.desktop.HelloApplication;
 import com.seyzeriat.desktop.dto.PagedResponse;
 import com.seyzeriat.desktop.dto.ReviewResult;
-import com.seyzeriat.desktop.service.ApiService;
+import com.seyzeriat.desktop.service.ReviewService;
+import com.seyzeriat.desktop.service.UserService;
 
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
@@ -40,8 +41,14 @@ public class ReviewModerationController {
     @FXML private Button refreshButton;
     @FXML private ProgressIndicator loadingIndicator;
 
-    private final ApiService apiService = new ApiService();
+    private final ReviewService reviewService;
+    private final UserService userService;
     private HelloApplication application;
+
+    public ReviewModerationController(ReviewService reviewService, UserService userService) {
+        this.reviewService = reviewService;
+        this.userService = userService;
+    }
 
     private int currentPage = 0;
     private static final int PAGE_SIZE = 20;
@@ -76,8 +83,8 @@ public class ReviewModerationController {
             {
                 reportsBtn.getStyleClass().add("search-button");
                 authorBtn.getStyleClass().add("search-button");
-                banBtn.getStyleClass().add("logout-button");
-                deleteBtn.getStyleClass().add("logout-button");
+                banBtn.getStyleClass().add("destructive-button");
+                deleteBtn.getStyleClass().add("destructive-button");
 
                 reportsBtn.setOnAction(event -> showReports(getTableView().getItems().get(getIndex())));
                 authorBtn.setOnAction(event -> showAuthor(getTableView().getItems().get(getIndex())));
@@ -125,7 +132,7 @@ public class ReviewModerationController {
         Task<PagedResponse<ReviewResult>> fetchTask = new Task<>() {
             @Override
             protected PagedResponse<ReviewResult> call() throws Exception {
-                return apiService.getReportedReviews(page, PAGE_SIZE);
+                return reviewService.getReportedReviews(page, PAGE_SIZE);
             }
         };
 
@@ -147,7 +154,7 @@ public class ReviewModerationController {
         fetchTask.setOnFailed(event -> Platform.runLater(() -> {
             setLoading(false);
             Throwable ex = fetchTask.getException();
-            if (ex instanceof ApiService.UnauthorizedException) {
+            if (ex instanceof com.seyzeriat.desktop.exception.UnauthorizedException) {
                 redirectToLogin();
                 return;
             }
@@ -163,8 +170,7 @@ public class ReviewModerationController {
         }
 
         try {
-            FXMLLoader loader = new FXMLLoader(
-                    getClass().getResource("/com/seyzeriat/desktop/review-reports-view.fxml"));
+            FXMLLoader loader = application.createLoader("/com/seyzeriat/desktop/review-reports-view.fxml");
             Node detailView = loader.load();
 
             ReviewReportsController controller = loader.getController();
@@ -188,8 +194,7 @@ public class ReviewModerationController {
         }
 
         try {
-            FXMLLoader loader = new FXMLLoader(
-                    getClass().getResource("/com/seyzeriat/desktop/user-detail-view.fxml"));
+            FXMLLoader loader = application.createLoader("/com/seyzeriat/desktop/user-detail-view.fxml");
             Node detailView = loader.load();
 
             UserDetailController controller = loader.getController();
@@ -226,7 +231,7 @@ public class ReviewModerationController {
         Task<Void> banTask = new Task<>() {
             @Override
             protected Void call() throws Exception {
-                apiService.banUser(authorId);
+                userService.banUser(authorId);
                 return null;
             }
         };
@@ -239,7 +244,7 @@ public class ReviewModerationController {
         banTask.setOnFailed(event -> Platform.runLater(() -> {
             setLoading(false);
             Throwable ex = banTask.getException();
-            if (ex instanceof ApiService.UnauthorizedException) {
+            if (ex instanceof com.seyzeriat.desktop.exception.UnauthorizedException) {
                 redirectToLogin();
                 return;
             }
@@ -268,7 +273,7 @@ public class ReviewModerationController {
         Task<Void> deleteTask = new Task<>() {
             @Override
             protected Void call() throws Exception {
-                apiService.deleteReview(id);
+                reviewService.deleteReview(id);
                 return null;
             }
         };
@@ -281,7 +286,7 @@ public class ReviewModerationController {
         deleteTask.setOnFailed(event -> Platform.runLater(() -> {
             setLoading(false);
             Throwable ex = deleteTask.getException();
-            if (ex instanceof ApiService.UnauthorizedException) {
+            if (ex instanceof com.seyzeriat.desktop.exception.UnauthorizedException) {
                 redirectToLogin();
                 return;
             }

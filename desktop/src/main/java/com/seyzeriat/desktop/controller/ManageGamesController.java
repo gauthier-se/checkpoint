@@ -8,7 +8,7 @@ import java.util.Optional;
 import com.seyzeriat.desktop.HelloApplication;
 import com.seyzeriat.desktop.dto.GameSummaryResult;
 import com.seyzeriat.desktop.dto.PagedResponse;
-import com.seyzeriat.desktop.service.ApiService;
+import com.seyzeriat.desktop.service.GameService;
 
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
@@ -48,8 +48,12 @@ public class ManageGamesController {
     @FXML private Button createButton;
     @FXML private ProgressIndicator loadingIndicator;
 
-    private final ApiService apiService = new ApiService();
+    private final GameService gameService;
     private HelloApplication application;
+
+    public ManageGamesController(GameService gameService) {
+        this.gameService = gameService;
+    }
 
     private int currentPage = 0;
     private int totalPages = 1;
@@ -80,7 +84,7 @@ public class ManageGamesController {
 
             {
                 editBtn.getStyleClass().add("search-button");
-                deleteBtn.getStyleClass().add("logout-button");
+                deleteBtn.getStyleClass().add("destructive-button");
 
                 editBtn.setOnAction(event -> {
                     GameSummaryResult game = getTableView().getItems().get(getIndex());
@@ -135,7 +139,7 @@ public class ManageGamesController {
             return;
         }
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/seyzeriat/desktop/game-form-view.fxml"));
+            FXMLLoader loader = application.createLoader("/com/seyzeriat/desktop/game-form-view.fxml");
             Node view = loader.load();
             GameFormController controller = loader.getController();
             controller.setApplication(application);
@@ -156,7 +160,7 @@ public class ManageGamesController {
         Task<PagedResponse<GameSummaryResult>> task = new Task<>() {
             @Override
             protected PagedResponse<GameSummaryResult> call() throws Exception {
-                return apiService.getGames(page, PAGE_SIZE);
+                return gameService.getGames(page, PAGE_SIZE);
             }
         };
 
@@ -217,7 +221,7 @@ public class ManageGamesController {
         Task<Void> task = new Task<>() {
             @Override
             protected Void call() throws Exception {
-                apiService.deleteGame(game.getId());
+                gameService.deleteGame(game.getId());
                 return null;
             }
         };
@@ -235,7 +239,7 @@ public class ManageGamesController {
                 redirectToLogin();
                 return;
             }
-            if (ex instanceof ApiService.GameReferencedException referenced) {
+            if (ex instanceof com.seyzeriat.desktop.exception.GameReferencedException referenced) {
                 showReferencedAlert(game, referenced.getBlockingReferences());
                 statusLabel.setText("Suppression refusée : jeu encore référencé.");
                 return;
@@ -282,7 +286,7 @@ public class ManageGamesController {
     }
 
     private boolean isUnauthorized(Throwable ex) {
-        return ex instanceof ApiService.UnauthorizedException;
+        return ex instanceof com.seyzeriat.desktop.exception.UnauthorizedException;
     }
 
     private void redirectToLogin() {

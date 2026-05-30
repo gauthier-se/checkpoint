@@ -10,7 +10,7 @@ import com.seyzeriat.desktop.HelloApplication;
 import com.seyzeriat.desktop.dto.CatalogOption;
 import com.seyzeriat.desktop.dto.GameDetailResult;
 import com.seyzeriat.desktop.dto.GameFormPayload;
-import com.seyzeriat.desktop.service.ApiService;
+import com.seyzeriat.desktop.service.GameService;
 
 import javafx.application.Platform;
 import javafx.concurrent.Task;
@@ -54,8 +54,12 @@ public class GameFormController {
     @FXML private Button cancelButton;
     @FXML private Button backButton;
 
-    private final ApiService apiService = new ApiService();
+    private final GameService gameService;
     private HelloApplication application;
+
+    public GameFormController(GameService gameService) {
+        this.gameService = gameService;
+    }
     private String gameId;
 
     @FXML
@@ -89,10 +93,10 @@ public class GameFormController {
         Task<CatalogBundle> task = new Task<>() {
             @Override
             protected CatalogBundle call() throws Exception {
-                List<CatalogOption> genres = apiService.getGenres();
-                List<CatalogOption> platforms = apiService.getPlatforms();
-                List<CatalogOption> companies = apiService.getCompanies();
-                GameDetailResult detail = editMode ? apiService.getGameDetail(gameId) : null;
+                List<CatalogOption> genres = gameService.getGenres();
+                List<CatalogOption> platforms = gameService.getPlatforms();
+                List<CatalogOption> companies = gameService.getCompanies();
+                GameDetailResult detail = editMode ? gameService.getGameDetail(gameId) : null;
                 return new CatalogBundle(genres, platforms, companies, detail);
             }
         };
@@ -114,7 +118,7 @@ public class GameFormController {
             loadingIndicator.setVisible(false);
             saveButton.setDisable(false);
             Throwable ex = task.getException();
-            if (ex instanceof ApiService.UnauthorizedException) {
+            if (ex instanceof com.seyzeriat.desktop.exception.UnauthorizedException) {
                 redirectToLogin();
                 return;
             }
@@ -159,7 +163,7 @@ public class GameFormController {
             return;
         }
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/seyzeriat/desktop/manage-games-view.fxml"));
+            FXMLLoader loader = application.createLoader("/com/seyzeriat/desktop/manage-games-view.fxml");
             Node view = loader.load();
             ManageGamesController controller = loader.getController();
             controller.setApplication(application);
@@ -207,8 +211,8 @@ public class GameFormController {
             @Override
             protected GameDetailResult call() throws Exception {
                 return gameId == null
-                        ? apiService.createGame(payload)
-                        : apiService.updateGame(gameId, payload);
+                        ? gameService.createGame(payload)
+                        : gameService.updateGame(gameId, payload);
             }
         };
 
@@ -223,7 +227,7 @@ public class GameFormController {
             saveButton.setDisable(false);
             cancelButton.setDisable(false);
             Throwable ex = task.getException();
-            if (ex instanceof ApiService.UnauthorizedException) {
+            if (ex instanceof com.seyzeriat.desktop.exception.UnauthorizedException) {
                 redirectToLogin();
                 return;
             }

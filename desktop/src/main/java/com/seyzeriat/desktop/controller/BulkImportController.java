@@ -6,7 +6,7 @@ import java.util.Optional;
 
 import com.seyzeriat.desktop.HelloApplication;
 import com.seyzeriat.desktop.dto.ImportJobStatus;
-import com.seyzeriat.desktop.service.ApiService;
+import com.seyzeriat.desktop.service.GameService;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -43,8 +43,12 @@ public class BulkImportController {
     @FXML private ProgressIndicator globalProgress;
     @FXML private Label globalStatusLabel;
 
-    private final ApiService apiService = new ApiService();
+    private final GameService gameService;
     private HelloApplication application;
+
+    public BulkImportController(GameService gameService) {
+        this.gameService = gameService;
+    }
 
     /** Guards the polling loop so it can be stopped (e.g. when a new import starts). */
     private volatile boolean polling;
@@ -76,7 +80,7 @@ public class BulkImportController {
         startImport(
                 topRatedStatusLabel,
                 "Import des jeux les mieux notés en cours...",
-                () -> apiService.startTopRatedImport(limit, minRatingCount)
+                () -> gameService.startTopRatedImport(limit, minRatingCount)
         );
     }
 
@@ -91,7 +95,7 @@ public class BulkImportController {
         startImport(
                 recentStatusLabel,
                 "Import des sorties récentes en cours...",
-                () -> apiService.startRecentImport(limit)
+                () -> gameService.startRecentImport(limit)
         );
     }
 
@@ -123,7 +127,7 @@ public class BulkImportController {
                 Platform.runLater(() -> cardStatusLabel.setText(formatProgress(job)));
 
                 while (polling) {
-                    ImportJobStatus status = apiService.getImportJob(jobId);
+                    ImportJobStatus status = gameService.getImportJob(jobId);
                     if (status == null) {
                         Platform.runLater(() -> {
                             setRunning(false, "");
@@ -139,7 +143,7 @@ public class BulkImportController {
                     }
                     Thread.sleep(POLL_INTERVAL_MS);
                 }
-            } catch (ApiService.UnauthorizedException ex) {
+            } catch (com.seyzeriat.desktop.exception.UnauthorizedException ex) {
                 Platform.runLater(this::redirectToLogin);
             } catch (InterruptedException ex) {
                 Thread.currentThread().interrupt();
@@ -228,6 +232,6 @@ public class BulkImportController {
 
     @FunctionalInterface
     private interface JobStarter {
-        ImportJobStatus start() throws IOException, InterruptedException, ApiService.UnauthorizedException;
+        ImportJobStatus start() throws IOException, InterruptedException, com.seyzeriat.desktop.exception.UnauthorizedException;
     }
 }

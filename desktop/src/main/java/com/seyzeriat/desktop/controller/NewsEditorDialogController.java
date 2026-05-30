@@ -2,7 +2,7 @@ package com.seyzeriat.desktop.controller;
 
 import com.seyzeriat.desktop.dto.NewsRequestPayload;
 import com.seyzeriat.desktop.dto.NewsResult;
-import com.seyzeriat.desktop.service.ApiService;
+import com.seyzeriat.desktop.service.NewsService;
 
 import javafx.application.Platform;
 import javafx.concurrent.Task;
@@ -36,11 +36,15 @@ public class NewsEditorDialogController {
     @FXML private Button saveButton;
     @FXML private Button cancelButton;
 
-    private final ApiService apiService = new ApiService();
+    private final NewsService newsService;
 
     private NewsResult existing;
     private Runnable onSaved;
     private Runnable onUnauthorized;
+
+    public NewsEditorDialogController(NewsService newsService) {
+        this.newsService = newsService;
+    }
 
     @FXML
     public void initialize() {
@@ -112,9 +116,9 @@ public class NewsEditorDialogController {
             @Override
             protected NewsResult call() throws Exception {
                 if (existing == null) {
-                    return apiService.createNews(payload);
+                    return newsService.createNews(payload);
                 }
-                return apiService.updateNews(existing.getId(), payload);
+                return newsService.updateNews(existing.getId(), payload);
             }
         };
 
@@ -129,7 +133,7 @@ public class NewsEditorDialogController {
         saveTask.setOnFailed(event -> Platform.runLater(() -> {
             setLoading(false);
             Throwable ex = saveTask.getException();
-            if (ex instanceof ApiService.UnauthorizedException) {
+            if (ex instanceof com.seyzeriat.desktop.exception.UnauthorizedException) {
                 if (onUnauthorized != null) {
                     onUnauthorized.run();
                 }

@@ -3,6 +3,8 @@ module com.seyzeriat.desktop {
     requires javafx.fxml;
     requires java.net.http;
     requires com.fasterxml.jackson.databind;
+    requires com.fasterxml.jackson.datatype.jsr310;
+    requires java.desktop;
 
     opens com.seyzeriat.desktop to javafx.fxml;
     opens com.seyzeriat.desktop.controller to javafx.fxml;

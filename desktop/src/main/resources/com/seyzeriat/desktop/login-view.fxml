@@ -4,6 +4,9 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
+
 <VBox alignment="CENTER" spacing="20" xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.seyzeriat.desktop.controller.LoginController"
       styleClass="login-view" prefWidth="400" prefHeight="500">
@@ -11,7 +14,10 @@
         <Insets bottom="40" left="60" right="60" top="40"/>
     </padding>
 
-    <!-- App title -->
+    <!-- App logo and title -->
+    <ImageView fitWidth="80" fitHeight="80" preserveRatio="true">
+        <Image url="@images/logo.png"/>
+    </ImageView>
     <Label text="Checkpoint" styleClass="login-app-title"/>
     <Label text="Administration" styleClass="login-subtitle"/>
 

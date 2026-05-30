@@ -9,7 +9,7 @@ import java.util.Optional;
 import com.seyzeriat.desktop.HelloApplication;
 import com.seyzeriat.desktop.dto.NewsResult;
 import com.seyzeriat.desktop.dto.PagedResponse;
-import com.seyzeriat.desktop.service.ApiService;
+import com.seyzeriat.desktop.service.NewsService;
 
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
@@ -71,8 +71,12 @@ public class NewsManagementController {
     @FXML private Button refreshButton;
     @FXML private ProgressIndicator loadingIndicator;
 
-    private final ApiService apiService = new ApiService();
+    private final NewsService newsService;
     private HelloApplication application;
+
+    public NewsManagementController(NewsService newsService) {
+        this.newsService = newsService;
+    }
 
     private int currentPage = 0;
     private int totalPages = 1;
@@ -129,7 +133,7 @@ public class NewsManagementController {
 
             {
                 editBtn.getStyleClass().add("search-button");
-                deleteBtn.getStyleClass().add("logout-button");
+                deleteBtn.getStyleClass().add("destructive-button");
 
                 editBtn.setOnAction(event -> openEditor(getTableView().getItems().get(getIndex())));
                 toggleBtn.setOnAction(event -> {
@@ -197,7 +201,7 @@ public class NewsManagementController {
         Task<PagedResponse<NewsResult>> fetchTask = new Task<>() {
             @Override
             protected PagedResponse<NewsResult> call() throws Exception {
-                return apiService.getNews(page, PAGE_SIZE, DEFAULT_SORT);
+                return newsService.getNews(page, PAGE_SIZE, DEFAULT_SORT);
             }
         };
 
@@ -222,7 +226,7 @@ public class NewsManagementController {
         fetchTask.setOnFailed(event -> Platform.runLater(() -> {
             setLoading(false);
             Throwable ex = fetchTask.getException();
-            if (ex instanceof ApiService.UnauthorizedException) {
+            if (ex instanceof com.seyzeriat.desktop.exception.UnauthorizedException) {
                 redirectToLogin();
                 return;
             }
@@ -272,8 +276,7 @@ public class NewsManagementController {
             return;
         }
         try {
-            FXMLLoader loader = new FXMLLoader(
-                    getClass().getResource("/com/seyzeriat/desktop/news-editor-dialog.fxml"));
+            FXMLLoader loader = application.createLoader("/com/seyzeriat/desktop/news-editor-dialog.fxml");
             Node root = loader.load();
 
             NewsEditorDialogController controller = loader.getController();
@@ -308,7 +311,7 @@ public class NewsManagementController {
 
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
-            runNewsAction(() -> { apiService.publishNews(news.getId()); },
+            runNewsAction(() -> { newsService.publishNews(news.getId()); },
                     "Publication en cours...",
                     "Actualité publiée avec succès.",
                     "Erreur lors de la publication");
@@ -323,7 +326,7 @@ public class NewsManagementController {
 
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
-            runNewsAction(() -> { apiService.unpublishNews(news.getId()); },
+            runNewsAction(() -> { newsService.unpublishNews(news.getId()); },
                     "Dépublication en cours...",
                     "Actualité dépubliée avec succès.",
                     "Erreur lors de la dépublication");
@@ -338,7 +341,7 @@ public class NewsManagementController {
 
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
-            runNewsAction(() -> apiService.deleteNews(news.getId()),
+            runNewsAction(() -> newsService.deleteNews(news.getId()),
                     "Suppression en cours...",
                     "Actualité supprimée avec succès.",
                     "Erreur lors de la suppression");
@@ -370,7 +373,7 @@ public class NewsManagementController {
         task.setOnFailed(event -> Platform.runLater(() -> {
             setLoading(false);
             Throwable ex = task.getException();
-            if (ex instanceof ApiService.UnauthorizedException) {
+            if (ex instanceof com.seyzeriat.desktop.exception.UnauthorizedException) {
                 redirectToLogin();
                 return;
             }

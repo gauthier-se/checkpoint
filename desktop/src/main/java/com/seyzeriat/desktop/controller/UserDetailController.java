@@ -5,7 +5,7 @@ import java.util.Optional;
 
 import com.seyzeriat.desktop.HelloApplication;
 import com.seyzeriat.desktop.dto.UserDetailResult;
-import com.seyzeriat.desktop.service.ApiService;
+import com.seyzeriat.desktop.service.UserService;
 
 import javafx.application.Platform;
 import javafx.concurrent.Task;
@@ -48,8 +48,12 @@ public class UserDetailController {
     @FXML private Button clearPictureBtn;
     @FXML private Button banBtn;
 
-    private final ApiService apiService = new ApiService();
+    private final UserService userService;
     private HelloApplication application;
+
+    public UserDetailController(UserService userService) {
+        this.userService = userService;
+    }
     private String userId;
     private UserDetailResult currentUser;
 
@@ -80,8 +84,7 @@ public class UserDetailController {
         }
 
         try {
-            FXMLLoader loader = new FXMLLoader(
-                    getClass().getResource("/com/seyzeriat/desktop/users-view.fxml"));
+            javafx.fxml.FXMLLoader loader = application.createLoader("/com/seyzeriat/desktop/users-view.fxml");
             Node usersView = loader.load();
 
             UserManagementController controller = loader.getController();
@@ -163,7 +166,7 @@ public class UserDetailController {
         Task<UserDetailResult> fetchTask = new Task<>() {
             @Override
             protected UserDetailResult call() throws Exception {
-                return apiService.getUserDetail(userId);
+                return userService.getUserDetail(userId);
             }
         };
 
@@ -176,7 +179,7 @@ public class UserDetailController {
         fetchTask.setOnFailed(event -> Platform.runLater(() -> {
             setLoading(false);
             Throwable ex = fetchTask.getException();
-            if (ex instanceof ApiService.UnauthorizedException) {
+            if (ex instanceof com.seyzeriat.desktop.exception.UnauthorizedException) {
                 redirectToLogin();
                 return;
             }
@@ -209,23 +212,23 @@ public class UserDetailController {
 
         if (user.isBanned()) {
             banBtn.setText("Débannir");
-            banBtn.getStyleClass().removeAll("logout-button");
+            banBtn.getStyleClass().removeAll("destructive-button");
             banBtn.getStyleClass().add("search-button");
         } else {
             banBtn.setText("Bannir");
             banBtn.getStyleClass().removeAll("search-button");
-            banBtn.getStyleClass().add("logout-button");
+            banBtn.getStyleClass().add("destructive-button");
         }
     }
 
-    private void editUser(String body) {
+    private void editUser(String jsonBody) {
         setLoading(true);
         statusLabel.setText("Modification en cours...");
 
         Task<UserDetailResult> editTask = new Task<>() {
             @Override
             protected UserDetailResult call() throws Exception {
-                return apiService.editUser(userId, body);
+                return userService.editUser(userId, jsonBody);
             }
         };
 
@@ -239,7 +242,7 @@ public class UserDetailController {
         editTask.setOnFailed(event -> Platform.runLater(() -> {
             setLoading(false);
             Throwable ex = editTask.getException();
-            if (ex instanceof ApiService.UnauthorizedException) {
+            if (ex instanceof com.seyzeriat.desktop.exception.UnauthorizedException) {
                 redirectToLogin();
                 return;
             }
@@ -256,7 +259,7 @@ public class UserDetailController {
         Task<Void> banTask = new Task<>() {
             @Override
             protected Void call() throws Exception {
-                apiService.banUser(userId);
+                userService.banUser(userId);
                 return null;
             }
         };
@@ -269,7 +272,7 @@ public class UserDetailController {
         banTask.setOnFailed(event -> Platform.runLater(() -> {
             setLoading(false);
             Throwable ex = banTask.getException();
-            if (ex instanceof ApiService.UnauthorizedException) {
+            if (ex instanceof com.seyzeriat.desktop.exception.UnauthorizedException) {
                 redirectToLogin();
                 return;
             }
@@ -286,7 +289,7 @@ public class UserDetailController {
         Task<Void> unbanTask = new Task<>() {
             @Override
             protected Void call() throws Exception {
-                apiService.unbanUser(userId);
+                userService.unbanUser(userId);
                 return null;
             }
         };
@@ -299,7 +302,7 @@ public class UserDetailController {
         unbanTask.setOnFailed(event -> Platform.runLater(() -> {
             setLoading(false);
             Throwable ex = unbanTask.getException();
-            if (ex instanceof ApiService.UnauthorizedException) {
+            if (ex instanceof com.seyzeriat.desktop.exception.UnauthorizedException) {
                 redirectToLogin();
                 return;
             }

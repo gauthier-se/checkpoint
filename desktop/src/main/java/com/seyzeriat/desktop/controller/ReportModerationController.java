@@ -6,7 +6,8 @@ import com.seyzeriat.desktop.HelloApplication;
 import com.seyzeriat.desktop.dto.PagedResponse;
 import com.seyzeriat.desktop.dto.ReportDetailResult;
 import com.seyzeriat.desktop.dto.ReportResult;
-import com.seyzeriat.desktop.service.ApiService;
+import com.seyzeriat.desktop.service.ReportService;
+import com.seyzeriat.desktop.service.ReviewService;
 
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
@@ -39,8 +40,14 @@ public class ReportModerationController {
     @FXML private Button refreshButton;
     @FXML private ProgressIndicator loadingIndicator;
 
-    private final ApiService apiService = new ApiService();
+    private final ReportService reportService;
+    private final ReviewService reviewService;
     private HelloApplication application;
+
+    public ReportModerationController(ReportService reportService, ReviewService reviewService) {
+        this.reportService = reportService;
+        this.reviewService = reviewService;
+    }
 
     private int currentPage = 0;
     private static final int PAGE_SIZE = 20;
@@ -70,11 +77,11 @@ public class ReportModerationController {
         actionColumn.setCellFactory(param -> new TableCell<>() {
             private final Button dismissBtn = new Button("Ignorer");
             private final Button deleteBtn = new Button("Supprimer");
-            private final HBox buttons = new HBox(5, dismissBtn, deleteBtn);
+            private final HBox buttons = new HBox(10, dismissBtn, deleteBtn);
 
             {
                 dismissBtn.getStyleClass().add("search-button");
-                deleteBtn.getStyleClass().add("logout-button");
+                deleteBtn.getStyleClass().add("destructive-button");
 
                 dismissBtn.setOnAction(event -> {
                     ReportResult report = getTableView().getItems().get(getIndex());
@@ -127,7 +134,7 @@ public class ReportModerationController {
         Task<PagedResponse<ReportResult>> fetchTask = new Task<>() {
             @Override
             protected PagedResponse<ReportResult> call() throws Exception {
-                return apiService.getReports(page, PAGE_SIZE);
+                return reportService.getReports(page, PAGE_SIZE);
             }
         };
 
@@ -149,7 +156,7 @@ public class ReportModerationController {
         fetchTask.setOnFailed(event -> Platform.runLater(() -> {
             setLoading(false);
             Throwable ex = fetchTask.getException();
-            if (ex instanceof ApiService.UnauthorizedException) {
+            if (ex instanceof com.seyzeriat.desktop.exception.UnauthorizedException) {
                 redirectToLogin();
                 return;
             }
@@ -190,7 +197,7 @@ public class ReportModerationController {
         Task<Void> dismissTask = new Task<>() {
             @Override
             protected Void call() throws Exception {
-                apiService.dismissReport(id);
+                reportService.dismissReport(id);
                 return null;
             }
         };
@@ -203,7 +210,7 @@ public class ReportModerationController {
         dismissTask.setOnFailed(event -> Platform.runLater(() -> {
             setLoading(false);
             Throwable ex = dismissTask.getException();
-            if (ex instanceof ApiService.UnauthorizedException) {
+            if (ex instanceof com.seyzeriat.desktop.exception.UnauthorizedException) {
                 redirectToLogin();
                 return;
             }
@@ -220,15 +227,15 @@ public class ReportModerationController {
         Task<Void> deleteTask = new Task<>() {
             @Override
             protected Void call() throws Exception {
-                ReportDetailResult detail = apiService.getReportById(report.getId());
+                ReportDetailResult detail = reportService.getReportById(report.getId());
                 String targetId = detail.getTargetId();
                 if (targetId == null) {
                     throw new IllegalStateException("Report " + report.getId() + " has no target id");
                 }
                 if ("review".equals(detail.getType())) {
-                    apiService.deleteReview(targetId);
+                    reviewService.deleteReview(targetId);
                 } else if ("comment".equals(detail.getType())) {
-                    apiService.deleteComment(targetId);
+                    reviewService.deleteComment(targetId);
                 } else {
                     throw new IllegalStateException("Unknown report type: " + detail.getType());
                 }
@@ -244,7 +251,7 @@ public class ReportModerationController {
         deleteTask.setOnFailed(event -> Platform.runLater(() -> {
             setLoading(false);
             Throwable ex = deleteTask.getException();
-            if (ex instanceof ApiService.UnauthorizedException) {
+            if (ex instanceof com.seyzeriat.desktop.exception.UnauthorizedException) {
                 redirectToLogin();
                 return;
             }

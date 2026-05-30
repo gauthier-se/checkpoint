@@ -6,7 +6,7 @@ import com.seyzeriat.desktop.HelloApplication;
 import com.seyzeriat.desktop.dto.AnalyticsResult;
 import com.seyzeriat.desktop.dto.AnalyticsResult.TopGame;
 import com.seyzeriat.desktop.dto.AnalyticsResult.TopReviewer;
-import com.seyzeriat.desktop.service.ApiService;
+import com.seyzeriat.desktop.service.AnalyticsService;
 
 import javafx.application.Platform;
 import javafx.beans.property.SimpleLongProperty;
@@ -46,8 +46,12 @@ public class AnalyticsController {
     @FXML private TableColumn<TopReviewer, String> topReviewerNameColumn;
     @FXML private TableColumn<TopReviewer, Number> topReviewerCountColumn;
 
-    private final ApiService apiService = new ApiService();
+    private final AnalyticsService analyticsService;
     private HelloApplication application;
+
+    public AnalyticsController(AnalyticsService analyticsService) {
+        this.analyticsService = analyticsService;
+    }
 
     @FXML
     public void initialize() {
@@ -82,7 +86,7 @@ public class AnalyticsController {
         Task<AnalyticsResult> fetchTask = new Task<>() {
             @Override
             protected AnalyticsResult call() throws Exception {
-                return apiService.getAnalytics();
+                return analyticsService.getAnalytics();
             }
         };
 
@@ -96,7 +100,7 @@ public class AnalyticsController {
         fetchTask.setOnFailed(event -> Platform.runLater(() -> {
             setLoading(false);
             Throwable ex = fetchTask.getException();
-            if (ex instanceof ApiService.UnauthorizedException) {
+            if (ex instanceof com.seyzeriat.desktop.exception.UnauthorizedException) {
                 redirectToLogin();
                 return;
             }
