@@ -10,6 +10,7 @@ import {
   Gift,
   Heart,
   Library,
+  ListPlus,
   NotebookPen,
   Pencil,
   StickyNote,
@@ -21,6 +22,7 @@ import type { GameDetail } from '@/types/game'
 import type { GameInteractionStatusDto, PlayStatus } from '@/types/interaction'
 import { PLAY_STATUS_LABELS, PLAY_STATUS_ORDER } from '@/lib/play-status'
 import { NotesDialog } from '@/components/collection/notes-dialog'
+import { AddToListDialog } from '@/components/lists/add-to-list-dialog'
 import { PlayLogDialog } from '@/components/games/play-log-dialog'
 import { StarRating } from '@/components/games/star-rating'
 import { Button } from '@/components/ui/button'
@@ -63,6 +65,7 @@ export function GameQuickActions({ game }: GameQuickActionsProps) {
   const isDesktop = useIsDesktop()
   const [playLogOpen, setPlayLogOpen] = useState(false)
   const [notesOpen, setNotesOpen] = useState(false)
+  const [addToListOpen, setAddToListOpen] = useState(false)
 
   const { data: status } = useQuery({
     ...gameInteractionStatusQueryOptions(game.id),
@@ -578,6 +581,18 @@ export function GameQuickActions({ game }: GameQuickActionsProps) {
           Log Play
         </Button>
 
+        {/* Add to List Button */}
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-2"
+          disabled={disabled}
+          onClick={() => setAddToListOpen(true)}
+        >
+          <ListPlus className="w-4 h-4" />
+          Add to list
+        </Button>
+
         {/* Rating Widget */}
         <div className="flex items-center ml-4 pl-4 border-l">
           <StarRating game={game} currentRating={status?.userRating ?? null} />
@@ -629,6 +644,15 @@ export function GameQuickActions({ game }: GameQuickActionsProps) {
           gameTitle={game.title}
           status={status.libraryStatus}
           initialNotes={status.libraryNotes}
+        />
+      )}
+
+      {user && (
+        <AddToListDialog
+          gameId={game.id}
+          gameTitle={game.title}
+          open={addToListOpen}
+          onOpenChange={setAddToListOpen}
         />
       )}
     </>
