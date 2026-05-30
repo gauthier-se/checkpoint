@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.checkpoint.api.dto.catalog.PagedResponseDto;
@@ -30,6 +31,7 @@ import jakarta.validation.Valid;
  * <p>All endpoints require authentication and operate on the current user's
  * notifications only.</p>
  */
+@Tag(name = "Notifications and Feed", description = "Current user notifications")
 @RestController
 @RequestMapping("/api/me/notifications")
 public class NotificationController {

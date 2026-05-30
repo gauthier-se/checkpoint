@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.checkpoint.api.dto.catalog.PagedResponseDto;
@@ -36,6 +37,7 @@ import com.checkpoint.api.services.ProfileService;
  * a profile, additional context is provided (isFollowing, isOwner).
  * Tab data (reviews, wishlist) respects privacy settings.</p>
  */
+@Tag(name = "Account and Profile", description = "Public user profiles, library, plays and backlog")
 @RestController
 @RequestMapping("/api/users")
 public class ProfileController {

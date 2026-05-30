@@ -10,6 +10,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.checkpoint.api.exceptions.UserNotFoundException;
@@ -25,6 +26,7 @@ import com.checkpoint.api.services.EasterEggService;
  * never trusted: hitting one of these endpoints awards a specific badge and
  * only that one. There is no "award me badge X" endpoint by design.</p>
  */
+@Tag(name = "Gamification", description = "Easter egg discovery")
 @RestController
 @RequestMapping("/api/me/easter-eggs")
 public class EasterEggController {

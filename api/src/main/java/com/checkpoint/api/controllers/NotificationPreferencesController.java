@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.checkpoint.api.dto.notification.NotificationPreferencesDto;
@@ -21,6 +22,7 @@ import com.checkpoint.api.services.NotificationPreferencesService;
  * <p>Both endpoints require authentication and operate on the current user only.
  * The first call lazily creates a preferences row with every type enabled.</p>
  */
+@Tag(name = "Notifications and Feed", description = "Notification preferences")
 @RestController
 @RequestMapping("/api/me/notification-preferences")
 public class NotificationPreferencesController {

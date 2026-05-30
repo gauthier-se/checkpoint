@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.checkpoint.api.dto.catalog.PagedResponseDto;
@@ -35,6 +36,7 @@ import com.checkpoint.api.services.ReviewService;
  * Reviews are created, updated, and deleted via play log endpoints
  * ({@link PlayLogReviewController}).</p>
  */
+@Tag(name = "Reviews and Comments", description = "Game reviews")
 @RestController
 @RequestMapping("/api")
 public class ReviewController {

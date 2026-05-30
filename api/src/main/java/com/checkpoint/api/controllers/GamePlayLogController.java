@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.checkpoint.api.dto.catalog.PagedResponseDto;
@@ -33,6 +34,7 @@ import jakarta.validation.Valid;
 /**
  * REST controller for the authenticated user's game play logs.
  */
+@Tag(name = "Play Logs", description = "Current user play log entries")
 @RestController
 @RequestMapping("/api/me/plays")
 public class GamePlayLogController {

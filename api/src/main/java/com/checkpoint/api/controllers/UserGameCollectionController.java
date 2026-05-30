@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.checkpoint.api.dto.catalog.PagedResponseDto;
@@ -36,6 +37,7 @@ import jakarta.validation.Valid;
  * <p>All endpoints require authentication (JWT or session).
  * The authenticated user is resolved from the security context.</p>
  */
+@Tag(name = "Library and Collection", description = "Current user game library")
 @RestController
 @RequestMapping("/api/me/library")
 public class UserGameCollectionController {

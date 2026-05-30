@@ -26,6 +26,9 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.checkpoint.api.client.SteamApiClient;
 import com.checkpoint.api.client.SteamOpenIdClient;
 import com.checkpoint.api.dto.steam.SteamPlayerSummaryDto;
@@ -72,6 +75,7 @@ import jakarta.validation.Valid;
  *       {@code checkpoint_refresh} (refresh) HttpOnly cookies.</li>
  * </ul>
  */
+@Tag(name = "Authentication", description = "Login, registration, token refresh, password reset, OAuth2 and Steam sign-in")
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -130,6 +134,7 @@ public class AuthController {
      * @param servletResponse the HTTP servlet response (used to write cookies for Web clients)
      * @return token pair (Desktop), success message (Web), or 2FA required response
      */
+    @Operation(summary = "Authenticate with email and password")
     @PostMapping("/login")
     public ResponseEntity<?> login(
             @Valid @RequestBody LoginRequestDto loginRequest,
@@ -157,6 +162,7 @@ public class AuthController {
      * @param userDetails the authenticated user principal
      * @return setup response with QR code and provisioning URI
      */
+    @Operation(summary = "Begin two-factor authentication setup")
     @PostMapping("/2fa/setup")
     public ResponseEntity<TwoFactorSetupResponseDto> twoFactorSetup(
             @AuthenticationPrincipal UserDetails userDetails) {
@@ -171,6 +177,7 @@ public class AuthController {
      * @param userDetails the authenticated user principal
      * @return success message
      */
+    @Operation(summary = "Verify and enable two-factor authentication")
     @PostMapping("/2fa/verify")
     public ResponseEntity<AuthMessageDto> twoFactorVerify(
             @Valid @RequestBody TwoFactorVerifyRequestDto request,
@@ -186,6 +193,7 @@ public class AuthController {
      * @param userDetails the authenticated user principal
      * @return success message
      */
+    @Operation(summary = "Disable two-factor authentication")
     @PostMapping("/2fa/disable")
     public ResponseEntity<AuthMessageDto> twoFactorDisable(
             @Valid @RequestBody TwoFactorDisableRequestDto request,
@@ -210,6 +218,7 @@ public class AuthController {
      * @param servletResponse the HTTP servlet response to write the final auth cookies on
      * @return token pair (Desktop) or success message (Web)
      */
+    @Operation(summary = "Complete login with a two-factor code")
     @PostMapping("/2fa/login")
     public ResponseEntity<?> twoFactorLogin(
             @Valid @RequestBody TwoFactorLoginRequestDto request,
@@ -232,6 +241,7 @@ public class AuthController {
      * @param registerRequest the registration details
      * @return 201 Created on success
      */
+    @Operation(summary = "Register a new account")
     @PostMapping("/register")
     public ResponseEntity<Void> register(
             @Valid @RequestBody RegisterRequestDto registerRequest) {
@@ -247,6 +257,7 @@ public class AuthController {
      * @param loginRequest the login credentials
      * @return token pair in the response body
      */
+    @Operation(summary = "Authenticate and receive JWT access and refresh tokens (Desktop)")
     @PostMapping("/token")
     public ResponseEntity<TokenPairDto> token(
             @Valid @RequestBody LoginRequestDto loginRequest) {
@@ -270,6 +281,7 @@ public class AuthController {
      * @param servletResponse the HTTP servlet response to write new cookies on (Web clients)
      * @return token pair (Desktop) or success message (Web)
      */
+    @Operation(summary = "Refresh the access token")
     @PostMapping("/refresh")
     public ResponseEntity<?> refresh(
             @RequestHeader(value = "X-Client-Type", required = false) String clientType,
@@ -296,6 +308,7 @@ public class AuthController {
      * @param servletResponse the HTTP servlet response to write expired cookies on
      * @return success message
      */
+    @Operation(summary = "Log out and clear the session cookies")
     @PostMapping("/logout")
     public ResponseEntity<AuthMessageDto> logout(
             @CookieValue(value = "checkpoint_refresh", required = false) String refreshCookie,
@@ -313,6 +326,7 @@ public class AuthController {
      * @param userDetails the authenticated user principal (injected by Spring Security)
      * @return JWT token in the response body
      */
+    @Operation(summary = "Issue a short-lived WebSocket authentication token")
     @GetMapping("/ws-token")
     public ResponseEntity<LoginResponseDto> wsToken(
             @AuthenticationPrincipal UserDetails userDetails) {
@@ -327,6 +341,7 @@ public class AuthController {
      * @param userDetails the authenticated user principal (injected by Spring Security)
      * @return user profile including ID, username, email, and role
      */
+    @Operation(summary = "Get the currently authenticated user")
     @GetMapping("/me")
     public ResponseEntity<UserMeDto> me(@AuthenticationPrincipal UserDetails userDetails) {
         UserMeDto user = authService.getCurrentUser(userDetails.getUsername());
@@ -339,6 +354,7 @@ public class AuthController {
      * @param request the forgot password request
      * @return 200 OK
      */
+    @Operation(summary = "Request a password reset email")
     @PostMapping("/forgot-password")
     public ResponseEntity<AuthMessageDto> forgotPassword(
             @Valid @RequestBody ForgotPasswordRequestDto request) {
@@ -353,6 +369,7 @@ public class AuthController {
      * @param request the reset password request
      * @return 200 OK
      */
+    @Operation(summary = "Reset the password using a reset token")
     @PostMapping("/reset-password")
     public ResponseEntity<AuthMessageDto> resetPassword(
             @Valid @RequestBody ResetPasswordRequestDto request) {
@@ -371,6 +388,7 @@ public class AuthController {
      *               {@code signup} (open the prefilled signup form when no account is linked)
      * @return 302 redirect to Steam
      */
+    @Operation(summary = "Start the Steam OpenID sign-in flow")
     @GetMapping("/steam/openid/start")
     public ResponseEntity<?> steamOpenIdStart(
             @RequestParam(defaultValue = STEAM_ACTION_LOGIN) String action,
@@ -412,6 +430,7 @@ public class AuthController {
      * @param servletResponse the HTTP servlet response (used to write auth cookies on login)
      * @return 302 redirect to the frontend
      */
+    @Operation(summary = "Handle the Steam OpenID sign-in callback")
     @GetMapping("/steam/openid/callback")
     public ResponseEntity<?> steamOpenIdCallback(
             @RequestParam(defaultValue = STEAM_ACTION_LOGIN) String action,
@@ -477,6 +496,7 @@ public class AuthController {
      * @param token the signed JWT from the {@code steam_token} query parameter
      * @return the prefill payload (steam id, display name, avatar URL, profile URL)
      */
+    @Operation(summary = "Get prefilled signup data from a Steam profile")
     @GetMapping("/steam/signup-prefill")
     public ResponseEntity<SteamSignupPrefillDto> steamSignupPrefill(@RequestParam String token) {
         SteamSignupTokenService.Claims claims = steamSignupTokenService.verify(token)
@@ -496,6 +516,7 @@ public class AuthController {
      * @param servletResponse the HTTP servlet response to write the auth cookies on
      * @return 201 Created with a confirmation message
      */
+    @Operation(summary = "Complete registration linked to a Steam account")
     @PostMapping("/register/steam")
     public ResponseEntity<AuthMessageDto> registerWithSteam(
             @Valid @RequestBody RegisterWithSteamRequestDto request,

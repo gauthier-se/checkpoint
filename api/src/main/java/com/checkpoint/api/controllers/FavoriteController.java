@@ -10,6 +10,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.checkpoint.api.dto.profile.FavoriteDto;
@@ -21,6 +22,7 @@ import jakarta.validation.Valid;
 /**
  * REST controller for the authenticated user's favorite games (top 5, ordered).
  */
+@Tag(name = "Library and Collection", description = "Current user favorite games")
 @RestController
 @RequestMapping("/api/me/favorites")
 public class FavoriteController {

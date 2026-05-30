@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.checkpoint.api.dto.catalog.NewsResponseDto;
@@ -28,6 +29,7 @@ import com.checkpoint.api.services.NewsService;
  * REST controller for public news endpoints.
  * Provides read-only access to published news articles with full-text search and filtering.
  */
+@Tag(name = "News", description = "Game news feed")
 @RestController
 @RequestMapping("/api/news")
 public class NewsController {

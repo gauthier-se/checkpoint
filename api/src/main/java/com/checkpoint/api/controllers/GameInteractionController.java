@@ -10,6 +10,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.checkpoint.api.dto.collection.GameInteractionStatusDto;
@@ -21,6 +22,7 @@ import com.checkpoint.api.services.GameInteractionService;
  * <p>All endpoints require authentication (JWT or session).
  * The authenticated user is resolved from the security context.</p>
  */
+@Tag(name = "Library and Collection", description = "Add, update and remove games in the current user collection")
 @RestController
 @RequestMapping("/api/me/games")
 public class GameInteractionController {

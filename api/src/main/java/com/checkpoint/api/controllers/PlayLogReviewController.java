@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.checkpoint.api.dto.catalog.ReviewRequestDto;
@@ -32,6 +33,7 @@ import jakarta.validation.Valid;
  * <p>All endpoints require authentication. The authenticated user is resolved
  * from the security context.</p>
  */
+@Tag(name = "Play Logs", description = "Reviews attached to a play log entry")
 @RestController
 @RequestMapping("/api/me/plays/{playId}/review")
 public class PlayLogReviewController {

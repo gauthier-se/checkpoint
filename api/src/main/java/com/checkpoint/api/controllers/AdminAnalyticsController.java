@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.checkpoint.api.dto.admin.AdminAnalyticsDto;
@@ -15,6 +16,7 @@ import com.checkpoint.api.services.AdminAnalyticsService;
  * REST controller for the admin analytics dashboard.
  * All endpoints require the {@code ROLE_ADMIN} authority.
  */
+@Tag(name = "Admin", description = "Admin: analytics dashboard")
 @RestController
 @RequestMapping("/api/admin/analytics")
 @PreAuthorize("hasRole('ADMIN')")

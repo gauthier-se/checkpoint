@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.checkpoint.api.dto.leaderboard.LeaderboardEntryDto;
@@ -21,6 +22,7 @@ import com.checkpoint.api.services.LeaderboardSortBy;
  * <p>The endpoint is publicly accessible (no auth required). Banned users
  * are filtered out at the repository layer.</p>
  */
+@Tag(name = "Gamification", description = "Leaderboards")
 @RestController
 @RequestMapping("/api/leaderboard")
 public class LeaderboardController {

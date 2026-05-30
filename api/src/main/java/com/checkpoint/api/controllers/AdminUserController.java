@@ -15,6 +15,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.checkpoint.api.dto.admin.AdminUserDetailDto;
 import com.checkpoint.api.dto.admin.AdminUserDto;
 import com.checkpoint.api.dto.admin.AdminUserEditDto;
@@ -24,6 +27,7 @@ import com.checkpoint.api.services.AdminUserService;
  * REST controller for admin user management operations.
  * All endpoints require the {@code ROLE_ADMIN} authority.
  */
+@Tag(name = "Admin", description = "Admin: user management")
 @RestController
 @RequestMapping("/api/admin/users")
 @PreAuthorize("hasRole('ADMIN')")
@@ -42,6 +46,7 @@ public class AdminUserController {
      *
      * @return list of users with ID, username, email, and ban status
      */
+    @Operation(summary = "List all users (admin)")
     @GetMapping
     public ResponseEntity<List<AdminUserDto>> getAllUsers() {
         log.info("Admin request: fetching all users");
@@ -58,6 +63,7 @@ public class AdminUserController {
      * @param id the user's UUID
      * @return the detailed user profile
      */
+    @Operation(summary = "Get a user's details (admin)")
     @GetMapping("/{id}")
     public ResponseEntity<AdminUserDetailDto> getUserById(@PathVariable UUID id) {
         log.info("Admin request: fetching user detail for {}", id);
@@ -74,6 +80,7 @@ public class AdminUserController {
      * @param dto the edit fields
      * @return the updated user detail
      */
+    @Operation(summary = "Edit a user's profile fields (admin)")
     @PutMapping("/{id}")
     public ResponseEntity<AdminUserDetailDto> editUser(@PathVariable UUID id,
                                                       @RequestBody AdminUserEditDto dto) {
@@ -90,6 +97,7 @@ public class AdminUserController {
      * @param id the user's UUID
      * @return 204 No Content on success
      */
+    @Operation(summary = "Ban a user account (admin)")
     @PostMapping("/{id}/ban")
     public ResponseEntity<Void> banUser(@PathVariable UUID id) {
         log.info("Admin request: banning user {}", id);
@@ -105,6 +113,7 @@ public class AdminUserController {
      * @param id the user's UUID
      * @return 204 No Content on success
      */
+    @Operation(summary = "Unban a user account (admin)")
     @PostMapping("/{id}/unban")
     public ResponseEntity<Void> unbanUser(@PathVariable UUID id) {
         log.info("Admin request: unbanning user {}", id);
