@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import { MessageSquare } from 'lucide-react'
+import { AlignLeft } from 'lucide-react'
 import { MiniStarRating } from '@/components/games/mini-star-rating'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
@@ -36,9 +36,12 @@ export function FriendAvatarTile({
 }: FriendAvatarTileProps) {
   const fallback = pseudo.substring(0, 2).toUpperCase()
   const inner = (
-    <div className="flex w-14 flex-col items-center gap-1">
+    <div className="flex w-16 flex-col items-center gap-1">
       <div className="relative">
-        <Avatar size="xl" className={cn(href && 'transition hover:opacity-90')}>
+        <Avatar
+          size="2xl"
+          className={cn(href && 'transition hover:opacity-90')}
+        >
           <AvatarImage src={resolvePictureUrl(picture)} alt={pseudo} />
           <AvatarFallback>{fallback}</AvatarFallback>
         </Avatar>
@@ -47,7 +50,7 @@ export function FriendAvatarTile({
             aria-label="has a review"
             className="absolute -top-1 -right-1 size-4 rounded-full p-0 ring-2 ring-background [&>svg]:size-2.5"
           >
-            <MessageSquare />
+            <AlignLeft />
           </Badge>
         )}
       </div>

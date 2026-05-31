@@ -61,9 +61,14 @@ public class GameMapperImpl implements GameMapper {
             entity.setCoverUrl(dto.cover().getCoverBigUrl());
         }
 
-        // Pick the first artwork (1080p) for the blurred hero background
+        // Pick the first artwork (1080p) for the blurred hero background. IGDB does
+        // not always provide artworks, so fall back to the first screenshot (also a
+        // landscape image) before giving up. The cover is intentionally not used here
+        // as it is portrait and unsuitable for a wide background.
         if (dto.artworks() != null && !dto.artworks().isEmpty()) {
             entity.setArtworkUrl(dto.artworks().get(0).get1080pUrl());
+        } else if (dto.screenshots() != null && !dto.screenshots().isEmpty()) {
+            entity.setArtworkUrl(dto.screenshots().get(0).getImageUrl("1080p"));
         } else {
             entity.setArtworkUrl(null);
         }

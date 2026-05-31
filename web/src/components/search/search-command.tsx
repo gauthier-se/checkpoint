@@ -268,8 +268,8 @@ export function SearchCommand({ open, onOpenChange }: SearchCommandProps) {
             onSelect={() =>
               handleSelect(() =>
                 navigate({
-                  to: '/games',
-                  search: { page: 1, genre: genre.id },
+                  to: '/games/filtered',
+                  search: { page: 1, genres: [genre.name] },
                 }),
               )
             }
@@ -297,8 +297,8 @@ export function SearchCommand({ open, onOpenChange }: SearchCommandProps) {
             onSelect={() =>
               handleSelect(() =>
                 navigate({
-                  to: '/games',
-                  search: { page: 1, platform: platform.id },
+                  to: '/games/filtered',
+                  search: { page: 1, platforms: [platform.name] },
                 }),
               )
             }

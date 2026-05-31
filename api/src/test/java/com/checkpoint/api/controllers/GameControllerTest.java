@@ -195,7 +195,7 @@ class GameControllerTest {
         // Given
         Page<GameCardDto> emptyPage = new PageImpl<>(List.of());
         when(gameCatalogService.getGameCatalog(any(Pageable.class),
-                eq("RPG"), isNull(), isNull(), isNull(), isNull(), isNull()))
+                eq(List.of("RPG")), isNull(), isNull(), isNull(), isNull(), isNull()))
                 .thenReturn(emptyPage);
 
         // When / Then
@@ -204,7 +204,26 @@ class GameControllerTest {
                 .andExpect(status().isOk());
 
         verify(gameCatalogService).getGameCatalog(any(Pageable.class),
-                eq("RPG"), isNull(), isNull(), isNull(), isNull(), isNull());
+                eq(List.of("RPG")), isNull(), isNull(), isNull(), isNull(), isNull());
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/games?genre=RPG&genre=Action should pass multiple genre filters to service")
+    void getGames_shouldPassMultipleGenreFilters() throws Exception {
+        // Given
+        Page<GameCardDto> emptyPage = new PageImpl<>(List.of());
+        when(gameCatalogService.getGameCatalog(any(Pageable.class),
+                eq(List.of("RPG", "Action")), isNull(), isNull(), isNull(), isNull(), isNull()))
+                .thenReturn(emptyPage);
+
+        // When / Then
+        mockMvc.perform(get("/api/v1/games")
+                        .param("genre", "RPG")
+                        .param("genre", "Action"))
+                .andExpect(status().isOk());
+
+        verify(gameCatalogService).getGameCatalog(any(Pageable.class),
+                eq(List.of("RPG", "Action")), isNull(), isNull(), isNull(), isNull(), isNull());
     }
 
     @Test
@@ -213,7 +232,7 @@ class GameControllerTest {
         // Given
         Page<GameCardDto> emptyPage = new PageImpl<>(List.of());
         when(gameCatalogService.getGameCatalog(any(Pageable.class),
-                isNull(), eq("PC"), isNull(), isNull(), isNull(), isNull()))
+                isNull(), eq(List.of("PC")), isNull(), isNull(), isNull(), isNull()))
                 .thenReturn(emptyPage);
 
         // When / Then
@@ -222,7 +241,7 @@ class GameControllerTest {
                 .andExpect(status().isOk());
 
         verify(gameCatalogService).getGameCatalog(any(Pageable.class),
-                isNull(), eq("PC"), isNull(), isNull(), isNull(), isNull());
+                isNull(), eq(List.of("PC")), isNull(), isNull(), isNull(), isNull());
     }
 
     @Test
@@ -274,7 +293,7 @@ class GameControllerTest {
         Page<GameCardDto> page = new PageImpl<>(cards);
 
         when(gameCatalogService.getGameCatalog(any(Pageable.class),
-                eq("RPG"), eq("PC"), eq(2020), isNull(), eq(4.0), isNull()))
+                eq(List.of("RPG")), eq(List.of("PC")), eq(2020), isNull(), eq(4.0), isNull()))
                 .thenReturn(page);
 
         // When / Then

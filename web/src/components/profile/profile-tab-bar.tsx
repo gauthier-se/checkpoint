@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import {
+  AlignLeft,
   Archive,
   BookOpen,
   Bookmark,
@@ -8,7 +9,6 @@ import {
   Gamepad2,
   Heart,
   List,
-  MessageSquare,
   Pause,
   PlayCircle,
   Tag,
@@ -66,7 +66,7 @@ const TABS: ReadonlyArray<TabConfig> = [
   { value: 'backlog', label: 'Backlog', icon: Archive },
   { value: 'tags', label: 'Tags', icon: Tag },
   { value: 'liked', label: 'Liked', icon: ThumbsUp },
-  { value: 'reviews', label: 'Reviews', icon: MessageSquare },
+  { value: 'reviews', label: 'Reviews', icon: AlignLeft },
   { value: 'lists', label: 'Lists', icon: List },
   { value: 'followers', label: 'Followers', icon: UserCheck },
   { value: 'following', label: 'Following', icon: Users },

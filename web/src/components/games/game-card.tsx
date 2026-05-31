@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { GameCardHoverActions } from '@/components/games/game-card-hover-actions'
 
@@ -14,8 +15,14 @@ interface GameCardProps {
 }
 
 export function GameCard({ game, reason }: GameCardProps) {
+  const [isHovered, setIsHovered] = useState(false)
+
   return (
-    <div className="group relative flex flex-col gap-1">
+    <div
+      className="group relative flex flex-col gap-1"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
       <Link
         to="/games/$gameId"
         params={{ gameId: game.id }}
@@ -41,6 +48,7 @@ export function GameCard({ game, reason }: GameCardProps) {
         <GameCardHoverActions
           gameId={game.id}
           className="z-10 pointer-events-auto"
+          isHovered={isHovered}
         />
       </div>
       {reason && (

@@ -12,10 +12,7 @@ import {
 import { useAuth } from '@/hooks/use-auth'
 
 import { seo } from '@/lib/seo'
-
-function parseOptionalString(value: unknown): string | undefined {
-  return typeof value === 'string' && value.length > 0 ? value : undefined
-}
+import { parseOptionalString } from '@/lib/search-params'
 
 export const Route = createFileRoute('/_app/members/')({
   head: () => ({

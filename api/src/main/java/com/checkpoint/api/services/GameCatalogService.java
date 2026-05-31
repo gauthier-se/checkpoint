@@ -19,8 +19,8 @@ public interface GameCatalogService {
      * Retrieves a paginated list of games for the catalog with optional filters.
      *
      * @param pageable   pagination and sorting parameters
-     * @param genre      optional genre name filter (case-insensitive exact match)
-     * @param platform   optional platform name filter (case-insensitive exact match)
+     * @param genres     optional genre name filters (case-insensitive; matches any)
+     * @param platforms  optional platform name filters (case-insensitive; matches any)
      * @param yearMin    optional minimum release year (inclusive)
      * @param yearMax    optional maximum release year (inclusive)
      * @param ratingMin  optional minimum average rating (inclusive)
@@ -28,8 +28,8 @@ public interface GameCatalogService {
      * @return page of game cards matching the filters
      */
     Page<GameCardDto> getGameCatalog(Pageable pageable,
-                                      String genre,
-                                      String platform,
+                                      List<String> genres,
+                                      List<String> platforms,
                                       Integer yearMin,
                                       Integer yearMax,
                                       Double ratingMin,

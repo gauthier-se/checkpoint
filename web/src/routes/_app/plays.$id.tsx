@@ -153,7 +153,7 @@ function PlayLogDetailPage() {
 
   if (isLoading) {
     return (
-      <main className="mx-auto max-w-5xl px-4 py-10">
+      <main className="mx-auto max-w-7xl px-4 py-10">
         <div className="flex min-h-[40vh] items-center justify-center">
           <Loader2 className="size-6 animate-spin text-muted-foreground" />
         </div>
@@ -164,7 +164,7 @@ function PlayLogDetailPage() {
   if (error || !play) {
     const isForbidden = isApiError(error) && error.status === 403
     return (
-      <main className="mx-auto max-w-5xl px-4 py-10">
+      <main className="mx-auto max-w-7xl px-4 py-10">
         <div className="flex flex-col items-center gap-3 py-12 text-center">
           <Lock className="text-muted-foreground size-12" />
           <p className="text-muted-foreground text-lg">
@@ -185,7 +185,7 @@ function PlayLogDetailPage() {
   })
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-10">
+    <main className="mx-auto max-w-7xl px-4 py-10">
       <Link
         to="/profile/$username"
         params={{ username: play.username }}
@@ -196,15 +196,15 @@ function PlayLogDetailPage() {
         Back to {play.username}'s profile
       </Link>
 
-      <div className="grid gap-6 md:grid-cols-[220px_1fr]">
+      <div className="grid gap-8 md:grid-cols-[260px_1fr] items-start">
         {/* Left column: cover + game info */}
-        <div className="space-y-3">
+        <div className="space-y-4 sticky top-24">
           <Link
             to="/games/$gameId"
             params={{ gameId: play.videoGameId }}
-            className="block"
+            className="block group"
           >
-            <div className="aspect-[3/4] w-full overflow-hidden rounded-md bg-muted">
+            <div className="aspect-[3/4] w-full overflow-hidden rounded-lg bg-muted shadow-lg border border-border/10 transition-transform group-hover:scale-[1.02]">
               {play.coverUrl ? (
                 <img
                   src={play.coverUrl}
@@ -213,74 +213,87 @@ function PlayLogDetailPage() {
                 />
               ) : (
                 <div className="flex h-full w-full items-center justify-center bg-secondary">
-                  <Gamepad2 className="size-8 text-muted-foreground" />
+                  <Gamepad2 className="size-10 text-muted-foreground" />
                 </div>
               )}
             </div>
           </Link>
-          <div>
+          <div className="space-y-1">
             <Link
               to="/games/$gameId"
               params={{ gameId: play.videoGameId }}
-              className="text-lg font-semibold leading-tight hover:underline"
+              className="text-xl font-bold leading-tight hover:underline line-clamp-2"
             >
               {play.title}
             </Link>
-            {play.releaseDate && (
-              <p className="text-xs text-muted-foreground">
-                ({new Date(play.releaseDate).getFullYear()})
-              </p>
-            )}
+            <div className="flex flex-wrap items-center gap-2">
+              {play.releaseDate && (
+                <span className="text-sm text-muted-foreground">
+                  {new Date(play.releaseDate).getFullYear()}
+                </span>
+              )}
+              {play.releaseDate && (
+                <span className="text-muted-foreground/30">•</span>
+              )}
+              <Badge
+                variant="secondary"
+                className="gap-1 font-medium bg-secondary/60"
+              >
+                <Gamepad2 className="size-3" />
+                {play.platformName}
+              </Badge>
+            </div>
           </div>
-          <Badge variant="outline" className="gap-1">
-            <Gamepad2 className="size-3" />
-            {play.platformName}
-          </Badge>
         </div>
 
         {/* Right column: session details */}
-        <div className="space-y-4">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div className="flex items-center gap-3">
+        <div className="space-y-6">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="flex items-center gap-4">
               <Link
                 to="/profile/$username"
                 params={{ username: play.username }}
                 search={{ tab: 'reviews', page: 1 }}
-                className="flex items-center gap-2 hover:underline"
+                className="group flex items-center gap-3 transition-opacity hover:opacity-80"
               >
-                <Avatar className="size-8">
+                <Avatar className="size-12 border border-border/20 shadow-sm">
                   <AvatarImage
                     src={resolvePictureUrl(play.userPicture)}
                     alt={play.username}
                   />
-                  <AvatarFallback className="text-xs">
+                  <AvatarFallback className="bg-muted">
                     {authorInitials}
                   </AvatarFallback>
                 </Avatar>
-                <span className="font-medium">{play.username}</span>
+                <div className="flex flex-col">
+                  <span className="font-bold text-lg leading-none group-hover:underline">
+                    {play.username}
+                  </span>
+                  <span className="text-xs text-muted-foreground mt-1">
+                    Logged on {createdDate}
+                  </span>
+                </div>
               </Link>
-              <span className="text-sm text-muted-foreground">
-                logged on {createdDate}
-              </span>
             </div>
 
             {play.isOwner && (
-              <div className="flex gap-2">
+              <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
                   size="sm"
+                  className="h-8 shadow-sm"
                   onClick={() => setIsEditing(true)}
                 >
-                  <Pencil className="size-4" />
+                  <Pencil className="size-3.5 mr-1.5" />
                   Edit
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
-                  className="text-destructive hover:text-destructive"
+                  className="h-8 text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/20 shadow-sm"
                   onClick={() => setIsConfirmingDelete(true)}
                 >
-                  <Trash2 className="size-4" />
+                  <Trash2 className="size-3.5 mr-1.5" />
                   Delete
                 </Button>
               </div>
@@ -288,11 +301,16 @@ function PlayLogDetailPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <Badge className={PLAY_STATUS_COLORS[play.status]}>
+            <Badge
+              className={`${PLAY_STATUS_COLORS[play.status]} px-2.5 py-0.5 font-semibold`}
+            >
               {PLAY_STATUS_LABELS[play.status]}
             </Badge>
             {play.isReplay && (
-              <Badge variant="outline" className="gap-1">
+              <Badge
+                variant="outline"
+                className="gap-1.5 px-2.5 py-0.5 bg-background border-border/60"
+              >
                 <RefreshCw className="size-3" />
                 Replay
               </Badge>
@@ -300,7 +318,7 @@ function PlayLogDetailPage() {
             {play.isLikedByViewer && (
               <Badge
                 variant="outline"
-                className="gap-1 border-red-500/20 bg-red-500/10 text-red-500"
+                className="gap-1.5 px-2.5 py-0.5 border-red-500/30 bg-red-500/10 text-red-500 font-medium"
               >
                 <Heart className="size-3 fill-current" />
                 Liked the game
@@ -308,52 +326,92 @@ function PlayLogDetailPage() {
             )}
           </div>
 
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted-foreground">
-            {play.timePlayed != null && play.timePlayed > 0 && (
-              <span className="flex items-center gap-1.5">
-                <Clock className="size-4" />
-                {formatTimePlayed(play.timePlayed)}
-              </span>
+          {/* Stats Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 rounded-lg bg-muted/30 border border-border/5">
+            {play.score != null ? (
+              <div className="flex flex-col gap-1">
+                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Rating
+                </span>
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-lg">
+                    {(play.score / 2).toFixed(1)}
+                  </span>
+                  <ScoreStars score={play.score} />
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-1">
+                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Rating
+                </span>
+                <span className="font-bold text-lg text-muted-foreground/50">
+                  N/A
+                </span>
+              </div>
             )}
-            {play.startDate && (
-              <span className="flex items-center gap-1.5">
-                <Calendar className="size-4" />
-                {formatDate(play.startDate)}
-                {play.endDate && ` — ${formatDate(play.endDate)}`}
-              </span>
+
+            {play.timePlayed != null && play.timePlayed > 0 ? (
+              <div className="flex flex-col gap-1">
+                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Time
+                </span>
+                <span className="font-bold text-lg flex items-center gap-1.5">
+                  <Clock className="size-4 text-primary/70" />
+                  {formatTimePlayed(play.timePlayed)}
+                </span>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-1">
+                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Time
+                </span>
+                <span className="font-bold text-lg text-muted-foreground/50">
+                  N/A
+                </span>
+              </div>
             )}
-            {play.ownership && (
-              <span className="capitalize">{play.ownership}</span>
-            )}
+
+            {play.startDate ? (
+              <div className="flex flex-col gap-1 sm:col-span-2">
+                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Dates
+                </span>
+                <span className="font-bold text-lg flex items-center gap-1.5">
+                  <Calendar className="size-4 text-primary/70" />
+                  {formatDate(play.startDate)}
+                  {play.endDate && (
+                    <span className="text-muted-foreground/50 mx-1">→</span>
+                  )}
+                  {play.endDate && formatDate(play.endDate)}
+                </span>
+              </div>
+            ) : null}
           </div>
 
-          {play.score != null && (
-            <div className="flex items-center gap-3">
-              <ScoreStars score={play.score} />
-              <span className="text-sm text-muted-foreground">
-                {(play.score / 2).toFixed(1)} / 5
-              </span>
-            </div>
-          )}
-
           {play.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1.5">
-              {play.tags.map((tag) => (
-                <Badge
-                  key={tag.id}
-                  variant="outline"
-                  className="gap-1 text-muted-foreground"
-                >
-                  <TagIcon className="size-3" />
-                  {tag.name}
-                </Badge>
-              ))}
+            <div className="space-y-2">
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                Tags
+              </span>
+              <div className="flex flex-wrap gap-2">
+                {play.tags.map((tag) => (
+                  <Badge
+                    key={tag.id}
+                    variant="outline"
+                    className="gap-1.5 text-muted-foreground bg-background hover:bg-muted transition-colors border-border/60"
+                  >
+                    <TagIcon className="size-3" />
+                    {tag.name}
+                  </Badge>
+                ))}
+              </div>
             </div>
           )}
 
           {play.review && (
-            <>
-              <Separator />
+            <div className="pt-2">
+              <Separator className="mb-6 opacity-50" />
               <ReviewBlock
                 review={play.review}
                 isOwner={play.isOwner}
@@ -365,7 +423,7 @@ function PlayLogDetailPage() {
                     : undefined
                 }
               />
-            </>
+            </div>
           )}
         </div>
       </div>

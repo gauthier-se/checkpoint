@@ -67,7 +67,7 @@ export function recommendedGamesQueryOptions(size: number = 7) {
   })
 }
 
-export function similarGamesQueryOptions(gameId: string, size: number = 12) {
+export function similarGamesQueryOptions(gameId: string, size: number = 7) {
   return queryOptions({
     queryKey: ['games', gameId, 'similar', size],
     queryFn: async (): Promise<Array<Game>> => {

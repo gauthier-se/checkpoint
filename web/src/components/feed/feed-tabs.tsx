@@ -1,4 +1,4 @@
-import { Heart, ListMusic, MessageSquare, Play, Rss, Star } from 'lucide-react'
+import { AlignLeft, Heart, ListMusic, Play, Rss, Star } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { FeedTab } from '@/types/feed'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -12,7 +12,7 @@ export const FEED_TAB_OPTIONS: ReadonlyArray<{
   { value: 'all', label: 'All', icon: Rss },
   { value: 'PLAY', label: 'Plays', icon: Play },
   { value: 'RATING', label: 'Ratings', icon: Star },
-  { value: 'REVIEW', label: 'Reviews', icon: MessageSquare },
+  { value: 'REVIEW', label: 'Reviews', icon: AlignLeft },
   { value: 'LIST', label: 'Lists', icon: ListMusic },
   { value: 'LIKE_GAME', label: 'Likes', icon: Heart },
 ]

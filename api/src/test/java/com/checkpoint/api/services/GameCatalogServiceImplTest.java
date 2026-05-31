@@ -97,17 +97,17 @@ class GameCatalogServiceImplTest {
         Page<GameCardDto> expectedPage = new PageImpl<>(List.of(), pageable, 0);
 
         when(videoGameRepository.findAllAsGameCardsWithFilters(pageable,
-                "RPG", "PC", 2020, 2023, 4.0, 5.0))
+                List.of("RPG"), List.of("PC"), 2020, 2023, 4.0, 5.0))
                 .thenReturn(expectedPage);
 
         // When
         Page<GameCardDto> result = gameCatalogService.getGameCatalog(
-                pageable, "RPG", "PC", 2020, 2023, 4.0, 5.0);
+                pageable, List.of("RPG"), List.of("PC"), 2020, 2023, 4.0, 5.0);
 
         // Then
         assertThat(result.getContent()).isEmpty();
         verify(videoGameRepository).findAllAsGameCardsWithFilters(pageable,
-                "RPG", "PC", 2020, 2023, 4.0, 5.0);
+                List.of("RPG"), List.of("PC"), 2020, 2023, 4.0, 5.0);
     }
 
     @Test

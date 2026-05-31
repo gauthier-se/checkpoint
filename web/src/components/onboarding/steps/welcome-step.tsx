@@ -1,4 +1,4 @@
-import { ArrowRight, Library, MessageSquare, Users } from 'lucide-react'
+import { AlignLeft, ArrowRight, Library, Users } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { StepFrame } from '../step-frame'
 import { Button } from '@/components/ui/button'
@@ -46,7 +46,7 @@ export function WelcomeStep({ onNext }: WelcomeStepProps) {
           </p>
         </div>
         <div className="rounded-lg border p-4">
-          <MessageSquare className="text-primary mb-2 size-5" />
+          <AlignLeft className="text-primary mb-2 size-5" />
           <p className="font-medium">Share reviews</p>
           <p className="text-muted-foreground text-sm">
             Rate games, write reviews, and curate lists.

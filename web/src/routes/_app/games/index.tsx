@@ -27,21 +27,16 @@ import {
 } from '@/queries/review'
 
 import { seo } from '@/lib/seo'
+import {
+  parseOptionalNumber,
+  parseOptionalString,
+  parseStringArray,
+} from '@/lib/search-params'
 
 const DISCOVERY_SIZE = 7
 
 export type GamesSearchParams = {
   page?: number
-}
-
-function parseOptionalString(value: unknown): string | undefined {
-  return typeof value === 'string' && value.length > 0 ? value : undefined
-}
-
-function parseOptionalNumber(value: unknown): number | undefined {
-  if (value === undefined || value === null || value === '') return undefined
-  const n = Number(value)
-  return Number.isFinite(n) ? n : undefined
 }
 
 export const Route = createFileRoute('/_app/games/')({
@@ -58,7 +53,7 @@ export const Route = createFileRoute('/_app/games/')({
     // bookmarks keep working.
     const raw = search as Record<string, unknown>
     const forwardable: Record<string, unknown> = {}
-    const stringKeys = ['q', 'genre', 'platform', 'sort'] as const
+    const stringKeys = ['q', 'sort'] as const
     const numberKeys = ['yearMin', 'yearMax', 'ratingMin', 'ratingMax'] as const
     let hasForwardableFilter = false
     for (const key of stringKeys) {
@@ -67,6 +62,18 @@ export const Route = createFileRoute('/_app/games/')({
         forwardable[key] = value
         hasForwardableFilter = true
       }
+    }
+    // genre/platform accept both the new array form and the legacy singular
+    // string form (old bookmarks like ?genre=RPG).
+    const genres = parseStringArray(raw.genres ?? raw.genre)
+    if (genres !== undefined) {
+      forwardable.genres = genres
+      hasForwardableFilter = true
+    }
+    const platforms = parseStringArray(raw.platforms ?? raw.platform)
+    if (platforms !== undefined) {
+      forwardable.platforms = platforms
+      hasForwardableFilter = true
     }
     for (const key of numberKeys) {
       const value = parseOptionalNumber(raw[key])
@@ -181,26 +188,6 @@ function RouteComponent() {
         )}
       </DiscoverySection>
 
-      <DiscoverySection title="Popular reviews">
-        {data.popularReviews.length > 0 ? (
-          <ReviewCardGrid reviews={data.popularReviews} />
-        ) : (
-          <p className="py-8 text-center text-muted-foreground">
-            No popular reviews yet.
-          </p>
-        )}
-      </DiscoverySection>
-
-      <DiscoverySection title="Just reviewed">
-        {data.recentReviews.length > 0 ? (
-          <ReviewCardGrid reviews={data.recentReviews} />
-        ) : (
-          <p className="py-8 text-center text-muted-foreground">
-            No reviews yet.
-          </p>
-        )}
-      </DiscoverySection>
-
       <DiscoverySection title="Most backlogged">
         {data.mostBacklogged.length > 0 ? (
           <GameGrid games={data.mostBacklogged} columns={7} />
@@ -217,6 +204,26 @@ function RouteComponent() {
         ) : (
           <p className="py-8 text-center text-muted-foreground">
             No games wishlisted yet.
+          </p>
+        )}
+      </DiscoverySection>
+
+      <DiscoverySection title="Popular reviews">
+        {data.popularReviews.length > 0 ? (
+          <ReviewCardGrid reviews={data.popularReviews} />
+        ) : (
+          <p className="py-8 text-center text-muted-foreground">
+            No popular reviews yet.
+          </p>
+        )}
+      </DiscoverySection>
+
+      <DiscoverySection title="Just reviewed">
+        {data.recentReviews.length > 0 ? (
+          <ReviewCardGrid reviews={data.recentReviews} />
+        ) : (
+          <p className="py-8 text-center text-muted-foreground">
+            No reviews yet.
           </p>
         )}
       </DiscoverySection>

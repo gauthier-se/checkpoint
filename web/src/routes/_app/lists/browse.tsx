@@ -14,6 +14,7 @@ import { Separator } from '@/components/ui/separator'
 import { apiFetch } from '@/services/api'
 
 import { seo } from '@/lib/seo'
+import { parseTrimmedString } from '@/lib/search-params'
 
 const PAGE_SIZE = 20
 
@@ -24,21 +25,15 @@ const VALID_SORTS: ReadonlyArray<GameListSortOption> = [
 ]
 const VALID_VISIBILITIES: ReadonlyArray<GameListVisibility> = ['public', 'mine']
 
-function parseString(value: unknown): string | undefined {
-  if (typeof value !== 'string') return undefined
-  const trimmed = value.trim()
-  return trimmed === '' ? undefined : trimmed
-}
-
 function parseSort(value: unknown): GameListSortOption | undefined {
-  const s = parseString(value)
+  const s = parseTrimmedString(value)
   return s && (VALID_SORTS as ReadonlyArray<string>).includes(s)
     ? (s as GameListSortOption)
     : undefined
 }
 
 function parseVisibility(value: unknown): GameListVisibility | undefined {
-  const s = parseString(value)
+  const s = parseTrimmedString(value)
   return s && (VALID_VISIBILITIES as ReadonlyArray<string>).includes(s)
     ? (s as GameListVisibility)
     : undefined
@@ -57,10 +52,10 @@ export const Route = createFileRoute('/_app/lists/browse')({
   component: RouteComponent,
   validateSearch: (search: Record<string, unknown>): GameListsSearchParams => ({
     page: Math.max(1, Math.floor(Number(search.page ?? 1)) || 1),
-    q: parseString(search.q),
+    q: parseTrimmedString(search.q),
     sort: parseSort(search.sort),
     visibility: parseVisibility(search.visibility),
-    author: parseString(search.author),
+    author: parseTrimmedString(search.author),
     minGames: parseMinGames(search.minGames),
   }),
   loaderDeps: ({ search }) => search,

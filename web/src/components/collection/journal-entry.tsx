@@ -1,9 +1,9 @@
 import { Link } from '@tanstack/react-router'
 import {
+  AlignLeft,
   Calendar,
   Clock,
   Gamepad2,
-  MessageSquare,
   RefreshCw,
   Star,
   Tag,
@@ -158,7 +158,7 @@ export function JournalEntry({ entry, actions }: JournalEntryProps) {
         {/* Review preview */}
         {entry.hasReview && entry.reviewPreview && (
           <div className="mt-1.5 flex items-start gap-1.5 text-xs text-muted-foreground italic bg-muted/30 p-2 rounded-md border border-muted">
-            <MessageSquare className="size-3.5 mt-0.5 shrink-0" />
+            <AlignLeft className="size-3.5 mt-0.5 shrink-0" />
             <span className="line-clamp-2">"{entry.reviewPreview}"</span>
           </div>
         )}

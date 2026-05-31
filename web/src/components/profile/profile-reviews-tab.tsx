@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { Lock, MessageSquare } from 'lucide-react'
+import { AlignLeft, Lock } from 'lucide-react'
 import type { UserProfile } from '@/types/profile'
 import { userReviewsQueryOptions } from '@/queries/profile'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -37,7 +37,7 @@ export function ProfileReviewsTab({ profile, page }: ProfileReviewsTabProps) {
   if (isError || !data) {
     return (
       <div className="flex flex-col items-center gap-3 py-12 text-center">
-        <MessageSquare className="text-muted-foreground size-12" />
+        <AlignLeft className="text-muted-foreground size-12" />
         <p className="text-muted-foreground text-lg">Unable to load reviews</p>
       </div>
     )
@@ -46,7 +46,7 @@ export function ProfileReviewsTab({ profile, page }: ProfileReviewsTabProps) {
   if (data.content.length === 0) {
     return (
       <div className="flex flex-col items-center gap-3 py-12 text-center">
-        <MessageSquare className="text-muted-foreground size-12" />
+        <AlignLeft className="text-muted-foreground size-12" />
         <p className="text-muted-foreground text-lg">No reviews yet</p>
       </div>
     )

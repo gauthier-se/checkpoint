@@ -116,15 +116,15 @@ export function StarRating({ game, currentRating }: StarRatingProps) {
         const isHalfFilled = displayScore === leftScore
 
         return (
-          <div key={star} className="relative h-6 w-6">
+          <div key={star} className="relative h-8 w-8">
             <Star
               aria-hidden
-              className="absolute inset-0 h-6 w-6 text-muted-foreground/30"
+              className="absolute inset-0 h-8 w-8 text-muted-foreground/30"
             />
             {(isFullFilled || isHalfFilled) && (
               <Star
                 aria-hidden
-                className="absolute inset-0 h-6 w-6 fill-yellow-400 text-yellow-500"
+                className="absolute inset-0 h-8 w-8 fill-yellow-400 text-yellow-500"
                 style={
                   isHalfFilled ? { clipPath: 'inset(0 50% 0 0)' } : undefined
                 }

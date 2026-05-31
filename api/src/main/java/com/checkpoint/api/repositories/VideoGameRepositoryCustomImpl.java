@@ -31,8 +31,8 @@ public class VideoGameRepositoryCustomImpl implements VideoGameRepositoryCustom 
 
     @Override
     public Page<GameCardDto> findAllAsGameCardsWithFilters(Pageable pageable,
-                                                            String genre,
-                                                            String platform,
+                                                            List<String> genres,
+                                                            List<String> platforms,
                                                             Integer yearMin,
                                                             Integer yearMax,
                                                             Double ratingMin,
@@ -44,16 +44,18 @@ public class VideoGameRepositoryCustomImpl implements VideoGameRepositoryCustom 
 
         joins.add("LEFT JOIN vg.rates r");
 
-        if (genre != null && !genre.isBlank()) {
+        List<String> normalizedGenres = normalizeNames(genres);
+        if (!normalizedGenres.isEmpty()) {
             joins.add("JOIN vg.genres g");
-            conditions.add("LOWER(g.name) = LOWER(:genre)");
-            parameters.put("genre", genre);
+            conditions.add("LOWER(g.name) IN :genres");
+            parameters.put("genres", normalizedGenres);
         }
 
-        if (platform != null && !platform.isBlank()) {
+        List<String> normalizedPlatforms = normalizeNames(platforms);
+        if (!normalizedPlatforms.isEmpty()) {
             joins.add("JOIN vg.platforms p");
-            conditions.add("LOWER(p.name) = LOWER(:platform)");
-            parameters.put("platform", platform);
+            conditions.add("LOWER(p.name) IN :platforms");
+            parameters.put("platforms", normalizedPlatforms);
         }
 
         if (yearMin != null) {
@@ -104,6 +106,23 @@ public class VideoGameRepositoryCustomImpl implements VideoGameRepositoryCustom 
         parameters.forEach(countQuery::setParameter);
 
         return PageableExecutionUtils.getPage(content, pageable, countQuery::getSingleResult);
+    }
+
+    /**
+     * Normalizes a list of filter names: drops null/blank entries and lower-cases
+     * each value so it can be matched against {@code LOWER(name) IN :param}.
+     *
+     * @param names the raw filter values (may be null)
+     * @return a non-null list of trimmed, lower-cased names (possibly empty)
+     */
+    private List<String> normalizeNames(List<String> names) {
+        if (names == null) {
+            return List.of();
+        }
+        return names.stream()
+                .filter(n -> n != null && !n.isBlank())
+                .map(n -> n.trim().toLowerCase())
+                .toList();
     }
 
     /**

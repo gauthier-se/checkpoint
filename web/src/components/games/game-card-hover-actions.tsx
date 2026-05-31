@@ -13,11 +13,13 @@ import { useWishlistBacklogActions } from '@/hooks/use-wishlist-backlog-actions'
 interface GameCardHoverActionsProps {
   gameId: string
   className?: string
+  isHovered?: boolean
 }
 
 export function GameCardHoverActions({
   gameId,
   className,
+  isHovered = false,
 }: GameCardHoverActionsProps) {
   const { user } = useAuth()
   const [mounted, setMounted] = useState(false)
@@ -38,7 +40,7 @@ export function GameCardHoverActions({
     backlogPending,
     likePending,
     libraryPending,
-  } = useWishlistBacklogActions(gameId)
+  } = useWishlistBacklogActions(gameId, isHovered)
 
   const isPlaying = libraryStatus === 'ARE_PLAYING'
   const isCompleted = libraryStatus === 'COMPLETED'

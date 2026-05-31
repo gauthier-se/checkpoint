@@ -14,6 +14,7 @@ import { apiFetch } from '@/services/api'
 import { buildNewsUrl } from '@/queries/news'
 
 import { seo } from '@/lib/seo'
+import { parseTrimmedString } from '@/lib/search-params'
 
 const PAGE_SIZE = 12
 
@@ -26,21 +27,15 @@ const VALID_SORTS: ReadonlyArray<NewsSortOption> = [
   'relevance',
 ]
 
-function parseString(value: unknown): string | undefined {
-  if (typeof value !== 'string') return undefined
-  const trimmed = value.trim()
-  return trimmed === '' ? undefined : trimmed
-}
-
 function parseSource(value: unknown): NewsSource | undefined {
-  const s = parseString(value)
+  const s = parseTrimmedString(value)
   return s && (VALID_SOURCES as ReadonlyArray<string>).includes(s)
     ? (s as NewsSource)
     : undefined
 }
 
 function parseSort(value: unknown): NewsSortOption | undefined {
-  const s = parseString(value)
+  const s = parseTrimmedString(value)
   return s && (VALID_SORTS as ReadonlyArray<string>).includes(s)
     ? (s as NewsSortOption)
     : undefined
@@ -53,12 +48,12 @@ export const Route = createFileRoute('/_app/news/')({
   component: RouteComponent,
   validateSearch: (search: Record<string, unknown>): NewsListSearchParams => ({
     page: Math.max(1, Math.floor(Number(search.page ?? 1)) || 1),
-    q: parseString(search.q),
+    q: parseTrimmedString(search.q),
     source: parseSource(search.source),
-    feedName: parseString(search.feedName),
-    videoGameId: parseString(search.videoGameId),
-    publishedFrom: parseString(search.publishedFrom),
-    publishedTo: parseString(search.publishedTo),
+    feedName: parseTrimmedString(search.feedName),
+    videoGameId: parseTrimmedString(search.videoGameId),
+    publishedFrom: parseTrimmedString(search.publishedFrom),
+    publishedTo: parseTrimmedString(search.publishedTo),
     sort: parseSort(search.sort),
   }),
   loaderDeps: ({ search }) => search,

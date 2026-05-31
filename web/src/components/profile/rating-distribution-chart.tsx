@@ -38,13 +38,6 @@ export function RatingDistributionChart({
 
   return (
     <div className={cn('space-y-2', className)}>
-      <div className="flex items-center justify-between text-sm">
-        <span className="font-medium">Rating distribution</span>
-        <span className="text-muted-foreground">
-          {total.toLocaleString()} {total > 1 ? 'ratings' : 'rating'}
-        </span>
-      </div>
-
       <div className="flex h-24 items-end gap-1">
         {SCORES.map((score) => {
           const count = countByScore.get(score) ?? 0

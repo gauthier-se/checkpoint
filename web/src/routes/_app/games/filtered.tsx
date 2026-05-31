@@ -13,8 +13,13 @@ import { genresQueryOptions, platformsQueryOptions } from '@/queries/catalog'
 import { triggerBarrelRoll } from '@/queries/easter-eggs'
 
 import { seo } from '@/lib/seo'
+import {
+  parseOptionalNumber,
+  parseOptionalString,
+  parseStringArray,
+} from '@/lib/search-params'
 
-const PAGE_SIZE = 32
+const PAGE_SIZE = 35
 
 const VALID_SORTS = [
   'releaseDate,desc',
@@ -28,23 +33,13 @@ const VALID_SORTS = [
 export type FilteredGamesSearchParams = {
   page: number
   q?: string
-  genre?: string
-  platform?: string
+  genres?: Array<string>
+  platforms?: Array<string>
   yearMin?: number
   yearMax?: number
   ratingMin?: number
   ratingMax?: number
   sort?: string
-}
-
-function parseOptionalString(value: unknown): string | undefined {
-  return typeof value === 'string' && value.length > 0 ? value : undefined
-}
-
-function parseOptionalNumber(value: unknown): number | undefined {
-  if (value === undefined || value === null || value === '') return undefined
-  const n = Number(value)
-  return Number.isFinite(n) ? n : undefined
 }
 
 function parseSort(value: unknown): string | undefined {
@@ -69,8 +64,8 @@ function buildCatalogUrl(params: FilteredGamesSearchParams): string {
   qs.set('page', String(params.page - 1))
   qs.set('size', String(PAGE_SIZE))
   qs.set('sort', params.sort ?? 'releaseDate,desc')
-  if (params.genre) qs.set('genre', params.genre)
-  if (params.platform) qs.set('platform', params.platform)
+  params.genres?.forEach((g) => qs.append('genre', g))
+  params.platforms?.forEach((p) => qs.append('platform', p))
   if (params.yearMin != null) qs.set('yearMin', String(params.yearMin))
   if (params.yearMax != null) qs.set('yearMax', String(params.yearMax))
   if (params.ratingMin != null) qs.set('ratingMin', String(params.ratingMin))
@@ -88,8 +83,8 @@ export const Route = createFileRoute('/_app/games/filtered')({
   ): FilteredGamesSearchParams => ({
     page: Math.max(1, Math.floor(Number(search.page ?? 1)) || 1),
     q: parseOptionalString(search.q),
-    genre: parseOptionalString(search.genre),
-    platform: parseOptionalString(search.platform),
+    genres: parseStringArray(search.genres ?? search.genre),
+    platforms: parseStringArray(search.platforms ?? search.platform),
     yearMin: parseOptionalNumber(search.yearMin),
     yearMax: parseOptionalNumber(search.yearMax),
     ratingMin: parseOptionalNumber(search.ratingMin),
@@ -171,9 +166,9 @@ function RouteComponent() {
 
   return (
     <div className="max-w-7xl mx-auto">
-      <div className="mt-10 py-2 text-muted-foreground font-semibold flex items-center justify-between">
+      <div className="mt-10 py-2 text-muted-foreground font-semibold flex flex-col xl:flex-row items-start justify-between gap-4">
         <CatalogFilters search={search} />
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 mt-1 xl:mt-0">
           <p className="min-w-fit">Find a game</p>
           <div className="relative">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
@@ -217,7 +212,7 @@ function RouteComponent() {
                   <Loader2 className="size-6 animate-spin text-muted-foreground" />
                 </div>
               )}
-              <GameGrid games={searchResults} />
+              <GameGrid games={searchResults} columns={7} />
             </div>
           ) : (
             <p className="py-8 text-center text-muted-foreground">
@@ -243,7 +238,7 @@ function RouteComponent() {
                 }
                 style={isRolling ? { transform: 'rotate(360deg)' } : undefined}
               >
-                <GameGrid games={data.catalog.content} />
+                <GameGrid games={data.catalog.content} columns={7} />
               </div>
               <GamesPagination
                 page={page}

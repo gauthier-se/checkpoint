@@ -9,6 +9,7 @@ import { MentionTextarea } from '@/components/shared/mention-textarea'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/use-auth'
+import { resolvePictureUrl } from '@/lib/picture'
 import {
   listCommentsQueryOptions,
   postListComment,
@@ -82,7 +83,10 @@ export function CommentSection({ targetType, targetId }: CommentSectionProps) {
         <form onSubmit={handleSubmitNew} className="space-y-3">
           <div className="flex gap-3">
             <Avatar className="mt-1 size-8 shrink-0">
-              <AvatarImage src="/images/default-user.jpg" alt={user.username} />
+              <AvatarImage
+                src={resolvePictureUrl(user.picture)}
+                alt={user.username}
+              />
               <AvatarFallback className="text-xs">
                 {user.username.substring(0, 2).toUpperCase()}
               </AvatarFallback>

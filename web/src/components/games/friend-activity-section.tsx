@@ -3,7 +3,7 @@ import type { PlayStatus } from '@/types/interaction'
 import { FriendAvatarGrid } from '@/components/games/friend-avatar-grid'
 import { FriendAvatarTile } from '@/components/games/friend-avatar-tile'
 import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
+import { DiscoverySection } from '@/components/games/discovery-section'
 import { friendsActivityQueryOptions } from '@/queries/game-social'
 
 interface FriendActivitySectionProps {
@@ -45,10 +45,10 @@ export function FriendActivitySection({ gameId }: FriendActivitySectionProps) {
   }
 
   return (
-    <section className="mt-8">
-      <div className="flex flex-wrap items-center justify-between gap-2 py-2">
-        <h2 className="text-xl font-semibold">Friend activity</h2>
-        <div className="flex flex-wrap items-center gap-2">
+    <DiscoverySection
+      title="Friend activity"
+      action={
+        <div className="flex flex-wrap items-center justify-end gap-2">
           {STATUS_DISPLAY_ORDER.map((status) => {
             const count = data.countsByPlayStatus[status]
             if (!count) return null
@@ -62,30 +62,32 @@ export function FriendActivitySection({ gameId }: FriendActivitySectionProps) {
             )
           })}
         </div>
+      }
+    >
+      <div className="pt-4">
+        <FriendAvatarGrid
+          title="Friend activity"
+          totalCount={data.friends.length}
+          renderItem={(i) => {
+            const f = data.friends[i]
+            return (
+              <FriendAvatarTile
+                key={f.userId}
+                pseudo={f.pseudo}
+                picture={f.picture}
+                rating={f.rating}
+                hasReview={f.hasReview}
+                href={f.latestPlayId ? `/plays/${f.latestPlayId}` : null}
+                tooltip={
+                  f.primaryPlayStatus
+                    ? `${f.pseudo} — ${PLAY_STATUS_LABELS[f.primaryPlayStatus]}`
+                    : f.pseudo
+                }
+              />
+            )
+          }}
+        />
       </div>
-      <Separator className="my-4" />
-      <FriendAvatarGrid
-        title="Friend activity"
-        totalCount={data.friends.length}
-        renderItem={(i) => {
-          const f = data.friends[i]
-          return (
-            <FriendAvatarTile
-              key={f.userId}
-              pseudo={f.pseudo}
-              picture={f.picture}
-              rating={f.rating}
-              hasReview={f.hasReview}
-              href={f.latestPlayId ? `/plays/${f.latestPlayId}` : null}
-              tooltip={
-                f.primaryPlayStatus
-                  ? `${f.pseudo} — ${PLAY_STATUS_LABELS[f.primaryPlayStatus]}`
-                  : f.pseudo
-              }
-            />
-          )
-        }}
-      />
-    </section>
+    </DiscoverySection>
   )
 }

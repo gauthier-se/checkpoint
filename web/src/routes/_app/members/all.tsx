@@ -9,12 +9,9 @@ import { Separator } from '@/components/ui/separator'
 import { apiFetch } from '@/services/api'
 
 import { seo } from '@/lib/seo'
+import { parseOptionalString } from '@/lib/search-params'
 
 const PAGE_SIZE = 20
-
-function parseOptionalString(value: unknown): string | undefined {
-  return typeof value === 'string' && value.length > 0 ? value : undefined
-}
 
 function buildBrowseUrl(params: MembersSearchParams): string {
   const qs = new URLSearchParams()

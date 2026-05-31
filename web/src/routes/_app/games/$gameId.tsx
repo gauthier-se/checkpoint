@@ -8,10 +8,13 @@ import { FriendActivitySection } from '@/components/games/friend-activity-sectio
 import { FriendReviewsSection } from '@/components/games/friend-reviews-section'
 import { FriendWantToPlaySection } from '@/components/games/friend-want-to-play-section'
 import { GameListsSection } from '@/components/games/game-lists-section'
+import { GameSidebarActions } from '@/components/games/game-sidebar-actions'
 import { PopularGameReviewsSection } from '@/components/games/popular-game-reviews-section'
-import { GameQuickActions } from '@/components/games/quick-actions'
+import {
+  SimilarGamesSection,
+  SimilarGamesSectionSkeleton,
+} from '@/components/games/similar-games-section'
 import { RatingDistributionChart } from '@/components/profile/rating-distribution-chart'
-import { SimilarGamesSection } from '@/components/games/similar-games-section'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -20,14 +23,8 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Separator } from '@/components/ui/separator'
-import { similarGamesQueryOptions } from '@/queries/catalog'
 import { seo } from '@/lib/seo'
-import {
-  friendReviewsQueryOptions,
-  friendsActivityQueryOptions,
-  friendsWantToPlayQueryOptions,
-  popularGameReviewsQueryOptions,
-} from '@/queries/game-social'
+import { similarGamesQueryOptions } from '@/queries/catalog'
 import { listsContainingGameQueryOptions } from '@/queries/lists'
 import { apiFetch, isApiError } from '@/services/api'
 
@@ -39,13 +36,14 @@ export const Route = createFileRoute('/_app/games/$gameId')({
     // and causes the backend to see the request as anonymous. They will fetch
     // naturally on the client.
 
-    // prefetch lists + similar games so SSR renders those sections
-    await Promise.all([
-      context.queryClient.prefetchQuery(
-        listsContainingGameQueryOptions(gameId, 0, 6),
-      ),
-      context.queryClient.prefetchQuery(similarGamesQueryOptions(gameId)),
-    ])
+    // Warm the lists + similar caches in the background so they're ready when
+    // their sections mount, but do NOT await them: both render inside their own
+    // <Suspense> boundaries (useSuspenseQuery) and are below the fold, so the
+    // main game fetch must not be blocked behind them.
+    void context.queryClient.prefetchQuery(
+      listsContainingGameQueryOptions(gameId, 0, 6),
+    )
+    void context.queryClient.prefetchQuery(similarGamesQueryOptions(gameId))
 
     const res = await apiFetch(`/api/games/${gameId}`)
     return res.json() as Promise<GameDetail>
@@ -118,7 +116,7 @@ function RouteComponent() {
         </div>
       )}
 
-      <div className="px-4 pt-10 pb-6">
+      <div className="px-4 pt-24 pb-6">
         <button
           onClick={() => router.history.back()}
           className="text-muted-foreground hover:underline"
@@ -126,22 +124,24 @@ function RouteComponent() {
           &larr; Back to catalog
         </button>
 
-        <div className="mt-6 flex gap-8">
-          {/* Cover */}
-          {game.coverUrl ? (
-            <img
-              src={game.coverUrl}
-              alt={game.title}
-              className="w-64 h-auto rounded-lg object-cover shadow-md shrink-0"
-            />
-          ) : (
-            <div className="w-64 h-80 rounded-lg bg-muted flex items-center justify-center text-muted-foreground shrink-0">
-              No cover
-            </div>
-          )}
+        <div className="mt-6 grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Left: Cover */}
+          <div className="flex flex-col lg:col-span-1">
+            {game.coverUrl ? (
+              <img
+                src={game.coverUrl}
+                alt={game.title}
+                className="w-full h-auto rounded-lg object-cover shadow-md"
+              />
+            ) : (
+              <div className="w-full aspect-[3/4] rounded-lg bg-muted flex items-center justify-center text-muted-foreground">
+                No cover
+              </div>
+            )}
+          </div>
 
-          {/* Info */}
-          <div className="flex flex-col gap-4">
+          {/* Middle: Info */}
+          <div className="flex flex-col gap-4 lg:col-span-2">
             <h1 className="text-3xl font-bold">{game.title}</h1>
 
             {game.releaseDate && (
@@ -153,76 +153,6 @@ function RouteComponent() {
                   day: 'numeric',
                 })}
               </p>
-            )}
-
-            {game.averageRating != null && (
-              <div className="flex items-center gap-2 mt-1">
-                <div className="flex items-center bg-yellow-400/10 text-yellow-600 px-3 py-1.5 rounded-md">
-                  <Star className="h-5 w-5 fill-yellow-400 text-yellow-500 mr-2" />
-                  <span className="text-xl font-bold font-mono">
-                    {game.averageRating.toFixed(1)}
-                  </span>
-                  <span className="text-muted-foreground ml-1 text-sm">
-                    / 5
-                  </span>
-                </div>
-                <span className="text-muted-foreground text-sm">
-                  ({game.ratingCount}{' '}
-                  {game.ratingCount > 1 ? 'ratings' : 'rating'})
-                </span>
-              </div>
-            )}
-
-            {game.ratingCount > 0 && (
-              <RatingDistributionChart
-                distribution={game.ratingDistribution}
-                className="max-w-xs"
-              />
-            )}
-
-            {game.genres.length > 0 && (
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-muted-foreground font-semibold">
-                  Genres:
-                </span>
-                {game.genres.map((g) => (
-                  <span
-                    key={g.id}
-                    className="px-2 py-0.5 rounded-full bg-muted text-sm"
-                  >
-                    {g.name}
-                  </span>
-                ))}
-              </div>
-            )}
-
-            {game.platforms.length > 0 && (
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-muted-foreground font-semibold">
-                  Platforms:
-                </span>
-                {game.platforms.map((p) => (
-                  <span
-                    key={p.id}
-                    className="px-2 py-0.5 rounded-full bg-muted text-sm"
-                  >
-                    {p.name}
-                  </span>
-                ))}
-              </div>
-            )}
-
-            {game.companies.length > 0 && (
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-muted-foreground font-semibold">
-                  Companies:
-                </span>
-                {game.companies.map((c) => (
-                  <span key={c.id} className="text-sm">
-                    {c.name}
-                  </span>
-                ))}
-              </div>
             )}
 
             {game.trailerYoutubeId && (
@@ -255,27 +185,116 @@ function RouteComponent() {
               </Dialog>
             )}
 
-            <div className="mt-4">
-              <GameQuickActions game={game} />
+            {game.description && (
+              <div className="mt-2 text-sm text-foreground/90 leading-relaxed whitespace-pre-line">
+                {game.description}
+              </div>
+            )}
+
+            <div className="mt-4 flex flex-col gap-3">
+              {game.genres.length > 0 && (
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-muted-foreground text-sm font-semibold">
+                    Genres:
+                  </span>
+                  {game.genres.map((g) => (
+                    <span
+                      key={g.id}
+                      className="px-2 py-0.5 rounded-full bg-muted text-xs"
+                    >
+                      {g.name}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {game.platforms.length > 0 && (
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-muted-foreground text-sm font-semibold">
+                    Platforms:
+                  </span>
+                  {game.platforms.map((p) => (
+                    <span
+                      key={p.id}
+                      className="px-2 py-0.5 rounded-full bg-muted text-xs"
+                    >
+                      {p.name}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {game.companies.length > 0 && (
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-muted-foreground text-sm font-semibold">
+                    Companies:
+                  </span>
+                  {game.companies.map((c) => (
+                    <span key={c.id} className="text-xs">
+                      {c.name}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
+
+          {/* Right: Actions */}
+          <div className="flex flex-col gap-6 lg:col-span-1">
+            <GameSidebarActions game={game} />
+
+            {/* Rating section */}
+            {game.ratingCount > 0 && (
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center justify-between border-b border-border pb-2 mb-2">
+                  <span className="text-sm font-semibold tracking-wide text-foreground">
+                    Ratings
+                  </span>
+                  <span className="text-sm text-muted-foreground">
+                    {game.ratingCount.toLocaleString()}
+                  </span>
+                </div>
+
+                <div className="flex gap-4 items-center">
+                  <RatingDistributionChart
+                    distribution={game.ratingDistribution}
+                    className="flex-1 max-w-[200px]"
+                  />
+                  {game.averageRating != null && (
+                    <div className="flex flex-col items-center justify-center pt-1">
+                      <span className="text-4xl font-bold font-mono leading-none text-foreground">
+                        {game.averageRating.toFixed(1)}
+                      </span>
+                      <div className="flex gap-1 text-primary mt-2">
+                        {[1, 2, 3, 4, 5].map((star) => {
+                          const rating = game.averageRating || 0
+                          const isFull = rating >= star - 0.25
+                          const isHalf =
+                            rating >= star - 0.75 && rating < star - 0.25
+                          return (
+                            <div key={star} className="relative w-3.5 h-3.5">
+                              <Star className="absolute inset-0 w-3.5 h-3.5 text-muted-foreground/30" />
+                              {(isFull || isHalf) && (
+                                <Star
+                                  className="absolute inset-0 w-3.5 h-3.5 fill-current"
+                                  style={
+                                    isHalf
+                                      ? { clipPath: 'inset(0 50% 0 0)' }
+                                      : undefined
+                                  }
+                                />
+                              )}
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
-
-        {game.description && (
-          <>
-            <Separator className="my-6" />
-            <div className="mb-10">
-              <h2 className="text-xl font-semibold mb-2">About</h2>
-              <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
-                {game.description}
-              </p>
-            </div>
-          </>
-        )}
-
-        <Suspense fallback={null}>
-          <GameListsSection gameId={game.id} />
-        </Suspense>
 
         {hasTimeToBeat && (
           <>
@@ -310,7 +329,7 @@ function RouteComponent() {
           </>
         )}
 
-        <Suspense fallback={null}>
+        <Suspense fallback={<SimilarGamesSectionSkeleton />}>
           <SimilarGamesSection gameId={game.id} />
         </Suspense>
 
@@ -318,6 +337,10 @@ function RouteComponent() {
         <FriendWantToPlaySection gameId={game.id} />
         <FriendReviewsSection gameId={game.id} />
         <PopularGameReviewsSection gameId={game.id} />
+
+        <Suspense fallback={null}>
+          <GameListsSection gameId={game.id} />
+        </Suspense>
       </div>
     </div>
   )

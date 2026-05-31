@@ -13,6 +13,7 @@ import com.checkpoint.api.dto.igdb.IgdbArtworkDto;
 import com.checkpoint.api.dto.igdb.IgdbCoverDto;
 import com.checkpoint.api.dto.igdb.IgdbGameDto;
 import com.checkpoint.api.dto.igdb.IgdbGenreDto;
+import com.checkpoint.api.dto.igdb.IgdbScreenshotDto;
 import com.checkpoint.api.dto.igdb.IgdbVideoDto;
 import com.checkpoint.api.entities.VideoGame;
 import com.checkpoint.api.mapper.impl.GameMapperImpl;
@@ -197,6 +198,33 @@ class GameMapperImplTest {
         assertThat(entity.getArtworkUrl())
                 .isEqualTo("https://images.igdb.com/igdb/image/upload/t_1080p/ar1abc.jpg");
         assertThat(entity.getTrailerYoutubeId()).isEqualTo("dQw4w9WgXcQ");
+    }
+
+    @Test
+    @DisplayName("toEntity should fall back to first screenshot (1080p) when no artwork is present")
+    void toEntity_shouldFallBackToScreenshotWhenNoArtwork() {
+        // Given
+        IgdbScreenshotDto screenshot = new IgdbScreenshotDto(
+                30L, "sc1xyz", "//images.igdb.com/igdb/image/upload/t_thumb/sc1xyz.jpg",
+                1920, 1080
+        );
+
+        IgdbGameDto dto = new IgdbGameDto(
+                1L, "Test Game", "test-game", "Summary", null,
+                null, null, null, null, null, null, null,
+                null, null, null, null,
+                List.of(screenshot), // screenshots
+                null,                // artworks
+                null,                // videos
+                null, null, null, null, null, null, null, null, null
+        );
+
+        // When
+        VideoGame entity = gameMapper.toEntity(dto);
+
+        // Then
+        assertThat(entity.getArtworkUrl())
+                .isEqualTo("https://images.igdb.com/igdb/image/upload/t_1080p/sc1xyz.jpg");
     }
 
     @Test

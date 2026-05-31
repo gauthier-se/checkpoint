@@ -2,10 +2,10 @@ import { Link, createFileRoute } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import {
+  AlignLeft,
   Gamepad2,
   Heart,
   ListChecks,
-  MessageSquare,
   Star,
   Users,
   Users2,
@@ -272,7 +272,7 @@ function AuthenticatedHome({ user, data }: { user: User; data: HomeData }) {
 }
 
 const stats = [
-  { key: 'reviewCount', label: 'Reviews', icon: MessageSquare },
+  { key: 'reviewCount', label: 'Reviews', icon: AlignLeft },
   { key: 'wishlistCount', label: 'Wishlist', icon: Heart },
   { key: 'followerCount', label: 'Followers', icon: Users2 },
   { key: 'followingCount', label: 'Following', icon: Users },

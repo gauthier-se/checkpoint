@@ -1,141 +1,64 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
+import { useQuery } from '@tanstack/react-query'
 import type { Priority } from '@/types/collection'
-import type { GameInteractionStatusDto, PlayStatus } from '@/types/interaction'
+import type { PlayStatus } from '@/types/interaction'
 import { PLAY_STATUS_LABELS } from '@/lib/play-status'
 import { useAuth } from '@/hooks/use-auth'
+import { useGameInteractionMutation } from '@/hooks/use-game-interaction-mutation'
 import {
   gameInteractionStatusQueryOptions,
   toggleBacklog,
   toggleGameLike,
   toggleWishlist,
+  updateBacklogPriority,
   updateLibraryStatus,
+  updateWishlistPriority,
 } from '@/queries/games'
 
-export function useWishlistBacklogActions(gameId: string) {
+export function useWishlistBacklogActions(
+  gameId: string,
+  enabled: boolean = true,
+) {
   const { user } = useAuth()
-  const queryClient = useQueryClient()
 
   const { data: status } = useQuery({
     ...gameInteractionStatusQueryOptions(gameId),
-    enabled: !!user,
+    enabled: !!user && enabled,
   })
 
-  const wishlistMutation = useMutation({
-    mutationFn: (priority: Priority | null) =>
+  const wishlistMutation = useGameInteractionMutation<Priority | null>({
+    gameId,
+    mutationFn: (priority) =>
       toggleWishlist(gameId, status?.inWishlist ?? false, priority),
-    meta: { suppressGlobalError: true },
-    onMutate: async () => {
-      await queryClient.cancelQueries(gameInteractionStatusQueryOptions(gameId))
-      const previous = queryClient.getQueryData<GameInteractionStatusDto>(
-        gameInteractionStatusQueryOptions(gameId).queryKey,
-      )
-      queryClient.setQueryData<GameInteractionStatusDto>(
-        gameInteractionStatusQueryOptions(gameId).queryKey,
-        (old) => (old ? { ...old, inWishlist: !old.inWishlist } : old),
-      )
-      return { previous }
-    },
-    onError: (_err, _variables, context) => {
-      toast.error('Failed to update wishlist')
-      if (context?.previous) {
-        queryClient.setQueryData(
-          gameInteractionStatusQueryOptions(gameId).queryKey,
-          context.previous,
-        )
-      }
-    },
-    onSettled: () => {
-      void queryClient.invalidateQueries(
-        gameInteractionStatusQueryOptions(gameId),
-      )
-    },
-    onSuccess: (_, __, context) => {
-      if (!context.previous?.inWishlist) {
-        toast.success('Added to wishlist')
-      } else {
-        toast.success('Removed from wishlist')
-      }
-    },
+    optimisticPatch: (old) => ({ ...old, inWishlist: !old.inWishlist }),
+    errorMessage: 'Failed to update wishlist',
+    successMessage: (_priority, previous) =>
+      previous?.inWishlist ? 'Removed from wishlist' : 'Added to wishlist',
   })
 
-  const backlogMutation = useMutation({
-    mutationFn: (priority: Priority | null) =>
+  const backlogMutation = useGameInteractionMutation<Priority | null>({
+    gameId,
+    mutationFn: (priority) =>
       toggleBacklog(gameId, status?.inBacklog ?? false, priority),
-    meta: { suppressGlobalError: true },
-    onMutate: async () => {
-      await queryClient.cancelQueries(gameInteractionStatusQueryOptions(gameId))
-      const previous = queryClient.getQueryData<GameInteractionStatusDto>(
-        gameInteractionStatusQueryOptions(gameId).queryKey,
-      )
-      queryClient.setQueryData<GameInteractionStatusDto>(
-        gameInteractionStatusQueryOptions(gameId).queryKey,
-        (old) => (old ? { ...old, inBacklog: !old.inBacklog } : old),
-      )
-      return { previous }
-    },
-    onError: (_err, _variables, context) => {
-      toast.error('Failed to update backlog')
-      if (context?.previous) {
-        queryClient.setQueryData(
-          gameInteractionStatusQueryOptions(gameId).queryKey,
-          context.previous,
-        )
-      }
-    },
-    onSettled: () => {
-      void queryClient.invalidateQueries(
-        gameInteractionStatusQueryOptions(gameId),
-      )
-    },
-    onSuccess: (_, __, context) => {
-      if (!context.previous?.inBacklog) {
-        toast.success('Added to backlog')
-      } else {
-        toast.success('Removed from backlog')
-      }
-    },
+    optimisticPatch: (old) => ({ ...old, inBacklog: !old.inBacklog }),
+    errorMessage: 'Failed to update backlog',
+    successMessage: (_priority, previous) =>
+      previous?.inBacklog ? 'Removed from backlog' : 'Added to backlog',
   })
 
-  const likeMutation = useMutation({
+  const likeMutation = useGameInteractionMutation({
+    gameId,
     mutationFn: () => toggleGameLike(gameId),
-    meta: { suppressGlobalError: true },
-    onMutate: async () => {
-      await queryClient.cancelQueries(gameInteractionStatusQueryOptions(gameId))
-      const previous = queryClient.getQueryData<GameInteractionStatusDto>(
-        gameInteractionStatusQueryOptions(gameId).queryKey,
-      )
-      queryClient.setQueryData<GameInteractionStatusDto>(
-        gameInteractionStatusQueryOptions(gameId).queryKey,
-        (old) => (old ? { ...old, liked: !old.liked } : old),
-      )
-      return { previous }
-    },
-    onError: (_err, _variables, context) => {
-      toast.error('Failed to update like')
-      if (context?.previous) {
-        queryClient.setQueryData(
-          gameInteractionStatusQueryOptions(gameId).queryKey,
-          context.previous,
-        )
-      }
-    },
-    onSettled: () => {
-      void queryClient.invalidateQueries(
-        gameInteractionStatusQueryOptions(gameId),
-      )
-    },
-    onSuccess: (_, __, context) => {
-      if (!context.previous?.liked) {
-        toast.success('Added to your liked games')
-      } else {
-        toast.success('Removed from your liked games')
-      }
-    },
+    optimisticPatch: (old) => ({ ...old, liked: !old.liked }),
+    errorMessage: 'Failed to update like',
+    successMessage: (_variables, previous) =>
+      previous?.liked
+        ? 'Removed from your liked games'
+        : 'Added to your liked games',
   })
 
-  const libraryMutation = useMutation({
-    mutationFn: (newStatus: PlayStatus | null) =>
+  const libraryMutation = useGameInteractionMutation<PlayStatus | null>({
+    gameId,
+    mutationFn: (newStatus) =>
       updateLibraryStatus(
         gameId,
         newStatus
@@ -146,46 +69,33 @@ export function useWishlistBacklogActions(gameId: string) {
             }
           : null,
       ),
-    meta: { suppressGlobalError: true },
-    onMutate: async (newStatus) => {
-      await queryClient.cancelQueries(gameInteractionStatusQueryOptions(gameId))
-      const previous = queryClient.getQueryData<GameInteractionStatusDto>(
-        gameInteractionStatusQueryOptions(gameId).queryKey,
-      )
-      queryClient.setQueryData<GameInteractionStatusDto>(
-        gameInteractionStatusQueryOptions(gameId).queryKey,
-        (old) =>
-          old
-            ? {
-                ...old,
-                inLibrary: newStatus !== null,
-                libraryStatus: newStatus,
-              }
-            : old,
-      )
-      return { previous }
-    },
-    onError: (_err, _variables, context) => {
-      toast.error('Failed to update library')
-      if (context?.previous) {
-        queryClient.setQueryData(
-          gameInteractionStatusQueryOptions(gameId).queryKey,
-          context.previous,
-        )
-      }
-    },
-    onSettled: () => {
-      void queryClient.invalidateQueries(
-        gameInteractionStatusQueryOptions(gameId),
-      )
-    },
-    onSuccess: (_data, newStatus) => {
-      if (newStatus === null) {
-        toast.success('Removed from library')
-      } else {
-        toast.success(`Library status set to ${PLAY_STATUS_LABELS[newStatus]}`)
-      }
-    },
+    optimisticPatch: (old, newStatus) => ({
+      ...old,
+      inLibrary: newStatus !== null,
+      libraryStatus: newStatus,
+    }),
+    errorMessage: 'Failed to update library',
+    successMessage: (newStatus) =>
+      newStatus === null
+        ? 'Removed from library'
+        : `Library status set to ${PLAY_STATUS_LABELS[newStatus]}`,
+  })
+
+  const wishlistPriorityMutation = useGameInteractionMutation<Priority | null>({
+    gameId,
+    mutationFn: (priority) => updateWishlistPriority(gameId, priority),
+    optimisticPatch: (old, priority) => ({
+      ...old,
+      wishlistPriority: priority,
+    }),
+    errorMessage: 'Failed to update priority',
+  })
+
+  const backlogPriorityMutation = useGameInteractionMutation<Priority | null>({
+    gameId,
+    mutationFn: (priority) => updateBacklogPriority(gameId, priority),
+    optimisticPatch: (old, priority) => ({ ...old, backlogPriority: priority }),
+    errorMessage: 'Failed to update priority',
   })
 
   return {
@@ -204,9 +114,18 @@ export function useWishlistBacklogActions(gameId: string) {
       libraryMutation.mutate(
         (status?.libraryStatus ?? null) === target ? null : target,
       ),
+    // Sets the library status to an explicit value (null removes the game).
+    setLibraryStatus: (target: PlayStatus | null) =>
+      libraryMutation.mutate(target),
+    setWishlistPriority: (priority: Priority | null) =>
+      wishlistPriorityMutation.mutate(priority),
+    setBacklogPriority: (priority: Priority | null) =>
+      backlogPriorityMutation.mutate(priority),
     wishlistPending: wishlistMutation.isPending,
     backlogPending: backlogMutation.isPending,
     likePending: likeMutation.isPending,
     libraryPending: libraryMutation.isPending,
+    wishlistPriorityPending: wishlistPriorityMutation.isPending,
+    backlogPriorityPending: backlogPriorityMutation.isPending,
   }
 }

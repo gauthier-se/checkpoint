@@ -1,4 +1,4 @@
-import { Gamepad2, Heart, MessageSquare, RefreshCw } from 'lucide-react'
+import { AlignLeft, Gamepad2, Heart, RefreshCw } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 import type { RecentPlay } from '@/types/profile'
 import { ScoreStars } from '@/components/games/score-stars'
@@ -77,7 +77,7 @@ function RecentPlayCard({ play }: { play: RecentPlay }) {
           {play.hasReview && (
             <Tooltip>
               <TooltipTrigger asChild>
-                <MessageSquare
+                <AlignLeft
                   aria-label="Has review"
                   className="text-muted-foreground size-3"
                 />

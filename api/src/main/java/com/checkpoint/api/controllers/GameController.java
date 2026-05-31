@@ -77,8 +77,8 @@ public class GameController {
      * @param page      the page number (0-based, default 0)
      * @param size      the page size (default 20, max 100)
      * @param sort      the sort criteria (e.g., "releaseDate,desc" or "title,asc")
-     * @param genre     optional genre name filter (case-insensitive exact match)
-     * @param platform  optional platform name filter (case-insensitive exact match)
+     * @param genre     optional genre name filters, repeatable (case-insensitive; matches any)
+     * @param platform  optional platform name filters, repeatable (case-insensitive; matches any)
      * @param yearMin   optional minimum release year (inclusive)
      * @param yearMax   optional maximum release year (inclusive)
      * @param ratingMin optional minimum average rating (inclusive)
@@ -90,8 +90,8 @@ public class GameController {
             @RequestParam(defaultValue = "" + DEFAULT_PAGE) int page,
             @RequestParam(defaultValue = "" + DEFAULT_SIZE) int size,
             @RequestParam(defaultValue = DEFAULT_SORT) String sort,
-            @RequestParam(required = false) String genre,
-            @RequestParam(required = false) String platform,
+            @RequestParam(required = false) List<String> genre,
+            @RequestParam(required = false) List<String> platform,
             @RequestParam(required = false) Integer yearMin,
             @RequestParam(required = false) Integer yearMax,
             @RequestParam(required = false) Double ratingMin,
