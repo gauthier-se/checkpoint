@@ -3,9 +3,15 @@ import { useSuspenseQuery } from '@tanstack/react-query'
 import type { PlayStatus } from '@/types/interaction'
 import type { ProfileGamesTabKey } from '@/components/profile/profile-tab-bar'
 import type { LibrarySort } from '@/components/collection/library-tab'
-import { LibraryTab, libraryQuery } from '@/components/collection/library-tab'
+import {
+  LIBRARY_SORT_LABELS,
+  LibraryTab,
+  libraryQuery,
+} from '@/components/collection/library-tab'
 import { ProfileLibraryTab } from '@/components/profile/profile-library-tab'
 import { ProfileTabBar } from '@/components/profile/profile-tab-bar'
+import { ProfileStatusBar } from '@/components/profile/profile-status-bar'
+import { SortSelect } from '@/components/collection/sort-select'
 import {
   userLibraryQueryOptions,
   userProfileQueryOptions,
@@ -98,6 +104,21 @@ function ProfileGamesPage() {
   return (
     <main className="mx-auto max-w-7xl px-4 py-10">
       <ProfileTabBar username={profile.username} activeTab={tab} />
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <ProfileStatusBar
+          username={profile.username}
+          activeTab={tab}
+          sort={sort}
+          className="mb-0"
+        />
+        {profile.isOwner && (
+          <SortSelect
+            value={sort}
+            options={LIBRARY_SORT_LABELS}
+            onChange={onSortChange}
+          />
+        )}
+      </div>
 
       {profile.isOwner ? (
         <LibraryTab
@@ -105,7 +126,6 @@ function ProfileGamesPage() {
           status={STATUS_FOR_TAB[tab]}
           sort={sort}
           tabKey={tab}
-          onSortChange={onSortChange}
         />
       ) : (
         <ProfileLibraryTab

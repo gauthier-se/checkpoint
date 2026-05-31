@@ -4,35 +4,26 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query'
-import { Library, Pencil } from 'lucide-react'
+import { Library, MoreVertical, Pencil, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import type { CollectionTab } from '@/types/collection'
 import type { PlayStatus } from '@/types/interaction'
 import type { LibraryResponse, UserGameResponse } from '@/types/library'
-import {
-  PLAY_STATUS_COLORS,
-  PLAY_STATUS_LABELS,
-  PLAY_STATUS_ORDER,
-} from '@/lib/play-status'
-import { CollectionGameCard } from '@/components/collection/collection-game-card'
+import { PLAY_STATUS_LABELS, PLAY_STATUS_ORDER } from '@/lib/play-status'
+import { GameDetailCard } from '@/components/games/game-detail-card'
 import { EmptyState } from '@/components/collection/empty-state'
+import { STATUS_TABS } from '@/components/profile/profile-status-bar'
 import { NotesDialog } from '@/components/collection/notes-dialog'
 import { PaginationNav } from '@/components/shared/pagination-nav'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { apiFetch } from '@/services/api'
 
 const PAGE_SIZE = 20
@@ -88,21 +79,16 @@ interface LibraryTabProps {
     | 'shelved'
     | 'abandoned'
   >
-  onSortChange: (sort: LibrarySort) => void
 }
 
-export function LibraryTab({
-  page,
-  status,
-  sort,
-  tabKey,
-  onSortChange,
-}: LibraryTabProps) {
+export function LibraryTab({ page, status, sort, tabKey }: LibraryTabProps) {
   const { data, isLoading, isError } = useQuery(
     libraryQuery(page, status, sort),
   )
   const queryClient = useQueryClient()
   const [notesGame, setNotesGame] = useState<UserGameResponse | null>(null)
+
+  const TabIcon = STATUS_TABS.find((t) => t.value === tabKey)?.icon || Library
 
   const updateStatusMutation = useMutation({
     mutationFn: async ({
@@ -136,39 +122,14 @@ export function LibraryTab({
     },
   })
 
-  const sortControl = (
-    <div className="mb-4 flex items-center justify-end gap-2">
-      <span className="text-xs text-muted-foreground">Sort by</span>
-      <Select
-        value={sort}
-        onValueChange={(value) => onSortChange(value as LibrarySort)}
-      >
-        <SelectTrigger size="sm" className="h-8 w-[160px] text-xs">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {(Object.keys(LIBRARY_SORT_LABELS) as Array<LibrarySort>).map(
-            (key) => (
-              <SelectItem key={key} value={key}>
-                {LIBRARY_SORT_LABELS[key]}
-              </SelectItem>
-            ),
-          )}
-        </SelectContent>
-      </Select>
-    </div>
-  )
-
   return (
     <div>
-      {sortControl}
-
       {isLoading && (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-          {Array.from({ length: 10 }).map((_, i) => (
-            <div key={i} className="flex flex-col gap-2 rounded-lg border p-3">
+        <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7">
+          {Array.from({ length: 12 }).map((_, i) => (
+            <div key={i} className="flex flex-col gap-1.5">
               <div className="aspect-[3/4] animate-pulse rounded-md bg-muted" />
-              <div className="h-4 w-3/4 animate-pulse rounded bg-muted" />
+              <div className="h-3 w-3/4 animate-pulse rounded bg-muted" />
             </div>
           ))}
         </div>
@@ -176,7 +137,7 @@ export function LibraryTab({
 
       {(isError || (!isLoading && !data)) && (
         <EmptyState
-          icon={<Library className="size-12" />}
+          icon={<TabIcon className="size-12" />}
           title="Unable to load library"
           description="Something went wrong loading your library. Please try again later."
         />
@@ -184,7 +145,7 @@ export function LibraryTab({
 
       {data && data.content.length === 0 && (
         <EmptyState
-          icon={<Library className="size-12" />}
+          icon={<TabIcon className="size-12" />}
           title="No games found"
           description={
             status
@@ -198,34 +159,34 @@ export function LibraryTab({
 
       {data && data.content.length > 0 && (
         <>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+          <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7">
             {data.content.map((game) => (
-              <CollectionGameCard
+              <GameDetailCard
                 key={game.id}
-                videoGameId={game.videoGameId}
                 title={game.title}
                 coverUrl={game.coverUrl}
                 releaseDate={game.releaseDate}
-                userRating={game.userRating}
-              >
-                <Badge
-                  className={`${PLAY_STATUS_COLORS[game.status]} mt-1 text-[11px]`}
-                >
-                  {PLAY_STATUS_LABELS[game.status]}
-                </Badge>
-                <div className="mt-auto flex flex-wrap gap-1 pt-2">
+                link={{ type: 'game', gameId: game.videoGameId }}
+                score={game.userRating != null ? game.userRating * 2 : null}
+                status={game.status}
+                actions={
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-7 text-xs"
-                        disabled={updateStatusMutation.isPending}
+                        variant="secondary"
+                        size="icon"
+                        className="size-7 bg-background/80 backdrop-blur-sm hover:bg-background"
+                        aria-label="Manage game"
+                        disabled={
+                          updateStatusMutation.isPending ||
+                          removeGameMutation.isPending
+                        }
                       >
-                        Status
+                        <MoreVertical className="size-3.5" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>Change status</DropdownMenuLabel>
                       {PLAY_STATUS_ORDER.filter((s) => s !== game.status).map(
                         (s) => (
                           <DropdownMenuItem
@@ -242,30 +203,26 @@ export function LibraryTab({
                           </DropdownMenuItem>
                         ),
                       )}
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => setNotesGame(game)}>
+                        <Pencil className="size-3.5" />
+                        {game.notes && game.notes.trim() !== ''
+                          ? 'Edit notes'
+                          : 'Add notes'}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        variant="destructive"
+                        onClick={() =>
+                          removeGameMutation.mutate(game.videoGameId)
+                        }
+                      >
+                        <Trash2 className="size-3.5" />
+                        Remove
+                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 gap-1 text-xs"
-                    onClick={() => setNotesGame(game)}
-                  >
-                    Notes
-                    {game.notes && game.notes.trim() !== '' && (
-                      <Pencil className="size-3" aria-label="Has notes" />
-                    )}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 text-xs text-destructive hover:text-destructive"
-                    disabled={removeGameMutation.isPending}
-                    onClick={() => removeGameMutation.mutate(game.videoGameId)}
-                  >
-                    Remove
-                  </Button>
-                </div>
-              </CollectionGameCard>
+                }
+              />
             ))}
           </div>
           <PaginationNav

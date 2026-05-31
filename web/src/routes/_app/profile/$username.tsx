@@ -1,6 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useSuspenseQuery } from '@tanstack/react-query'
+import { useState } from 'react'
 import type { ProfileInlineTab } from '@/components/profile/profile-tab-bar'
+import type { WishlistSort } from '@/components/collection/wishlist-tab'
 import {
   userBacklogQueryOptions,
   userFollowersQueryOptions,
@@ -22,6 +24,8 @@ import { ProfileBacklogTab } from '@/components/profile/profile-backlog-tab'
 import { ProfileJournalTab } from '@/components/profile/profile-journal-tab'
 import { ProfileLikedTab } from '@/components/profile/profile-liked-tab'
 import { ProfileTabBar } from '@/components/profile/profile-tab-bar'
+import { ProfileSocialBar } from '@/components/profile/profile-social-bar'
+import { ProfileCollectionBar } from '@/components/profile/profile-collection-bar'
 import { TagsTab } from '@/components/collection/tags-tab'
 import { BacklogTab, backlogQuery } from '@/components/collection/backlog-tab'
 import { LikedTab, likedGamesQuery } from '@/components/collection/liked-tab'
@@ -30,8 +34,15 @@ import {
   WishlistTab,
   wishlistQuery,
 } from '@/components/collection/wishlist-tab'
+import { SortSelect } from '@/components/collection/sort-select'
 import { useAuth } from '@/hooks/use-auth'
 import { seo } from '@/lib/seo'
+
+// Wishlist and backlog share the same sort options.
+const COLLECTION_SORT_LABELS: Record<WishlistSort, string> = {
+  addedAt: 'Date added',
+  priority: 'Priority',
+}
 
 // Search params
 
@@ -88,7 +99,7 @@ export const Route = createFileRoute('/_app/profile/$username')({
         case 'profile':
           // The Profile tab shows the recent-games preview inside ProfileHeader.
           void context.queryClient.prefetchQuery(
-            userLibraryQueryOptions(username, 0, 8),
+            userLibraryQueryOptions(username, 0, 7),
           )
           break
         case 'wishlist':
@@ -167,23 +178,60 @@ function UserProfilePage() {
   const { tab, page, tagName } = Route.useSearch()
   const { user } = useAuth()
   const isOwner = user?.username === profile.username
+  const [collectionSort, setCollectionSort] = useState<WishlistSort>('addedAt')
+
+  if (tab === 'profile') {
+    return (
+      <main className="mx-auto max-w-7xl px-4 py-10">
+        <ProfileHeader
+          profile={profile}
+          nav={
+            <ProfileTabBar
+              username={profile.username}
+              activeTab={tab}
+              className="mb-0"
+            />
+          }
+        />
+      </main>
+    )
+  }
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-10">
       <ProfileTabBar username={profile.username} activeTab={tab} />
 
-      {tab === 'profile' && <ProfileHeader profile={profile} />}
+      {(tab === 'followers' || tab === 'following') && (
+        <ProfileSocialBar username={profile.username} activeTab={tab} />
+      )}
+
+      {(tab === 'wishlist' || tab === 'backlog' || tab === 'liked') && (
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+          <ProfileCollectionBar
+            username={profile.username}
+            activeTab={tab}
+            className="mb-0"
+          />
+          {isOwner && (tab === 'wishlist' || tab === 'backlog') && (
+            <SortSelect
+              value={collectionSort}
+              options={COLLECTION_SORT_LABELS}
+              onChange={setCollectionSort}
+            />
+          )}
+        </div>
+      )}
 
       {tab === 'wishlist' &&
         (isOwner ? (
-          <WishlistTab page={page} />
+          <WishlistTab page={page} sort={collectionSort} />
         ) : (
           <ProfileWishlistTab profile={profile} page={page} />
         ))}
 
       {tab === 'backlog' &&
         (isOwner ? (
-          <BacklogTab page={page} />
+          <BacklogTab page={page} sort={collectionSort} />
         ) : (
           <ProfileBacklogTab profile={profile} page={page} />
         ))}

@@ -5,29 +5,22 @@ import {
   Clock,
   Gamepad2,
   RefreshCw,
-  Star,
   Tag,
 } from 'lucide-react'
-import type { PlayLogResponse, PlayStatus } from '@/types/collection'
+import type { PlayLogResponse } from '@/types/collection'
+import {
+  PLAY_STATUS_ICONS,
+  PLAY_STATUS_ICON_COLORS,
+  PLAY_STATUS_LABELS,
+} from '@/lib/play-status'
 import { Badge } from '@/components/ui/badge'
-
-const PLAY_STATUS_LABELS: Record<PlayStatus, string> = {
-  ARE_PLAYING: 'Playing',
-  PLAYED: 'Played',
-  COMPLETED: 'Completed',
-  RETIRED: 'Retired',
-  SHELVED: 'Shelved',
-  ABANDONED: 'Abandoned',
-}
-
-const PLAY_STATUS_COLORS: Record<PlayStatus, string> = {
-  ARE_PLAYING: 'bg-blue-500/15 text-blue-400 border-blue-500/20',
-  PLAYED: 'bg-violet-500/15 text-violet-400 border-violet-500/20',
-  COMPLETED: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20',
-  RETIRED: 'bg-slate-500/15 text-slate-400 border-slate-500/20',
-  SHELVED: 'bg-amber-500/15 text-amber-400 border-amber-500/20',
-  ABANDONED: 'bg-red-500/15 text-red-400 border-red-500/20',
-}
+import { ScoreStars } from '@/components/games/score-stars'
+import { cn } from '@/lib/utils'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 function formatTimePlayed(minutes: number): string {
   if (minutes < 60) return `${minutes}m`
@@ -56,8 +49,10 @@ interface JournalEntryProps {
  * (with owner actions) and the read-only profile journal tab.
  */
 export function JournalEntry({ entry, actions }: JournalEntryProps) {
+  const StatusIcon = PLAY_STATUS_ICONS[entry.status]
+
   return (
-    <div className="group flex items-start gap-4 rounded-lg border bg-card p-4 shadow-sm transition-shadow hover:shadow-md">
+    <div className="group flex items-start gap-4 py-3 border-b border-border/40 last:border-0">
       {/* Cover */}
       <Link to="/plays/$id" params={{ id: entry.id }} className="shrink-0">
         <div className="h-24 w-16 overflow-hidden rounded-md bg-muted">
@@ -76,8 +71,8 @@ export function JournalEntry({ entry, actions }: JournalEntryProps) {
       </Link>
 
       {/* Info */}
-      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-        <div className="flex items-start justify-between gap-2">
+      <div className="flex min-w-0 flex-col gap-1.5">
+        <div className="flex flex-wrap items-center gap-3">
           <span className="flex min-w-0 items-baseline gap-1.5">
             <Link
               to="/plays/$id"
@@ -92,27 +87,40 @@ export function JournalEntry({ entry, actions }: JournalEntryProps) {
               </span>
             )}
           </span>
-          <div className="flex shrink-0 items-center gap-1.5">
-            <Badge
-              className={`${PLAY_STATUS_COLORS[entry.status]} text-[11px]`}
-            >
-              {PLAY_STATUS_LABELS[entry.status]}
-            </Badge>
-            {entry.isReplay && (
-              <Badge variant="outline" className="gap-1 text-[11px]">
-                <RefreshCw className="size-2.5" />
-                Replay
-              </Badge>
-            )}
-            {entry.score != null && (
-              <Badge
-                variant="secondary"
-                className="gap-1 text-[11px] bg-yellow-500/10 text-yellow-600 hover:bg-yellow-500/20"
-              >
-                <Star className="size-2.5 fill-current" />
-                {(entry.score / 2).toFixed(1)}
-              </Badge>
-            )}
+          <div className="flex shrink-0 items-center gap-4">
+            {entry.score != null ? (
+              <ScoreStars score={entry.score} starClassName="size-3.5" />
+            ) : null}
+
+            <div className="flex items-center gap-1.5">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <StatusIcon
+                    aria-label={PLAY_STATUS_LABELS[entry.status]}
+                    className={cn(
+                      'size-4',
+                      PLAY_STATUS_ICON_COLORS[entry.status],
+                    )}
+                  />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{PLAY_STATUS_LABELS[entry.status]}</p>
+                </TooltipContent>
+              </Tooltip>
+              {entry.isReplay && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <RefreshCw
+                      aria-label="Replay"
+                      className="text-muted-foreground size-3.5"
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Replay</p>
+                  </TooltipContent>
+                </Tooltip>
+              )}
+            </div>
           </div>
         </div>
 

@@ -1,22 +1,13 @@
 import { Link } from '@tanstack/react-router'
 import {
   AlignLeft,
-  Archive,
   BookOpen,
   Bookmark,
-  CheckCircle2,
-  Flag,
   Gamepad2,
-  Heart,
   List,
-  Pause,
-  PlayCircle,
   Tag,
-  ThumbsUp,
   User,
-  UserCheck,
   Users,
-  XCircle,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -37,12 +28,20 @@ export type ProfileTabKey =
   | 'liked'
   | 'reviews'
   | 'lists'
+  | 'social'
   | 'followers'
   | 'following'
+  | 'collection'
 
 interface ProfileTabBarProps {
   username: string
   activeTab: ProfileTabKey
+  /**
+   * Vertical stacks the tabs into a column (used inside the Profile hero, to the
+   * right of the avatar). Horizontal is the default full-width top bar used on
+   * every other profile route. Both fall back to a horizontal scroller on mobile.
+   */
+  orientation?: 'horizontal' | 'vertical'
   className?: string
 }
 
@@ -52,24 +51,21 @@ interface TabConfig {
   icon: LucideIcon
 }
 
+/**
+ * Primary navigation. Secondary bars keep the primary list short: the per-status
+ * game tabs live under "Games" ({@link ProfileStatusBar}), Wishlist/Backlog/Liked
+ * under "Collection" ({@link ProfileCollectionBar}), and Followers/Following under
+ * "Social" ({@link ProfileSocialBar}).
+ */
 const TABS: ReadonlyArray<TabConfig> = [
   { value: 'profile', label: 'Profile', icon: User },
   { value: 'games', label: 'Games', icon: Gamepad2 },
-  { value: 'playing', label: 'Playing', icon: PlayCircle },
-  { value: 'played', label: 'Played', icon: Flag },
-  { value: 'completed', label: 'Completed', icon: CheckCircle2 },
-  { value: 'retired', label: 'Retired', icon: Pause },
-  { value: 'shelved', label: 'Shelved', icon: Bookmark },
-  { value: 'abandoned', label: 'Abandoned', icon: XCircle },
+  { value: 'collection', label: 'Collection', icon: Bookmark },
   { value: 'journal', label: 'Journal', icon: BookOpen },
-  { value: 'wishlist', label: 'Wishlist', icon: Heart },
-  { value: 'backlog', label: 'Backlog', icon: Archive },
   { value: 'tags', label: 'Tags', icon: Tag },
-  { value: 'liked', label: 'Liked', icon: ThumbsUp },
   { value: 'reviews', label: 'Reviews', icon: AlignLeft },
   { value: 'lists', label: 'Lists', icon: List },
-  { value: 'followers', label: 'Followers', icon: UserCheck },
-  { value: 'following', label: 'Following', icon: Users },
+  { value: 'social', label: 'Social', icon: Users },
 ]
 
 // Tabs that are rendered inline on /profile/$username via ?tab=...
@@ -85,7 +81,8 @@ const PROFILE_INLINE_TABS = new Set<ProfileTabKey>([
   'following',
 ])
 
-// Tabs that live on /profile/$username/games via ?tab=...
+// Status tabs that live on /profile/$username/games via ?tab=... The primary
+// "Games" tab is considered active whenever any of these is the current tab.
 const GAMES_TABS = new Set<ProfileTabKey>([
   'games',
   'playing',
@@ -96,39 +93,53 @@ const GAMES_TABS = new Set<ProfileTabKey>([
   'abandoned',
 ])
 
-const tabClass = (active: boolean) =>
+// Inline tabs grouped under the primary "Social" tab via the secondary bar.
+const SOCIAL_TABS = new Set<ProfileTabKey>(['followers', 'following'])
+
+// Inline tabs grouped under the primary "Collection" tab via the secondary bar.
+const COLLECTION_TABS = new Set<ProfileTabKey>(['wishlist', 'backlog', 'liked'])
+
+const tabClass = (active: boolean, vertical: boolean) =>
   cn(
     'inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md border border-transparent px-2 text-xs font-medium whitespace-nowrap transition-all',
     'focus-visible:outline-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]',
+    vertical && 'sm:w-full sm:justify-start',
     active
       ? 'bg-primary text-primary-foreground shadow-sm'
       : 'text-foreground/60 hover:text-foreground',
-    '[&_svg]:size-3 [&_svg]:shrink-0',
+    '[&_svg]:size-3.5 [&_svg]:shrink-0',
   )
 
 /**
- * Shared horizontal tab bar rendered at the top of every profile-related route
- * ({@code /profile/$username}, {@code /profile/$username/games},
- * {@code /profile/$username/lists}). Each tab is a Link that triggers a real
- * navigation — Profile lives on the profile page, Games/Playing/Completed/Dropped
- * live on the games page, Lists has its own dedicated route, and the rest are
- * rendered as inline ?tab= variants of the profile page.
+ * Shared tab bar for every profile-related route. Defaults to a horizontal top
+ * bar; the Profile hero passes {@code orientation="vertical"} to stack the tabs
+ * into a column on its right. The single "Games" tab opens
+ * {@code /profile/$username/games}, "Lists" has its own route, and the rest are
+ * inline ?tab= variants of the profile page.
  */
 export function ProfileTabBar({
   username,
   activeTab,
+  orientation = 'horizontal',
   className,
 }: ProfileTabBarProps) {
+  const vertical = orientation === 'vertical'
+
   return (
     <nav
       className={cn(
-        'mb-6 flex max-w-full items-center gap-1 overflow-x-auto rounded-lg bg-muted p-[3px]',
+        'flex w-fit max-w-full items-center gap-1 overflow-x-auto rounded-lg bg-muted p-[3px]',
+        vertical ? 'sm:flex-col sm:items-stretch sm:overflow-visible' : 'mb-6',
         className,
       )}
       aria-label="Profile sections"
     >
       {TABS.map(({ value, label, icon: Icon }) => {
-        const active = value === activeTab
+        const active =
+          value === activeTab ||
+          (value === 'games' && GAMES_TABS.has(activeTab)) ||
+          (value === 'social' && SOCIAL_TABS.has(activeTab)) ||
+          (value === 'collection' && COLLECTION_TABS.has(activeTab))
         const content = (
           <>
             <Icon />
@@ -143,7 +154,7 @@ export function ProfileTabBar({
               to="/profile/$username"
               params={{ username }}
               search={{ tab: value as ProfileInlineTab, page: 1 }}
-              className={tabClass(active)}
+              className={tabClass(active, vertical)}
               aria-current={active ? 'page' : undefined}
             >
               {content}
@@ -151,18 +162,14 @@ export function ProfileTabBar({
           )
         }
 
-        if (GAMES_TABS.has(value)) {
+        if (value === 'games') {
           return (
             <Link
               key={value}
               to="/profile/$username/games"
               params={{ username }}
-              search={{
-                tab: value as ProfileGamesTabKey,
-                page: 1,
-                sort: 'addedAt',
-              }}
-              className={tabClass(active)}
+              search={{ tab: 'games', page: 1, sort: 'addedAt' }}
+              className={tabClass(active, vertical)}
               aria-current={active ? 'page' : undefined}
             >
               {content}
@@ -170,13 +177,44 @@ export function ProfileTabBar({
           )
         }
 
-        // 'lists' — dedicated placeholder route
+        if (value === 'social') {
+          return (
+            <Link
+              key={value}
+              to="/profile/$username"
+              params={{ username }}
+              search={{ tab: 'followers', page: 1 }}
+              className={tabClass(active, vertical)}
+              aria-current={active ? 'page' : undefined}
+            >
+              {content}
+            </Link>
+          )
+        }
+
+        if (value === 'collection') {
+          return (
+            <Link
+              key={value}
+              to="/profile/$username"
+              params={{ username }}
+              search={{ tab: 'wishlist', page: 1 }}
+              className={tabClass(active, vertical)}
+              aria-current={active ? 'page' : undefined}
+            >
+              {content}
+            </Link>
+          )
+        }
+
+        // 'lists' — dedicated route
         return (
           <Link
             key={value}
             to="/profile/$username/lists"
             params={{ username }}
-            className={tabClass(active)}
+            search={{ page: 1 }}
+            className={tabClass(active, vertical)}
             aria-current={active ? 'page' : undefined}
           >
             {content}

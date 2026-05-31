@@ -8,7 +8,7 @@ import { BookOpen, Trash2 } from 'lucide-react'
 import type { PlayLogListResponse } from '@/types/collection'
 import { CollectionPagination } from '@/components/collection/collection-pagination'
 import { EmptyState } from '@/components/collection/empty-state'
-import { JournalEntry } from '@/components/collection/journal-entry'
+import { JournalTimeline } from '@/components/collection/journal-timeline'
 import { Button } from '@/components/ui/button'
 import { apiFetch } from '@/services/api'
 
@@ -86,26 +86,21 @@ export function PlayLogTab({ page }: PlayLogTabProps) {
 
   return (
     <div>
-      <div className="space-y-3">
-        {data.content.map((entry) => (
-          <JournalEntry
-            key={entry.id}
-            entry={entry}
-            actions={
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-7 gap-1 text-xs text-destructive hover:text-destructive"
-                disabled={deleteMutation.isPending}
-                onClick={() => deleteMutation.mutate(entry.id)}
-              >
-                <Trash2 className="size-3" />
-                Delete
-              </Button>
-            }
-          />
-        ))}
-      </div>
+      <JournalTimeline
+        entries={data.content}
+        renderActions={(entry) => (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 gap-1 text-xs text-destructive hover:text-destructive"
+            disabled={deleteMutation.isPending}
+            onClick={() => deleteMutation.mutate(entry.id)}
+          >
+            <Trash2 className="size-3" />
+            Delete
+          </Button>
+        )}
+      />
       <CollectionPagination
         tab="journal"
         page={page}

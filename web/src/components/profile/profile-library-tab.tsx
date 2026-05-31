@@ -4,10 +4,10 @@ import type { PlayStatus } from '@/types/interaction'
 import type { UserProfile } from '@/types/profile'
 import type { ProfileGamesTabKey } from '@/components/profile/profile-tab-bar'
 import { userLibraryQueryOptions } from '@/queries/profile'
-import { PLAY_STATUS_COLORS, PLAY_STATUS_LABELS } from '@/lib/play-status'
-import { CollectionGameCard } from '@/components/collection/collection-game-card'
+import { STATUS_TABS } from '@/components/profile/profile-status-bar'
+import { PLAY_STATUS_LABELS } from '@/lib/play-status'
+import { GameDetailCard } from '@/components/games/game-detail-card'
 import { PaginationNav } from '@/components/shared/pagination-nav'
-import { Badge } from '@/components/ui/badge'
 
 interface ProfileLibraryTabProps {
   profile: UserProfile
@@ -33,6 +33,8 @@ export function ProfileLibraryTab({
     enabled: !(profile.isPrivate && !profile.isOwner),
   })
 
+  const TabIcon = STATUS_TABS.find((t) => t.value === tabKey)?.icon || Library
+
   if (profile.isPrivate && !profile.isOwner) {
     return (
       <div className="flex flex-col items-center gap-3 py-12 text-center">
@@ -44,11 +46,11 @@ export function ProfileLibraryTab({
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-        {Array.from({ length: 10 }).map((_, i) => (
-          <div key={i} className="flex flex-col gap-2 rounded-lg border p-3">
+      <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7">
+        {Array.from({ length: 12 }).map((_, i) => (
+          <div key={i} className="flex flex-col gap-1.5">
             <div className="bg-muted aspect-[3/4] animate-pulse rounded-md" />
-            <div className="bg-muted h-4 w-3/4 animate-pulse rounded" />
+            <div className="bg-muted h-3 w-3/4 animate-pulse rounded" />
           </div>
         ))}
       </div>
@@ -58,7 +60,7 @@ export function ProfileLibraryTab({
   if (isError || !data) {
     return (
       <div className="flex flex-col items-center gap-3 py-12 text-center">
-        <Library className="text-muted-foreground size-12" />
+        <TabIcon className="text-muted-foreground size-12" />
         <p className="text-muted-foreground text-lg">Unable to load library</p>
       </div>
     )
@@ -67,7 +69,7 @@ export function ProfileLibraryTab({
   if (data.content.length === 0) {
     return (
       <div className="flex flex-col items-center gap-3 py-12 text-center">
-        <Library className="text-muted-foreground size-12" />
+        <TabIcon className="text-muted-foreground size-12" />
         <p className="text-muted-foreground text-lg">
           {status
             ? `No ${PLAY_STATUS_LABELS[status].toLowerCase()} games`
@@ -79,22 +81,17 @@ export function ProfileLibraryTab({
 
   return (
     <>
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+      <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7">
         {data.content.map((game) => (
-          <CollectionGameCard
+          <GameDetailCard
             key={game.id}
-            videoGameId={game.videoGameId}
             title={game.title}
             coverUrl={game.coverUrl}
             releaseDate={game.releaseDate}
-            userRating={game.userRating}
-          >
-            <Badge
-              className={`${PLAY_STATUS_COLORS[game.status]} mt-1 text-[11px]`}
-            >
-              {PLAY_STATUS_LABELS[game.status]}
-            </Badge>
-          </CollectionGameCard>
+            link={{ type: 'game', gameId: game.videoGameId }}
+            score={game.userRating != null ? game.userRating * 2 : null}
+            status={game.status}
+          />
         ))}
       </div>
       <PaginationNav

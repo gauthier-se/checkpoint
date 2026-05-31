@@ -33,6 +33,7 @@ import com.checkpoint.api.mapper.ReviewMapper;
 import com.checkpoint.api.mapper.UserGameMapper;
 import com.checkpoint.api.mapper.WishMapper;
 import com.checkpoint.api.repositories.BacklogRepository;
+import com.checkpoint.api.repositories.CommentRepository;
 import com.checkpoint.api.repositories.LikeRepository;
 import com.checkpoint.api.repositories.ReviewRepository;
 import com.checkpoint.api.repositories.UserGamePlayRepository;
@@ -62,6 +63,9 @@ class ProfileServiceImplTest {
 
     @Mock
     private LikeRepository likeRepository;
+
+    @Mock
+    private CommentRepository commentRepository;
 
     @Mock
     private com.checkpoint.api.repositories.RateRepository rateRepository;
@@ -111,7 +115,7 @@ class ProfileServiceImplTest {
     void setUp() {
         profileService = new ProfileServiceImpl(
                 userRepository, reviewRepository, wishRepository,
-                userGamePlayRepository, likeRepository, rateRepository,
+                userGamePlayRepository, likeRepository, commentRepository, rateRepository,
                 userGameRepository, backlogRepository, badgeRepository,
                 gameListService, storageService,
                 profileMapper, reviewMapper, wishMapper,

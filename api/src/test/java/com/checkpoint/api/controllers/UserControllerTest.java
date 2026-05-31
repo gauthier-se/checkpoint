@@ -33,7 +33,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.checkpoint.api.dto.catalog.PagedResponseDto;
-import com.checkpoint.api.dto.catalog.ReviewResponseDto;
+import com.checkpoint.api.dto.catalog.ReviewCardDto;
 import com.checkpoint.api.dto.catalog.ReviewUserDto;
 import com.checkpoint.api.dto.collection.BacklogResponseDto;
 import com.checkpoint.api.dto.collection.LikedGameResponseDto;
@@ -182,13 +182,14 @@ class UserControllerTest {
         @DisplayName("should return paginated reviews for public profile")
         void getUserReviews_shouldReturnPaginatedReviews() throws Exception {
             // Given
-            ReviewResponseDto review = new ReviewResponseDto(
+            ReviewCardDto review = new ReviewCardDto(
                     UUID.randomUUID(), "Great game!", false,
-                    LocalDateTime.now(), LocalDateTime.now(),
+                    LocalDateTime.now(),
                     new ReviewUserDto(UUID.randomUUID(), "testuser", null),
-                    null, null, null, null, 0, false, 0
+                    null, null, null, false, 0, false, 0,
+                    UUID.randomUUID(), "Elden Ring", "/covers/elden.jpg"
             );
-            Page<ReviewResponseDto> page = new PageImpl<>(List.of(review));
+            Page<ReviewCardDto> page = new PageImpl<>(List.of(review));
 
             when(profileService.getUserReviews(eq("testuser"), isNull(), any(Pageable.class)))
                     .thenReturn(page);

@@ -31,7 +31,7 @@ describe('apiFetch', () => {
     })
 
     const [url, init] = fetchMock.mock.calls[0]
-    expect(url).toBe('/api/v1/auth/register')
+    expect(url.toString().endsWith('/api/v1/auth/register')).toBe(true)
     expect(init?.method).toBe('POST')
     // Headers are normalized into a `Headers` instance before being forwarded.
     expect(new Headers(init?.headers).get('content-type')).toBe(

@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.checkpoint.api.dto.catalog.ReviewResponseDto;
+import com.checkpoint.api.dto.catalog.ReviewCardDto;
 import com.checkpoint.api.dto.collection.BacklogResponseDto;
 import com.checkpoint.api.dto.collection.LikedGameResponseDto;
 import com.checkpoint.api.dto.collection.UserGameResponseDto;
@@ -45,6 +45,7 @@ import com.checkpoint.api.mapper.UserGameMapper;
 import com.checkpoint.api.mapper.WishMapper;
 import com.checkpoint.api.repositories.BacklogRepository;
 import com.checkpoint.api.repositories.BadgeRepository;
+import com.checkpoint.api.repositories.CommentRepository;
 import com.checkpoint.api.repositories.LikeRepository;
 import com.checkpoint.api.repositories.RateRepository;
 import com.checkpoint.api.repositories.ReviewRepository;
@@ -75,6 +76,7 @@ public class ProfileServiceImpl implements ProfileService {
     private final WishRepository wishRepository;
     private final UserGamePlayRepository userGamePlayRepository;
     private final LikeRepository likeRepository;
+    private final CommentRepository commentRepository;
     private final RateRepository rateRepository;
     private final UserGameRepository userGameRepository;
     private final BacklogRepository backlogRepository;
@@ -98,6 +100,7 @@ public class ProfileServiceImpl implements ProfileService {
                                WishRepository wishRepository,
                                UserGamePlayRepository userGamePlayRepository,
                                LikeRepository likeRepository,
+                               CommentRepository commentRepository,
                                RateRepository rateRepository,
                                UserGameRepository userGameRepository,
                                BacklogRepository backlogRepository,
@@ -117,6 +120,7 @@ public class ProfileServiceImpl implements ProfileService {
         this.wishRepository = wishRepository;
         this.userGamePlayRepository = userGamePlayRepository;
         this.likeRepository = likeRepository;
+        this.commentRepository = commentRepository;
         this.rateRepository = rateRepository;
         this.userGameRepository = userGameRepository;
         this.backlogRepository = backlogRepository;
@@ -207,7 +211,7 @@ public class ProfileServiceImpl implements ProfileService {
      * {@inheritDoc}
      */
     @Override
-    public Page<ReviewResponseDto> getUserReviews(String username, String viewerEmail, Pageable pageable) {
+    public Page<ReviewCardDto> getUserReviews(String username, String viewerEmail, Pageable pageable) {
         log.info("Fetching reviews for user: {}", username);
 
         User user = userRepository.findByPseudo(username)
@@ -215,8 +219,18 @@ public class ProfileServiceImpl implements ProfileService {
 
         enforcePrivacy(user, viewerEmail);
 
+        User viewer = viewerEmail != null
+                ? userRepository.findByEmail(viewerEmail).orElse(null)
+                : null;
+
         return reviewRepository.findByUserPseudo(username, pageable)
-                .map(reviewMapper::toDto);
+                .map(review -> {
+                    long likesCount = likeRepository.countByReviewId(review.getId());
+                    boolean hasLiked = viewer != null
+                            && likeRepository.existsByUserIdAndReviewId(viewer.getId(), review.getId());
+                    long commentsCount = commentRepository.countByReviewId(review.getId());
+                    return reviewMapper.toCardDto(review, likesCount, hasLiked, commentsCount);
+                });
     }
 
     /**

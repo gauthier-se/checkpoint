@@ -1,5 +1,4 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Link } from '@tanstack/react-router'
 import { Users } from 'lucide-react'
 import { FollowActionButton } from './follow-action-button'
 import type { UserProfile } from '@/types/profile'
@@ -7,8 +6,7 @@ import {
   removeFollowerMutation,
   userFollowersQueryOptions,
 } from '@/queries/profile'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { resolvePictureUrl } from '@/lib/picture'
+import { MemberCard } from '@/components/members/member-card'
 
 interface ProfileFollowersTabProps {
   profile: UserProfile
@@ -41,13 +39,13 @@ export function ProfileFollowersTab({
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
-        {Array.from({ length: 8 }).map((_, i) => (
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+        {Array.from({ length: 10 }).map((_, i) => (
           <div
             key={i}
-            className="flex items-center gap-3 rounded-lg border p-4"
+            className="flex flex-col items-center gap-3 rounded-lg border p-5"
           >
-            <div className="bg-muted size-10 animate-pulse rounded-full" />
+            <div className="bg-muted size-16 animate-pulse rounded-full" />
             <div className="bg-muted h-4 w-24 animate-pulse rounded" />
           </div>
         ))}
@@ -76,41 +74,27 @@ export function ProfileFollowersTab({
   }
 
   return (
-    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
       {data.content.map((user) => (
-        <div
+        <MemberCard
           key={user.id}
-          className="hover:bg-accent flex items-center gap-3 rounded-lg border p-4 transition-colors"
-        >
-          <Link
-            to="/profile/$username"
-            params={{ username: user.pseudo }}
-            className="flex min-w-0 flex-1 items-center gap-3"
-          >
-            <Avatar className="size-10">
-              <AvatarImage
-                src={resolvePictureUrl(user.picture)}
-                alt={user.pseudo}
+          member={user}
+          action={
+            isOwner ? (
+              <FollowActionButton
+                label="Remove"
+                title={`Remove ${user.pseudo}?`}
+                description={`${user.pseudo} will no longer follow you. They won't be notified, but they can follow you again.`}
+                confirmLabel="Remove"
+                isPending={
+                  removeMutation.isPending &&
+                  removeMutation.variables === user.id
+                }
+                onConfirm={() => removeMutation.mutate(user.id)}
               />
-              <AvatarFallback>
-                {user.pseudo.slice(0, 2).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-            <span className="truncate font-medium">{user.pseudo}</span>
-          </Link>
-          {isOwner && (
-            <FollowActionButton
-              label="Remove"
-              title={`Remove ${user.pseudo}?`}
-              description={`${user.pseudo} will no longer follow you. They won't be notified, but they can follow you again.`}
-              confirmLabel="Remove"
-              isPending={
-                removeMutation.isPending && removeMutation.variables === user.id
-              }
-              onConfirm={() => removeMutation.mutate(user.id)}
-            />
-          )}
-        </div>
+            ) : undefined
+          }
+        />
       ))}
     </div>
   )

@@ -4,28 +4,37 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query'
-import { Heart, Trash2 } from 'lucide-react'
-import { useState } from 'react'
+import { Flag, Heart, MoreVertical, Trash2 } from 'lucide-react'
 import type { Priority, WishlistResponse } from '@/types/collection'
-import { CollectionGameCard } from '@/components/collection/collection-game-card'
+import { GameDetailCard } from '@/components/games/game-detail-card'
 import { CollectionPagination } from '@/components/collection/collection-pagination'
 import { EmptyState } from '@/components/collection/empty-state'
 import { PriorityBadge } from '@/components/collection/priority-badge'
-import { PrioritySelect } from '@/components/collection/priority-select'
 import { Button } from '@/components/ui/button'
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { updateWishlistPriority } from '@/queries/games'
 import { apiFetch } from '@/services/api'
 
+const PRIORITY_OPTIONS: ReadonlyArray<{
+  value: Priority | null
+  label: string
+}> = [
+  { value: 'HIGH', label: 'High priority' },
+  { value: 'MEDIUM', label: 'Medium priority' },
+  { value: 'LOW', label: 'Low priority' },
+  { value: null, label: 'No priority' },
+]
+
 const PAGE_SIZE = 20
 
-type WishlistSort = 'addedAt' | 'priority'
+export type WishlistSort = 'addedAt' | 'priority'
 
 const SORT_PARAM: Record<WishlistSort, string> = {
   addedAt: 'createdAt,desc',
@@ -47,10 +56,10 @@ export function wishlistQuery(page: number, sort: WishlistSort = 'addedAt') {
 
 interface WishlistTabProps {
   page: number
+  sort: WishlistSort
 }
 
-export function WishlistTab({ page }: WishlistTabProps) {
-  const [sort, setSort] = useState<WishlistSort>('addedAt')
+export function WishlistTab({ page, sort }: WishlistTabProps) {
   const { data, isLoading, isError } = useQuery(wishlistQuery(page, sort))
   const queryClient = useQueryClient()
 
@@ -80,11 +89,11 @@ export function WishlistTab({ page }: WishlistTabProps) {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-        {Array.from({ length: 10 }).map((_, i) => (
-          <div key={i} className="flex flex-col gap-2 rounded-lg border p-3">
+      <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7">
+        {Array.from({ length: 12 }).map((_, i) => (
+          <div key={i} className="flex flex-col gap-1.5">
             <div className="aspect-[3/4] animate-pulse rounded-md bg-muted" />
-            <div className="h-4 w-3/4 animate-pulse rounded bg-muted" />
+            <div className="h-3 w-3/4 animate-pulse rounded bg-muted" />
           </div>
         ))}
       </div>
@@ -115,65 +124,63 @@ export function WishlistTab({ page }: WishlistTabProps) {
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-end gap-2">
-        <span className="text-xs text-muted-foreground">Sort by</span>
-        <Select
-          value={sort}
-          onValueChange={(value) => setSort(value as WishlistSort)}
-        >
-          <SelectTrigger size="sm" className="h-8 w-[160px] text-xs">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="addedAt">Date added</SelectItem>
-            <SelectItem value="priority">Priority</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+      <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7">
         {data.content.map((game) => (
-          <CollectionGameCard
+          <GameDetailCard
             key={game.id}
-            videoGameId={game.videoGameId}
             title={game.title}
             coverUrl={game.coverUrl}
             releaseDate={game.releaseDate}
-          >
-            <div className="flex flex-wrap items-center gap-1.5">
-              {game.releaseDate && (
-                <p className="text-xs text-muted-foreground">
-                  {new Date(game.releaseDate).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric',
-                  })}
-                </p>
-              )}
-              <PriorityBadge priority={game.priority} />
-            </div>
-            <div className="mt-auto flex flex-col gap-1 pt-2">
-              <PrioritySelect
-                value={game.priority}
-                disabled={priorityMutation.isPending}
-                onChange={(priority) =>
-                  priorityMutation.mutate({
-                    videoGameId: game.videoGameId,
-                    priority,
-                  })
-                }
-              />
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-7 w-full gap-1.5 text-xs text-destructive hover:text-destructive"
-                disabled={removeMutation.isPending}
-                onClick={() => removeMutation.mutate(game.videoGameId)}
-              >
-                <Trash2 className="size-3" />
-                Remove
-              </Button>
-            </div>
-          </CollectionGameCard>
+            link={{ type: 'game', gameId: game.videoGameId }}
+            statusBadge={
+              game.priority ? (
+                <PriorityBadge priority={game.priority} />
+              ) : undefined
+            }
+            actions={
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="secondary"
+                    size="icon"
+                    className="size-7 bg-background/80 backdrop-blur-sm hover:bg-background"
+                    aria-label="Manage wishlist game"
+                    disabled={
+                      priorityMutation.isPending || removeMutation.isPending
+                    }
+                  >
+                    <MoreVertical className="size-3.5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>Priority</DropdownMenuLabel>
+                  {PRIORITY_OPTIONS.map((option) => (
+                    <DropdownMenuItem
+                      key={option.label}
+                      disabled={game.priority === option.value}
+                      onClick={() =>
+                        priorityMutation.mutate({
+                          videoGameId: game.videoGameId,
+                          priority: option.value,
+                        })
+                      }
+                    >
+                      <Flag className="size-3.5" />
+                      {option.label}
+                    </DropdownMenuItem>
+                  ))}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    variant="destructive"
+                    onClick={() => removeMutation.mutate(game.videoGameId)}
+                  >
+                    <Trash2 className="size-3.5" />
+                    Remove
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            }
+          />
         ))}
       </div>
       <CollectionPagination

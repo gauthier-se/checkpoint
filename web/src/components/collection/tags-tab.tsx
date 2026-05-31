@@ -3,7 +3,7 @@ import { Link } from '@tanstack/react-router'
 import { Lock, Settings2, Tag } from 'lucide-react'
 import type { LinkProps } from '@tanstack/react-router'
 import { userTagGamesQueryOptions, userTagsQueryOptions } from '@/queries/tags'
-import { CollectionGameCard } from '@/components/collection/collection-game-card'
+import { GameDetailCard } from '@/components/games/game-detail-card'
 import { EmptyState } from '@/components/collection/empty-state'
 import { PaginationNav } from '@/components/shared/pagination-nav'
 import { Badge } from '@/components/ui/badge'
@@ -106,29 +106,37 @@ export function TagsTab({
   return (
     <div className="space-y-6">
       {/* Tag filter chips */}
-      <div className="flex flex-wrap items-center gap-2">
-        <Link {...tagLinkProps(undefined)}>
-          <Badge
-            variant={selectedTag ? 'outline' : 'default'}
-            className="cursor-pointer"
-          >
-            All tags
-          </Badge>
-        </Link>
-        {tags.map((tag) => (
-          <Link key={tag.id} {...tagLinkProps(tag.name)}>
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Link className="inline-flex" {...tagLinkProps(undefined)}>
             <Badge
-              variant={selectedTag === tag.name ? 'default' : 'secondary'}
-              className="cursor-pointer gap-1"
+              variant={selectedTag ? 'outline' : 'default'}
+              className="cursor-pointer"
             >
-              <Tag className="size-3" />
-              {tag.name}
-              <span className="text-muted-foreground">{tag.playLogsCount}</span>
+              All tags
             </Badge>
           </Link>
-        ))}
+          {tags.map((tag) => (
+            <Link
+              key={tag.id}
+              className="inline-flex"
+              {...tagLinkProps(tag.name)}
+            >
+              <Badge
+                variant={selectedTag === tag.name ? 'default' : 'secondary'}
+                className="cursor-pointer gap-1"
+              >
+                <Tag className="size-3" />
+                {tag.name}
+                <span className="text-muted-foreground">
+                  {tag.playLogsCount}
+                </span>
+              </Badge>
+            </Link>
+          ))}
+        </div>
         {isOwner && (
-          <Button asChild variant="ghost" size="sm" className="ml-auto gap-1">
+          <Button asChild variant="ghost" size="sm" className="shrink-0 gap-1">
             <Link to="/$username/tags" params={{ username }}>
               <Settings2 className="size-4" />
               Manage tags
@@ -146,11 +154,11 @@ export function TagsTab({
           </p>
         </div>
       ) : gamesQuery.isLoading ? (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-          {Array.from({ length: 10 }).map((_, i) => (
-            <div key={i} className="flex flex-col gap-2 rounded-lg border p-3">
+        <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7">
+          {Array.from({ length: 12 }).map((_, i) => (
+            <div key={i} className="flex flex-col gap-1.5">
               <div className="aspect-[3/4] animate-pulse rounded-md bg-muted" />
-              <div className="h-4 w-3/4 animate-pulse rounded bg-muted" />
+              <div className="h-3 w-3/4 animate-pulse rounded bg-muted" />
             </div>
           ))}
         </div>
@@ -168,14 +176,14 @@ export function TagsTab({
         />
       ) : (
         <>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+          <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7">
             {gamesQuery.data.content.map((entry) => (
-              <CollectionGameCard
+              <GameDetailCard
                 key={entry.id}
-                videoGameId={entry.videoGameId}
                 title={entry.title}
                 coverUrl={entry.coverUrl}
                 releaseDate={entry.releaseDate}
+                link={{ type: 'game', gameId: entry.videoGameId }}
               />
             ))}
           </div>

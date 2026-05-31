@@ -57,13 +57,6 @@ describe('FavoriteGamesSection', () => {
     expect(grid?.children).toHaveLength(5)
   })
 
-  it('renders a separator under the grid', () => {
-    const { container } = render(
-      <FavoriteGamesSection favorites={favorites} isOwner={false} />,
-    )
-    expect(container.querySelector('[data-slot="separator"]')).not.toBeNull()
-  })
-
   it('links filled slots to /games/$gameId', () => {
     const { container } = render(
       <FavoriteGamesSection favorites={favorites} isOwner={false} />,

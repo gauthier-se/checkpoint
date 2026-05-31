@@ -4,7 +4,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.checkpoint.api.dto.catalog.ReviewResponseDto;
+import com.checkpoint.api.dto.catalog.ReviewCardDto;
 import com.checkpoint.api.dto.collection.BacklogResponseDto;
 import com.checkpoint.api.dto.collection.LikedGameResponseDto;
 import com.checkpoint.api.dto.collection.UserGameResponseDto;
@@ -40,9 +40,9 @@ public interface ProfileService {
      * @param username    the profile owner's username (pseudo)
      * @param viewerEmail the authenticated viewer's email, or null if anonymous
      * @param pageable    pagination parameters
-     * @return a page of review DTOs
+     * @return a page of review card DTOs (bundled with game info)
      */
-    Page<ReviewResponseDto> getUserReviews(String username, String viewerEmail, Pageable pageable);
+    Page<ReviewCardDto> getUserReviews(String username, String viewerEmail, Pageable pageable);
 
     /**
      * Retrieves a paginated list of wishlist items for the given user.

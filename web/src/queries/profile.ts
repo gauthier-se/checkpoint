@@ -1,6 +1,6 @@
 import { queryOptions } from '@tanstack/react-query'
 import type { FavoriteGame, UserProfile } from '@/types/profile'
-import type { ReviewsResponse } from '@/types/review'
+import type { ReviewCard } from '@/types/review'
 import type {
   BacklogListResponse,
   LikedGameListResponse,
@@ -38,6 +38,11 @@ export interface FollowingResponse {
   metadata: PaginationMetadata
 }
 
+export interface UserReviewsResponse {
+  content: Array<ReviewCard>
+  metadata: PaginationMetadata
+}
+
 export const userProfileQueryOptions = (username: string) => {
   return queryOptions({
     queryKey: ['users', username, 'profile'],
@@ -56,7 +61,7 @@ export const userReviewsQueryOptions = (
 ) => {
   return queryOptions({
     queryKey: ['users', username, 'reviews', page, size],
-    queryFn: async (): Promise<ReviewsResponse> => {
+    queryFn: async (): Promise<UserReviewsResponse> => {
       const res = await apiFetch(
         `/api/users/${username}/reviews?page=${page}&size=${size}`,
       )

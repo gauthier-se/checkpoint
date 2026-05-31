@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { Link } from '@tanstack/react-router'
+import { Gamepad2 } from 'lucide-react'
 import { GameCardHoverActions } from '@/components/games/game-card-hover-actions'
 
 interface GameCardItem {
   id: string
   title: string
-  coverUrl: string
-  releaseDate: string
+  coverUrl: string | null
+  releaseDate?: string | null
 }
 
 interface GameCardProps {
@@ -31,11 +32,17 @@ export function GameCard({ game, reason }: GameCardProps) {
         <span className="sr-only">{game.title}</span>
       </Link>
       <div className="relative pointer-events-none">
-        <img
-          className="rounded-sm w-full"
-          src={game.coverUrl}
-          alt={game.title}
-        />
+        {game.coverUrl ? (
+          <img
+            className="rounded-sm w-full"
+            src={game.coverUrl}
+            alt={game.title}
+          />
+        ) : (
+          <div className="bg-muted flex aspect-[3/4] w-full items-center justify-center rounded-sm">
+            <Gamepad2 className="text-muted-foreground size-8" />
+          </div>
+        )}
         <div className="absolute inset-0 rounded-sm bg-black/70 opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 px-2 text-center text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100">
           <span className="text-sm font-semibold">{game.title}</span>

@@ -21,7 +21,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.checkpoint.api.dto.catalog.PagedResponseDto;
-import com.checkpoint.api.dto.catalog.ReviewResponseDto;
+import com.checkpoint.api.dto.catalog.ReviewCardDto;
 import com.checkpoint.api.dto.collection.BacklogResponseDto;
 import com.checkpoint.api.dto.collection.LikedGameResponseDto;
 import com.checkpoint.api.dto.collection.UserGameResponseDto;
@@ -104,7 +104,7 @@ public class UserController {
      * @return paginated list of review DTOs
      */
     @GetMapping("/{username}/reviews")
-    public ResponseEntity<PagedResponseDto<ReviewResponseDto>> getUserReviews(
+    public ResponseEntity<PagedResponseDto<ReviewCardDto>> getUserReviews(
             @PathVariable String username,
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestParam(defaultValue = "" + DEFAULT_PAGE) int page,
@@ -118,7 +118,7 @@ public class UserController {
         int validatedPage = Math.max(0, page);
 
         Pageable pageable = createPageable(validatedPage, validatedSize, sort);
-        Page<ReviewResponseDto> reviews = profileService.getUserReviews(username, viewerEmail, pageable);
+        Page<ReviewCardDto> reviews = profileService.getUserReviews(username, viewerEmail, pageable);
 
         return ResponseEntity.ok(PagedResponseDto.from(reviews));
     }

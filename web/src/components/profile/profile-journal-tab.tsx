@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { BookOpen, Lock } from 'lucide-react'
 import type { UserProfile } from '@/types/profile'
 import { userJournalQueryOptions } from '@/queries/profile'
-import { JournalEntry } from '@/components/collection/journal-entry'
+import { JournalTimeline } from '@/components/collection/journal-timeline'
 import { PaginationNav } from '@/components/shared/pagination-nav'
 
 interface ProfileJournalTabProps {
@@ -61,11 +61,7 @@ export function ProfileJournalTab({ profile, page }: ProfileJournalTabProps) {
 
   return (
     <div>
-      <div className="space-y-3">
-        {data.content.map((entry) => (
-          <JournalEntry key={entry.id} entry={entry} />
-        ))}
-      </div>
+      <JournalTimeline entries={data.content} />
       <PaginationNav
         page={page}
         totalPages={data.metadata.totalPages}

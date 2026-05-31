@@ -2,7 +2,7 @@ import { Link, useRouter } from '@tanstack/react-router'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { UserMinus, UserPlus } from 'lucide-react'
-import type { MemberCard as MemberCardType } from '@/types/member'
+import type { ReactNode } from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { toggleFollowMutation } from '@/queries/profile'
@@ -10,10 +10,29 @@ import { useAuth } from '@/hooks/use-auth'
 import { resolvePictureUrl } from '@/lib/picture'
 
 interface MemberCardProps {
-  member: MemberCardType
+  /**
+   * Minimal member shape. Level, counts and follow-state are optional so the
+   * card can also render followers/following lists, whose API only returns
+   * id/pseudo/picture.
+   */
+  member: {
+    id: string
+    pseudo: string
+    picture: string | null
+    level?: number
+    followerCount?: number
+    reviewCount?: number
+    isFollowing?: boolean | null
+  }
+  /**
+   * Overrides the default follow button (e.g. a Remove/Unfollow action on the
+   * followers/following tabs). When provided, the built-in follow button is
+   * not rendered.
+   */
+  action?: ReactNode
 }
 
-export function MemberCard({ member }: MemberCardProps) {
+export function MemberCard({ member, action }: MemberCardProps) {
   const { user } = useAuth()
   const [mounted, setMounted] = useState(false)
 
@@ -38,6 +57,7 @@ export function MemberCard({ member }: MemberCardProps) {
   const initials = member.pseudo.slice(0, 2).toUpperCase()
   const isOwnProfile = user?.id === member.id
   const canFollow = user && !isOwnProfile
+  const hasStats = member.followerCount != null || member.reviewCount != null
 
   return (
     <div className="flex flex-col items-center gap-3 rounded-lg border p-5 transition-colors hover:border-foreground/20 hover:bg-muted/40">
@@ -55,43 +75,57 @@ export function MemberCard({ member }: MemberCardProps) {
         </Avatar>
         <div className="text-center">
           <p className="truncate font-medium">{member.pseudo}</p>
-          <p className="text-muted-foreground text-sm">Level {member.level}</p>
+          {member.level != null && (
+            <p className="text-muted-foreground text-sm">
+              Level {member.level}
+            </p>
+          )}
         </div>
       </Link>
-      <div className="flex gap-4 text-sm text-muted-foreground">
-        <span>
-          <span className="font-semibold text-foreground">
-            {member.followerCount}
-          </span>{' '}
-          followers
-        </span>
-        <span>
-          <span className="font-semibold text-foreground">
-            {member.reviewCount}
-          </span>{' '}
-          reviews
-        </span>
-      </div>
-      {mounted && canFollow && (
-        <Button
-          variant={member.isFollowing ? 'outline' : 'default'}
-          size="sm"
-          onClick={() => followMutation.mutate()}
-          disabled={followMutation.isPending}
-        >
-          {member.isFollowing ? (
-            <>
-              <UserMinus className="mr-1 size-3.5" />
-              Unfollow
-            </>
-          ) : (
-            <>
-              <UserPlus className="mr-1 size-3.5" />
-              Follow
-            </>
+      {hasStats && (
+        <div className="flex gap-4 text-sm text-muted-foreground">
+          {member.followerCount != null && (
+            <span>
+              <span className="font-semibold text-foreground">
+                {member.followerCount}
+              </span>{' '}
+              followers
+            </span>
           )}
-        </Button>
+          {member.reviewCount != null && (
+            <span>
+              <span className="font-semibold text-foreground">
+                {member.reviewCount}
+              </span>{' '}
+              reviews
+            </span>
+          )}
+        </div>
       )}
+      {action !== undefined
+        ? action
+        : mounted &&
+          canFollow &&
+          member.isFollowing !== undefined && (
+            <Button
+              variant={member.isFollowing ? 'outline' : 'default'}
+              size="sm"
+              onClick={() => followMutation.mutate()}
+              disabled={followMutation.isPending}
+            >
+              {member.isFollowing ? (
+                <>
+                  <UserMinus className="mr-1 size-3.5" />
+                  Unfollow
+                </>
+              ) : (
+                <>
+                  <UserPlus className="mr-1 size-3.5" />
+                  Follow
+                </>
+              )}
+            </Button>
+          )}
     </div>
   )
 }

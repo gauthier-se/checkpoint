@@ -28,7 +28,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
-import com.checkpoint.api.dto.catalog.ReviewResponseDto;
+import com.checkpoint.api.dto.catalog.ReviewCardDto;
 import com.checkpoint.api.dto.collection.BacklogResponseDto;
 import com.checkpoint.api.dto.collection.LikedGameResponseDto;
 import com.checkpoint.api.dto.collection.UserGameResponseDto;
@@ -57,6 +57,7 @@ import com.checkpoint.api.mapper.UserGameMapper;
 import com.checkpoint.api.mapper.WishMapper;
 import com.checkpoint.api.mapper.impl.ProfileMapperImpl;
 import com.checkpoint.api.repositories.BacklogRepository;
+import com.checkpoint.api.repositories.CommentRepository;
 import com.checkpoint.api.repositories.LikeRepository;
 import com.checkpoint.api.repositories.ReviewRepository;
 import com.checkpoint.api.repositories.UserGamePlayRepository;
@@ -86,6 +87,9 @@ class ProfileServiceImplTest {
 
     @Mock
     private LikeRepository likeRepository;
+
+    @Mock
+    private CommentRepository commentRepository;
 
     @Mock
     private com.checkpoint.api.repositories.RateRepository rateRepository;
@@ -137,7 +141,7 @@ class ProfileServiceImplTest {
         profileMapper = new ProfileMapperImpl();
         profileService = new ProfileServiceImpl(
                 userRepository, reviewRepository, wishRepository,
-                userGamePlayRepository, likeRepository, rateRepository,
+                userGamePlayRepository, likeRepository, commentRepository, rateRepository,
                 userGameRepository, backlogRepository, badgeRepository,
                 gameListService, storageService, profileMapper, reviewMapper, wishMapper,
                 likedGameMapper, userGameMapper, backlogMapper, gamePlayLogMapper, onboardingService);
@@ -382,7 +386,7 @@ class ProfileServiceImplTest {
                     .thenReturn(reviewPage);
 
             // When
-            Page<ReviewResponseDto> result = profileService.getUserReviews("gamer123", null, pageable);
+            Page<ReviewCardDto> result = profileService.getUserReviews("gamer123", null, pageable);
 
             // Then
             assertThat(result).isEmpty();
@@ -419,7 +423,7 @@ class ProfileServiceImplTest {
                     .thenReturn(reviewPage);
 
             // When
-            Page<ReviewResponseDto> result = profileService.getUserReviews(
+            Page<ReviewCardDto> result = profileService.getUserReviews(
                     "gamer123", "profile@example.com", pageable);
 
             // Then

@@ -17,6 +17,12 @@ interface BadgeGridProps {
    * the full grid still lives on the dedicated badges page.
    */
   limit?: number
+  /**
+   * Overrides the responsive grid column classes. Lets the profile aside render a
+   * narrower 4-column preview (`xl:grid-cols-4`) while the dedicated badges page
+   * keeps the default wide grid.
+   */
+  gridClassName?: string
 }
 
 /**
@@ -31,7 +37,7 @@ export function hasMoreBadges(badges: Array<BadgeDto>, limit: number): boolean {
   return visibleCount > limit || hiddenCount > 0
 }
 
-export function BadgeGrid({ badges, limit }: BadgeGridProps) {
+export function BadgeGrid({ badges, limit, gridClassName }: BadgeGridProps) {
   // Visible (non-hidden) badges always render in the grid — earned ones in
   // full colour, locked ones desaturated so the user knows what to chase.
   // Hidden badges only show as silhouettes until earned (and then in full).
@@ -64,7 +70,12 @@ export function BadgeGrid({ badges, limit }: BadgeGridProps) {
   return (
     <TooltipProvider>
       <div id="badges" className="space-y-3">
-        <div className="grid grid-cols-4 gap-3 sm:grid-cols-6 md:grid-cols-8">
+        <div
+          className={cn(
+            'grid gap-3',
+            gridClassName ?? 'grid-cols-4 sm:grid-cols-6 md:grid-cols-8',
+          )}
+        >
           {visible.map((badge) => (
             <Tooltip key={badge.id}>
               <TooltipTrigger asChild>

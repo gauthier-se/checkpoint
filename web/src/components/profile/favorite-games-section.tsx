@@ -22,7 +22,12 @@ export function FavoriteGamesSection({
 
   return (
     <div className="space-y-3">
-      <h2 className="text-lg font-semibold">Favorites</h2>
+      <div>
+        <div className="flex items-center justify-between py-2">
+          <h2 className="text-muted-foreground font-semibold">Favorites</h2>
+        </div>
+        <Separator />
+      </div>
       <div className="grid grid-cols-5 gap-2 sm:gap-3">
         {slots.map((slot, index) =>
           slot ? (
@@ -63,7 +68,6 @@ export function FavoriteGamesSection({
           ),
         )}
       </div>
-      <Separator className="mt-6" />
     </div>
   )
 }

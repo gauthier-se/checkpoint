@@ -1,7 +1,7 @@
 import { queryOptions, useQuery } from '@tanstack/react-query'
 import { ThumbsUp } from 'lucide-react'
 import type { LikedGameListResponse } from '@/types/collection'
-import { CollectionGameCard } from '@/components/collection/collection-game-card'
+import { GameDetailCard } from '@/components/games/game-detail-card'
 import { CollectionPagination } from '@/components/collection/collection-pagination'
 import { EmptyState } from '@/components/collection/empty-state'
 import { apiFetch } from '@/services/api'
@@ -30,11 +30,11 @@ export function LikedTab({ page }: LikedTabProps) {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-        {Array.from({ length: 10 }).map((_, i) => (
-          <div key={i} className="flex flex-col gap-2 rounded-lg border p-3">
+      <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7">
+        {Array.from({ length: 12 }).map((_, i) => (
+          <div key={i} className="flex flex-col gap-1.5">
             <div className="aspect-[3/4] animate-pulse rounded-md bg-muted" />
-            <div className="h-4 w-3/4 animate-pulse rounded bg-muted" />
+            <div className="h-3 w-3/4 animate-pulse rounded bg-muted" />
           </div>
         ))}
       </div>
@@ -65,14 +65,14 @@ export function LikedTab({ page }: LikedTabProps) {
 
   return (
     <>
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+      <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7">
         {data.content.map((game) => (
-          <CollectionGameCard
+          <GameDetailCard
             key={game.id}
-            videoGameId={game.videoGameId}
             title={game.title}
             coverUrl={game.coverUrl}
             releaseDate={game.releaseDate}
+            link={{ type: 'game', gameId: game.videoGameId }}
           />
         ))}
       </div>

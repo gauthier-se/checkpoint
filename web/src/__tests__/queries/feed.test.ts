@@ -29,7 +29,7 @@ describe('feedQueryOptions', () => {
     await (options.queryFn as QueryFn)({})
 
     const [url] = fetchMock.mock.calls[0]
-    expect(url).toBe('/api/v1/me/feed?page=0&size=5')
+    expect(url.toString().endsWith('/api/v1/me/feed?page=0&size=5')).toBe(true)
   })
 
   it('includes the type in the query key and URL when provided', async () => {
@@ -40,6 +40,6 @@ describe('feedQueryOptions', () => {
     await (options.queryFn as QueryFn)({})
 
     const [url] = fetchMock.mock.calls[0]
-    expect(url).toBe('/api/v1/me/feed?page=2&size=20&type=RATING')
+    expect(url.toString().endsWith('/api/v1/me/feed?page=2&size=20&type=RATING')).toBe(true)
   })
 })

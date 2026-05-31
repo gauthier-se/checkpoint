@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
-import { Link } from '@tanstack/react-router'
 import { Heart, Lock } from 'lucide-react'
 import type { UserProfile } from '@/types/profile'
 import { PriorityBadge } from '@/components/collection/priority-badge'
+import { GameDetailCard } from '@/components/games/game-detail-card'
 import { userWishlistQueryOptions } from '@/queries/profile'
 
 interface ProfileWishlistTabProps {
@@ -27,11 +27,11 @@ export function ProfileWishlistTab({ profile, page }: ProfileWishlistTabProps) {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-        {Array.from({ length: 10 }).map((_, i) => (
-          <div key={i} className="flex flex-col gap-2 rounded-lg border p-3">
+      <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7">
+        {Array.from({ length: 12 }).map((_, i) => (
+          <div key={i} className="flex flex-col gap-1.5">
             <div className="bg-muted aspect-[3/4] animate-pulse rounded-md" />
-            <div className="bg-muted h-4 w-3/4 animate-pulse rounded" />
+            <div className="bg-muted h-3 w-3/4 animate-pulse rounded" />
           </div>
         ))}
       </div>
@@ -57,38 +57,20 @@ export function ProfileWishlistTab({ profile, page }: ProfileWishlistTabProps) {
   }
 
   return (
-    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+    <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7">
       {data.content.map((game) => (
-        <Link
+        <GameDetailCard
           key={game.id}
-          to="/games/$gameId"
-          params={{ gameId: game.videoGameId }}
-          className="group flex flex-col gap-2 rounded-lg border p-3 transition-colors hover:bg-accent"
-        >
-          {game.coverUrl ? (
-            <img
-              src={game.coverUrl}
-              alt={game.title}
-              className="aspect-[3/4] rounded-md object-cover"
-            />
-          ) : (
-            <div className="bg-muted flex aspect-[3/4] items-center justify-center rounded-md">
-              <Heart className="text-muted-foreground size-8" />
-            </div>
-          )}
-          <p className="text-sm font-medium leading-tight">{game.title}</p>
-          <div className="flex flex-wrap items-center gap-1.5">
-            {game.releaseDate && (
-              <p className="text-muted-foreground text-xs">
-                {new Date(game.releaseDate).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'short',
-                })}
-              </p>
-            )}
-            <PriorityBadge priority={game.priority} />
-          </div>
-        </Link>
+          title={game.title}
+          coverUrl={game.coverUrl}
+          releaseDate={game.releaseDate}
+          link={{ type: 'game', gameId: game.videoGameId }}
+          statusBadge={
+            game.priority ? (
+              <PriorityBadge priority={game.priority} />
+            ) : undefined
+          }
+        />
       ))}
     </div>
   )
