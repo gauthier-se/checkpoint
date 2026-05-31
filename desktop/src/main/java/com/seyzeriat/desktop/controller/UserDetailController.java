@@ -51,18 +51,32 @@ public class UserDetailController {
     private final UserService userService;
     private HelloApplication application;
 
+    /**
+     * Constructs the controller with the specified user service.
+     *
+     * @param userService the service used to fetch and modify user details
+     */
     public UserDetailController(UserService userService) {
         this.userService = userService;
     }
     private String userId;
     private UserDetailResult currentUser;
 
+    /**
+     * Initializes the controller class. This method is automatically called
+     * after the fxml file has been loaded.
+     */
     @FXML
     public void initialize() {
         loadingIndicator.setVisible(false);
         detailContent.setVisible(false);
     }
 
+    /**
+     * Sets the main application instance.
+     *
+     * @param application the main application instance
+     */
     public void setApplication(HelloApplication application) {
         this.application = application;
     }

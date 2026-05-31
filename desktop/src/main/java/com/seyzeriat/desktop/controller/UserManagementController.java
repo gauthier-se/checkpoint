@@ -43,10 +43,19 @@ public class UserManagementController {
     private final UserService userService;
     private HelloApplication application;
 
+    /**
+     * Constructs the controller with the specified user service.
+     *
+     * @param userService the service used for user management operations
+     */
     public UserManagementController(UserService userService) {
         this.userService = userService;
     }
 
+    /**
+     * Initializes the controller class. This method is automatically called
+     * after the fxml file has been loaded.
+     */
     @FXML
     public void initialize() {
         loadingIndicator.setVisible(false);
@@ -118,6 +127,11 @@ public class UserManagementController {
         fetchUsers();
     }
 
+    /**
+     * Sets the main application instance.
+     *
+     * @param application the main application instance
+     */
     public void setApplication(HelloApplication application) {
         this.application = application;
     }

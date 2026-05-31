@@ -3,6 +3,10 @@ package com.seyzeriat.desktop.di;
 import com.seyzeriat.desktop.service.*;
 import com.seyzeriat.desktop.service.impl.*;
 
+/**
+ * A simple dependency injection container for managing service instances
+ * and creating controllers with their required dependencies.
+ */
 public class DependencyContainer {
 
     private static DependencyContainer instance;
@@ -25,6 +29,11 @@ public class DependencyContainer {
         this.reviewService = new ReviewApiClient(authenticationService);
     }
 
+    /**
+     * Gets the singleton instance of the DependencyContainer.
+     *
+     * @return the singleton instance
+     */
     public static synchronized DependencyContainer getInstance() {
         if (instance == null) {
             instance = new DependencyContainer();
@@ -32,6 +41,13 @@ public class DependencyContainer {
         return instance;
     }
 
+    /**
+     * Creates a controller instance of the specified type, injecting any required dependencies.
+     *
+     * @param type the class of the controller to create
+     * @return an instance of the specified controller class
+     * @throws RuntimeException if the controller cannot be created
+     */
     public Object createController(Class<?> type) {
         try {
             if (type.equals(com.seyzeriat.desktop.controller.LoginController.class)) {

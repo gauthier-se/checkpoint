@@ -42,10 +42,19 @@ public class NewsEditorDialogController {
     private Runnable onSaved;
     private Runnable onUnauthorized;
 
+    /**
+     * Constructs the controller with the specified news service.
+     *
+     * @param newsService the service used to handle news operations
+     */
     public NewsEditorDialogController(NewsService newsService) {
         this.newsService = newsService;
     }
 
+    /**
+     * Initializes the controller class. This method is automatically called
+     * after the fxml file has been loaded.
+     */
     @FXML
     public void initialize() {
         loadingIndicator.setVisible(false);

@@ -13,6 +13,10 @@ import com.seyzeriat.desktop.exception.AuthenticationException;
 import com.seyzeriat.desktop.service.AuthenticationService;
 import com.seyzeriat.desktop.service.TokenManager;
 
+/**
+ * API client implementation for {@link AuthenticationService}.
+ * Handles HTTP communication with the backend to manage user authentication.
+ */
 public class AuthApiClient implements AuthenticationService {
 
     private static final String BASE_URL = "http://localhost:8080";
@@ -20,16 +24,31 @@ public class AuthApiClient implements AuthenticationService {
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
 
+    /**
+     * Constructs a new AuthApiClient using the default HTTP client.
+     */
     public AuthApiClient() {
         this(HttpClient.newHttpClient());
     }
 
+    /**
+     * Constructs a new AuthApiClient with a provided HTTP client.
+     *
+     * @param httpClient the HTTP client to use for requests
+     */
     public AuthApiClient(HttpClient httpClient) {
         this.httpClient = httpClient;
         this.objectMapper = new ObjectMapper();
         this.objectMapper.registerModule(new JavaTimeModule());
     }
 
+    /**
+     * Authenticates a user with their email and password.
+     *
+     * @param email the user's email address
+     * @param password the user's password
+     * @throws AuthenticationException if the authentication fails
+     */
     @Override
     public void login(String email, String password) throws AuthenticationException {
         String jsonBody = String.format("{\"email\":\"%s\",\"password\":\"%s\"}", email, password);
@@ -65,6 +84,11 @@ public class AuthApiClient implements AuthenticationService {
         }
     }
 
+    /**
+     * Refreshes the authentication tokens using the current refresh token.
+     *
+     * @throws AuthenticationException if the token refresh fails
+     */
     @Override
     public void refreshTokens() throws AuthenticationException {
         String refreshToken = TokenManager.getInstance().getRefreshToken();
@@ -107,6 +131,9 @@ public class AuthApiClient implements AuthenticationService {
         }
     }
 
+    /**
+     * Logs out the current user by clearing the authentication tokens.
+     */
     @Override
     public void logout() {
         TokenManager.getInstance().clear();

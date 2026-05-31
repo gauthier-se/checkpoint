@@ -49,6 +49,11 @@ public class ReviewReportsController {
     private final ReviewService reviewService;
     private HelloApplication application;
 
+    /**
+     * Constructs the controller with the specified review service.
+     *
+     * @param reviewService the service used to fetch review reports
+     */
     public ReviewReportsController(ReviewService reviewService) {
         this.reviewService = reviewService;
     }
@@ -57,6 +62,10 @@ public class ReviewReportsController {
     private int currentPage = 0;
     private static final int PAGE_SIZE = 20;
 
+    /**
+     * Initializes the controller class. This method is automatically called
+     * after the fxml file has been loaded.
+     */
     @FXML
     public void initialize() {
         loadingIndicator.setVisible(false);
@@ -69,6 +78,11 @@ public class ReviewReportsController {
                 new SimpleStringProperty(cellData.getValue().getCreatedAt()));
     }
 
+    /**
+     * Sets the main application instance.
+     *
+     * @param application the main application instance
+     */
     public void setApplication(HelloApplication application) {
         this.application = application;
     }

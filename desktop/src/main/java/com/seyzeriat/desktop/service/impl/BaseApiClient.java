@@ -14,6 +14,11 @@ import com.seyzeriat.desktop.exception.UnauthorizedException;
 import com.seyzeriat.desktop.service.AuthenticationService;
 import com.seyzeriat.desktop.service.TokenManager;
 
+/**
+ * Abstract base class for API clients.
+ * Provides common functionality for handling HTTP requests, including authentication
+ * and token management.
+ */
 public abstract class BaseApiClient {
 
     protected static final String BASE_URL = "http://localhost:8080/api/v1";
@@ -21,10 +26,21 @@ public abstract class BaseApiClient {
     protected final ObjectMapper objectMapper;
     private final AuthenticationService authService;
 
+    /**
+     * Constructs a new BaseApiClient using the default HTTP client.
+     *
+     * @param authService the authentication service to manage tokens
+     */
     public BaseApiClient(AuthenticationService authService) {
         this(authService, HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build());
     }
 
+    /**
+     * Constructs a new BaseApiClient with a specified HTTP client.
+     *
+     * @param authService the authentication service to manage tokens
+     * @param httpClient  the HTTP client to use for requests
+     */
     public BaseApiClient(AuthenticationService authService, HttpClient httpClient) {
         this.authService = authService;
         this.httpClient = httpClient;

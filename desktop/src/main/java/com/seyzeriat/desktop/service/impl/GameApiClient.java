@@ -25,16 +25,41 @@ import com.seyzeriat.desktop.exception.UnauthorizedException;
 import com.seyzeriat.desktop.service.AuthenticationService;
 import com.seyzeriat.desktop.service.GameService;
 
+/**
+ * API client implementation for {@link GameService}.
+ * Handles HTTP communication with the backend to search, import, and manage games.
+ */
 public class GameApiClient extends BaseApiClient implements GameService {
 
+    /**
+     * Constructs a new GameApiClient with the specified authentication service.
+     *
+     * @param authService the authentication service to use for securing requests
+     */
     public GameApiClient(AuthenticationService authService) {
         super(authService);
     }
 
+    /**
+     * Constructs a new GameApiClient with the specified authentication service and HTTP client.
+     *
+     * @param authService the authentication service
+     * @param httpClient  the HTTP client to use for requests
+     */
     public GameApiClient(AuthenticationService authService, java.net.http.HttpClient httpClient) {
         super(authService, httpClient);
     }
 
+    /**
+     * Searches for games in an external system.
+     *
+     * @param query the search query
+     * @param limit the maximum number of results to return
+     * @return a list of external game results
+     * @throws IOException if an I/O error occurs
+     * @throws InterruptedException if the operation is interrupted
+     * @throws UnauthorizedException if the user is not authorized
+     */
     @Override
     public List<ExternalGameResult> searchExternalGames(String query, int limit) throws IOException, InterruptedException, UnauthorizedException {
         String encodedQuery = URLEncoder.encode(query, StandardCharsets.UTF_8);
@@ -54,6 +79,15 @@ public class GameApiClient extends BaseApiClient implements GameService {
         return objectMapper.readValue(response.body(), new TypeReference<List<ExternalGameResult>>() {});
     }
 
+    /**
+     * Imports a game from an external system.
+     *
+     * @param externalId the external identifier of the game to import
+     * @return the result of the imported game
+     * @throws IOException if an I/O error occurs
+     * @throws InterruptedException if the operation is interrupted
+     * @throws UnauthorizedException if the user is not authorized
+     */
     @Override
     public ImportedGameResult importGame(Long externalId) throws IOException, InterruptedException, UnauthorizedException {
         String url = BASE_URL + "/admin/games/import/" + externalId;
@@ -72,12 +106,31 @@ public class GameApiClient extends BaseApiClient implements GameService {
         return objectMapper.readValue(response.body(), ImportedGameResult.class);
     }
 
+    /**
+     * Starts a job to import top-rated games.
+     *
+     * @param limit the maximum number of games to import
+     * @param minRatingCount the minimum rating count for the games to be imported
+     * @return the status of the import job
+     * @throws IOException if an I/O error occurs
+     * @throws InterruptedException if the operation is interrupted
+     * @throws UnauthorizedException if the user is not authorized
+     */
     @Override
     public ImportJobStatus startTopRatedImport(int limit, int minRatingCount) throws IOException, InterruptedException, UnauthorizedException {
         String url = BASE_URL + "/admin/games/import/top-rated?limit=" + limit + "&minRatingCount=" + minRatingCount;
         return startImportJob(url);
     }
 
+    /**
+     * Starts a job to import recent games.
+     *
+     * @param limit the maximum number of recent games to import
+     * @return the status of the import job
+     * @throws IOException if an I/O error occurs
+     * @throws InterruptedException if the operation is interrupted
+     * @throws UnauthorizedException if the user is not authorized
+     */
     @Override
     public ImportJobStatus startRecentImport(int limit) throws IOException, InterruptedException, UnauthorizedException {
         String url = BASE_URL + "/admin/games/import/recent?limit=" + limit;
@@ -102,6 +155,15 @@ public class GameApiClient extends BaseApiClient implements GameService {
         return objectMapper.readValue(response.body(), ImportJobStatus.class);
     }
 
+    /**
+     * Retrieves the status of a specific import job.
+     *
+     * @param jobId the unique identifier of the import job
+     * @return the current status of the job
+     * @throws IOException if an I/O error occurs
+     * @throws InterruptedException if the operation is interrupted
+     * @throws UnauthorizedException if the user is not authorized
+     */
     @Override
     public ImportJobStatus getImportJob(String jobId) throws IOException, InterruptedException, UnauthorizedException {
         String url = BASE_URL + "/admin/games/import/jobs/" + jobId;
@@ -123,6 +185,16 @@ public class GameApiClient extends BaseApiClient implements GameService {
         return objectMapper.readValue(response.body(), ImportJobStatus.class);
     }
 
+    /**
+     * Retrieves a paginated list of games.
+     *
+     * @param page the page number to retrieve
+     * @param size the maximum number of items per page
+     * @return a paged response containing game summaries
+     * @throws IOException if an I/O error occurs
+     * @throws InterruptedException if the operation is interrupted
+     * @throws UnauthorizedException if the user is not authorized
+     */
     @Override
     public PagedResponse<GameSummaryResult> getGames(int page, int size) throws IOException, InterruptedException, UnauthorizedException {
         String url = BASE_URL + "/games?page=" + page + "&size=" + size + "&sort=title,asc";
@@ -141,6 +213,15 @@ public class GameApiClient extends BaseApiClient implements GameService {
         return objectMapper.readValue(response.body(), new TypeReference<PagedResponse<GameSummaryResult>>() {});
     }
 
+    /**
+     * Retrieves detailed information about a specific game.
+     *
+     * @param id the unique identifier of the game
+     * @return the detailed result for the specified game
+     * @throws IOException if an I/O error occurs
+     * @throws InterruptedException if the operation is interrupted
+     * @throws UnauthorizedException if the user is not authorized
+     */
     @Override
     public GameDetailResult getGameDetail(String id) throws IOException, InterruptedException, UnauthorizedException {
         String url = BASE_URL + "/games/" + id;
@@ -159,6 +240,15 @@ public class GameApiClient extends BaseApiClient implements GameService {
         return objectMapper.readValue(response.body(), GameDetailResult.class);
     }
 
+    /**
+     * Creates a new game.
+     *
+     * @param payload the payload containing the details for the new game
+     * @return the detailed result for the newly created game
+     * @throws IOException if an I/O error occurs
+     * @throws InterruptedException if the operation is interrupted
+     * @throws UnauthorizedException if the user is not authorized
+     */
     @Override
     public GameDetailResult createGame(GameFormPayload payload) throws IOException, InterruptedException, UnauthorizedException {
         String url = BASE_URL + "/admin/games";
@@ -179,6 +269,16 @@ public class GameApiClient extends BaseApiClient implements GameService {
         return objectMapper.readValue(response.body(), GameDetailResult.class);
     }
 
+    /**
+     * Updates an existing game.
+     *
+     * @param id the unique identifier of the game to update
+     * @param payload the payload containing the updated details
+     * @return the detailed result for the updated game
+     * @throws IOException if an I/O error occurs
+     * @throws InterruptedException if the operation is interrupted
+     * @throws UnauthorizedException if the user is not authorized
+     */
     @Override
     public GameDetailResult updateGame(String id, GameFormPayload payload) throws IOException, InterruptedException, UnauthorizedException {
         String url = BASE_URL + "/admin/games/" + id;
@@ -199,6 +299,15 @@ public class GameApiClient extends BaseApiClient implements GameService {
         return objectMapper.readValue(response.body(), GameDetailResult.class);
     }
 
+    /**
+     * Deletes a specific game.
+     *
+     * @param id the unique identifier of the game to delete
+     * @throws IOException if an I/O error occurs
+     * @throws InterruptedException if the operation is interrupted
+     * @throws UnauthorizedException if the user is not authorized
+     * @throws GameReferencedException if the game cannot be deleted because it is referenced elsewhere
+     */
     @Override
     public void deleteGame(String id) throws IOException, InterruptedException, UnauthorizedException, GameReferencedException {
         String url = BASE_URL + "/admin/games/" + id;
@@ -228,16 +337,40 @@ public class GameApiClient extends BaseApiClient implements GameService {
         }
     }
 
+    /**
+     * Retrieves a list of available genres.
+     *
+     * @return a list of genre options
+     * @throws IOException if an I/O error occurs
+     * @throws InterruptedException if the operation is interrupted
+     * @throws UnauthorizedException if the user is not authorized
+     */
     @Override
     public List<CatalogOption> getGenres() throws IOException, InterruptedException, UnauthorizedException {
         return fetchCatalogOptions("/genres");
     }
 
+    /**
+     * Retrieves a list of available platforms.
+     *
+     * @return a list of platform options
+     * @throws IOException if an I/O error occurs
+     * @throws InterruptedException if the operation is interrupted
+     * @throws UnauthorizedException if the user is not authorized
+     */
     @Override
     public List<CatalogOption> getPlatforms() throws IOException, InterruptedException, UnauthorizedException {
         return fetchCatalogOptions("/platforms");
     }
 
+    /**
+     * Retrieves a list of available companies.
+     *
+     * @return a list of company options
+     * @throws IOException if an I/O error occurs
+     * @throws InterruptedException if the operation is interrupted
+     * @throws UnauthorizedException if the user is not authorized
+     */
     @Override
     public List<CatalogOption> getCompanies() throws IOException, InterruptedException, UnauthorizedException {
         return fetchCatalogOptions("/companies");

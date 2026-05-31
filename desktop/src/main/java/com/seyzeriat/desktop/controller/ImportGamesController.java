@@ -40,10 +40,19 @@ public class ImportGamesController {
     private final Set<Long> importedIds = new HashSet<>();
     private HelloApplication application;
 
+    /**
+     * Constructs the controller with the specified game service.
+     *
+     * @param gameService the service used to search and import external games
+     */
     public ImportGamesController(GameService gameService) {
         this.gameService = gameService;
     }
 
+    /**
+     * Initializes the controller class. This method is automatically called
+     * after the fxml file has been loaded.
+     */
     @FXML
     public void initialize() {
         searchProgress.setVisible(false);
@@ -213,6 +222,11 @@ public class ImportGamesController {
         new Thread(importTask, "import-thread").start();
     }
 
+    /**
+     * Sets the main application instance.
+     *
+     * @param application the main application instance
+     */
     public void setApplication(HelloApplication application) {
         this.application = application;
     }

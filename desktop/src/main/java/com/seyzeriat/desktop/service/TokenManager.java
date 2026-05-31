@@ -16,6 +16,11 @@ public final class TokenManager {
 
     private TokenManager() {}
 
+    /**
+     * Returns the singleton instance of {@code TokenManager}.
+     *
+     * @return the token manager instance
+     */
     public static TokenManager getInstance() {
         return INSTANCE;
     }

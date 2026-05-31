@@ -25,6 +25,12 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.HBox;
 
+/**
+ * Controller for the review moderation view.
+ *
+ * <p>Handles displaying paginated reported reviews, and provides actions
+ * to view reports, view the author, ban the author, or delete the review.</p>
+ */
 public class ReviewModerationController {
 
     @FXML private TableView<ReviewResult> reviewsTable;
@@ -45,6 +51,12 @@ public class ReviewModerationController {
     private final UserService userService;
     private HelloApplication application;
 
+    /**
+     * Constructs the controller with the required services.
+     *
+     * @param reviewService the service handling review-related operations
+     * @param userService   the service handling user-related operations
+     */
     public ReviewModerationController(ReviewService reviewService, UserService userService) {
         this.reviewService = reviewService;
         this.userService = userService;
@@ -53,6 +65,10 @@ public class ReviewModerationController {
     private int currentPage = 0;
     private static final int PAGE_SIZE = 20;
 
+    /**
+     * Initializes the controller class. This method is automatically called
+     * after the fxml file has been loaded.
+     */
     @FXML
     public void initialize() {
         loadingIndicator.setVisible(false);
@@ -121,6 +137,11 @@ public class ReviewModerationController {
         fetchReviews(currentPage + 1);
     }
 
+    /**
+     * Sets the main application instance.
+     *
+     * @param application the main application instance
+     */
     public void setApplication(HelloApplication application) {
         this.application = application;
     }

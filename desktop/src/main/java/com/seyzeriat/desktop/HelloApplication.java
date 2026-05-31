@@ -32,6 +32,10 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
+/**
+ * The main application class for the Checkpoint desktop administration tool.
+ * This class handles the initialization of the primary stage and navigation between views.
+ */
 public class HelloApplication extends Application {
 
     private Stage primaryStage;
@@ -39,6 +43,14 @@ public class HelloApplication extends Application {
     private Button activeNavButton;
     private String stylesheetUrl;
 
+    /**
+     * The main entry point for all JavaFX applications.
+     * The start method is called after the init method has returned,
+     * and after the system is ready for the application to begin running.
+     *
+     * @param stage the primary stage for this application, onto which
+     *              the application scene can be set.
+     */
     @Override
     public void start(Stage stage) {
         this.primaryStage = stage;
@@ -313,6 +325,13 @@ public class HelloApplication extends Application {
         contentArea.getChildren().setAll(content);
     }
 
+    /**
+     * Creates an FXMLLoader for the specified FXML file.
+     * Uses the DependencyContainer as a controller factory.
+     *
+     * @param fxml the name of the FXML file to load
+     * @return a configured FXMLLoader instance
+     */
     public FXMLLoader createLoader(String fxml) {
         FXMLLoader loader = new FXMLLoader(getClass().getResource(fxml));
         loader.setControllerFactory(com.seyzeriat.desktop.di.DependencyContainer.getInstance()::createController);

@@ -23,6 +23,12 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.HBox;
 
+/**
+ * Controller for the report moderation view.
+ *
+ * <p>Handles displaying paginated generic reports (reviews, comments, etc.)
+ * and provides actions to dismiss reports or delete the reported content.</p>
+ */
 public class ReportModerationController {
 
     @FXML private TableView<ReportResult> reportsTable;
@@ -44,6 +50,12 @@ public class ReportModerationController {
     private final ReviewService reviewService;
     private HelloApplication application;
 
+    /**
+     * Constructs the controller with the required services.
+     *
+     * @param reportService the service handling generic reports
+     * @param reviewService the service handling reviews and comments deletion
+     */
     public ReportModerationController(ReportService reportService, ReviewService reviewService) {
         this.reportService = reportService;
         this.reviewService = reviewService;
@@ -52,6 +64,10 @@ public class ReportModerationController {
     private int currentPage = 0;
     private static final int PAGE_SIZE = 20;
 
+    /**
+     * Initializes the controller class. This method is automatically called
+     * after the fxml file has been loaded.
+     */
     @FXML
     public void initialize() {
         loadingIndicator.setVisible(false);
@@ -123,6 +139,11 @@ public class ReportModerationController {
         fetchReports(currentPage + 1);
     }
 
+    /**
+     * Sets the main application instance.
+     *
+     * @param application the main application instance
+     */
     public void setApplication(HelloApplication application) {
         this.application = application;
     }

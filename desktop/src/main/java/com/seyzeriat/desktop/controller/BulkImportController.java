@@ -46,6 +46,11 @@ public class BulkImportController {
     private final GameService gameService;
     private HelloApplication application;
 
+    /**
+     * Constructs the controller with the specified game service.
+     *
+     * @param gameService the service used to handle game imports
+     */
     public BulkImportController(GameService gameService) {
         this.gameService = gameService;
     }
@@ -53,6 +58,10 @@ public class BulkImportController {
     /** Guards the polling loop so it can be stopped (e.g. when a new import starts). */
     private volatile boolean polling;
 
+    /**
+     * Initializes the controller class. This method is automatically called
+     * after the fxml file has been loaded.
+     */
     @FXML
     public void initialize() {
         topRatedLimitSpinner.setValueFactory(
@@ -220,6 +229,11 @@ public class BulkImportController {
         return sb.toString();
     }
 
+    /**
+     * Sets the main application instance.
+     *
+     * @param application the main application instance
+     */
     public void setApplication(HelloApplication application) {
         this.application = application;
     }

@@ -10,12 +10,29 @@ import com.seyzeriat.desktop.exception.UnauthorizedException;
 import com.seyzeriat.desktop.service.AnalyticsService;
 import com.seyzeriat.desktop.service.AuthenticationService;
 
+/**
+ * API client implementation for {@link AnalyticsService}.
+ * Handles HTTP communication with the backend to retrieve analytics.
+ */
 public class AnalyticsApiClient extends BaseApiClient implements AnalyticsService {
 
+    /**
+     * Constructs a new AnalyticsApiClient with the specified authentication service.
+     *
+     * @param authService the authentication service to use for securing requests
+     */
     public AnalyticsApiClient(AuthenticationService authService) {
         super(authService);
     }
 
+    /**
+     * Retrieves analytics information.
+     *
+     * @return the analytics result containing metrics
+     * @throws IOException if an I/O error occurs
+     * @throws InterruptedException if the operation is interrupted
+     * @throws UnauthorizedException if the user is not authorized
+     */
     @Override
     public AnalyticsResult getAnalytics() throws IOException, InterruptedException, UnauthorizedException {
         String url = BASE_URL + "/admin/analytics";

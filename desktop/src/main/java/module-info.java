@@ -1,3 +1,9 @@
+/**
+ * The main module for the desktop application.
+ * <p>
+ * This module requires JavaFX and Jackson dependencies for the UI and JSON processing,
+ * and exports the necessary packages for running the application.
+ */
 module com.seyzeriat.desktop {
     requires javafx.controls;
     requires javafx.fxml;

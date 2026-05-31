@@ -74,6 +74,11 @@ public class NewsManagementController {
     private final NewsService newsService;
     private HelloApplication application;
 
+    /**
+     * Constructs the controller with the specified news service.
+     *
+     * @param newsService the service used for news management operations
+     */
     public NewsManagementController(NewsService newsService) {
         this.newsService = newsService;
     }
@@ -83,6 +88,10 @@ public class NewsManagementController {
     private long totalElements = 0;
     private final List<NewsResult> currentPageData = new ArrayList<>();
 
+    /**
+     * Initializes the controller class. This method is automatically called
+     * after the fxml file has been loaded.
+     */
     @FXML
     public void initialize() {
         loadingIndicator.setVisible(false);
@@ -120,6 +129,11 @@ public class NewsManagementController {
         fetchNews(currentPage);
     }
 
+    /**
+     * Sets the main application instance.
+     *
+     * @param application the main application instance
+     */
     public void setApplication(HelloApplication application) {
         this.application = application;
     }

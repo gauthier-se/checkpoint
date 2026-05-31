@@ -13,16 +13,39 @@ import com.seyzeriat.desktop.exception.UnauthorizedException;
 import com.seyzeriat.desktop.service.AuthenticationService;
 import com.seyzeriat.desktop.service.UserService;
 
+/**
+ * API client implementation for {@link UserService}.
+ * Handles HTTP communication with the backend to manage user resources.
+ */
 public class UserApiClient extends BaseApiClient implements UserService {
 
+    /**
+     * Constructs a new UserApiClient with the specified authentication service.
+     *
+     * @param authService the authentication service to use for securing requests
+     */
     public UserApiClient(AuthenticationService authService) {
         super(authService);
     }
 
+    /**
+     * Constructs a new UserApiClient with the specified authentication service and HTTP client.
+     *
+     * @param authService the authentication service
+     * @param httpClient  the HTTP client to use for requests
+     */
     public UserApiClient(AuthenticationService authService, java.net.http.HttpClient httpClient) {
         super(authService, httpClient);
     }
 
+    /**
+     * Retrieves a list of all users.
+     *
+     * @return a list containing the user results
+     * @throws IOException if an I/O error occurs
+     * @throws InterruptedException if the operation is interrupted
+     * @throws UnauthorizedException if the user is not authorized
+     */
     @Override
     public List<UserResult> getUsers() throws IOException, InterruptedException, UnauthorizedException {
         String url = BASE_URL + "/admin/users";
@@ -41,6 +64,15 @@ public class UserApiClient extends BaseApiClient implements UserService {
         return objectMapper.readValue(response.body(), new TypeReference<List<UserResult>>() {});
     }
 
+    /**
+     * Retrieves detailed information about a specific user.
+     *
+     * @param id the unique identifier of the user
+     * @return the detailed result for the specified user
+     * @throws IOException if an I/O error occurs
+     * @throws InterruptedException if the operation is interrupted
+     * @throws UnauthorizedException if the user is not authorized
+     */
     @Override
     public UserDetailResult getUserDetail(String id) throws IOException, InterruptedException, UnauthorizedException {
         String url = BASE_URL + "/admin/users/" + id;
@@ -59,6 +91,16 @@ public class UserApiClient extends BaseApiClient implements UserService {
         return objectMapper.readValue(response.body(), UserDetailResult.class);
     }
 
+    /**
+     * Edits a specific user's information.
+     *
+     * @param id the unique identifier of the user to edit
+     * @param body the JSON string representing the updated user information
+     * @return the updated detailed user result
+     * @throws IOException if an I/O error occurs
+     * @throws InterruptedException if the operation is interrupted
+     * @throws UnauthorizedException if the user is not authorized
+     */
     @Override
     public UserDetailResult editUser(String id, String body) throws IOException, InterruptedException, UnauthorizedException {
         String url = BASE_URL + "/admin/users/" + id;
@@ -78,6 +120,14 @@ public class UserApiClient extends BaseApiClient implements UserService {
         return objectMapper.readValue(response.body(), UserDetailResult.class);
     }
 
+    /**
+     * Bans a specific user.
+     *
+     * @param id the unique identifier of the user to ban
+     * @throws IOException if an I/O error occurs
+     * @throws InterruptedException if the operation is interrupted
+     * @throws UnauthorizedException if the user is not authorized
+     */
     @Override
     public void banUser(String id) throws IOException, InterruptedException, UnauthorizedException {
         String url = BASE_URL + "/admin/users/" + id + "/ban";
@@ -93,6 +143,14 @@ public class UserApiClient extends BaseApiClient implements UserService {
         }
     }
 
+    /**
+     * Unbans a specific user.
+     *
+     * @param id the unique identifier of the user to unban
+     * @throws IOException if an I/O error occurs
+     * @throws InterruptedException if the operation is interrupted
+     * @throws UnauthorizedException if the user is not authorized
+     */
     @Override
     public void unbanUser(String id) throws IOException, InterruptedException, UnauthorizedException {
         String url = BASE_URL + "/admin/users/" + id + "/unban";

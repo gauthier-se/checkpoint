@@ -29,6 +29,11 @@ public class LoginController {
 
     private final AuthenticationService authService;
 
+    /**
+     * Constructs the controller with the specified authentication service.
+     *
+     * @param authService the service used for user authentication
+     */
     public LoginController(AuthenticationService authService) {
         this.authService = authService;
     }
@@ -39,10 +44,19 @@ public class LoginController {
      */
     private HelloApplication application;
 
+    /**
+     * Sets the main application instance.
+     *
+     * @param application the main application instance
+     */
     public void setApplication(HelloApplication application) {
         this.application = application;
     }
 
+    /**
+     * Initializes the controller class. This method is automatically called
+     * after the fxml file has been loaded.
+     */
     @FXML
     public void initialize() {
         errorLabel.setText("");

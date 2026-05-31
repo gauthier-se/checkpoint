@@ -57,11 +57,20 @@ public class GameFormController {
     private final GameService gameService;
     private HelloApplication application;
 
+    /**
+     * Constructs the controller with the specified game service.
+     *
+     * @param gameService the service used to manage games and fetch catalog options
+     */
     public GameFormController(GameService gameService) {
         this.gameService = gameService;
     }
     private String gameId;
 
+    /**
+     * Initializes the controller class. This method is automatically called
+     * after the fxml file has been loaded.
+     */
     @FXML
     public void initialize() {
         loadingIndicator.setVisible(false);
@@ -70,6 +79,11 @@ public class GameFormController {
         companiesList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
     }
 
+    /**
+     * Sets the main application instance.
+     *
+     * @param application the main application instance
+     */
     public void setApplication(HelloApplication application) {
         this.application = application;
     }

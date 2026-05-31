@@ -51,6 +51,11 @@ public class ManageGamesController {
     private final GameService gameService;
     private HelloApplication application;
 
+    /**
+     * Constructs the controller with the specified game service.
+     *
+     * @param gameService the service used to manage games
+     */
     public ManageGamesController(GameService gameService) {
         this.gameService = gameService;
     }
@@ -58,6 +63,10 @@ public class ManageGamesController {
     private int currentPage = 0;
     private int totalPages = 1;
 
+    /**
+     * Initializes the controller class. This method is automatically called
+     * after the fxml file has been loaded.
+     */
     @FXML
     public void initialize() {
         loadingIndicator.setVisible(false);
@@ -72,6 +81,11 @@ public class ManageGamesController {
         fetchGames(currentPage);
     }
 
+    /**
+     * Sets the main application instance.
+     *
+     * @param application the main application instance
+     */
     public void setApplication(HelloApplication application) {
         this.application = application;
     }
