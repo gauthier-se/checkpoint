@@ -89,6 +89,13 @@ public class CommonExceptionHandler extends AbstractExceptionHandler {
         return error(HttpStatus.FORBIDDEN, "You do not have permission to access this resource");
     }
 
+    /** Handles 404 errors (like missing favicon.ico) */
+    @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNoResourceFound(org.springframework.web.servlet.resource.NoResourceFoundException ex) {
+        log.warn("Resource not found: {}", ex.getMessage());
+        return error(HttpStatus.NOT_FOUND, "Resource not found");
+    }
+
     /** Handles all other, unmapped exceptions. */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
