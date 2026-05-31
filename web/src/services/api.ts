@@ -64,7 +64,7 @@ export async function apiFetch(
   const isServer = typeof window === 'undefined'
   const base = isServer
     ? (process.env.API_INTERNAL_URL ?? 'http://localhost:8080')
-    : ''
+    : (import.meta.env.VITE_API_URL ?? '')
 
   const headers = new Headers(init?.headers)
   if (isServer && !headers.has('cookie') && !headers.has('Cookie')) {
