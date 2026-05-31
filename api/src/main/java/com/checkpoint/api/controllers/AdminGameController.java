@@ -192,7 +192,7 @@ public class AdminGameController {
      * Deletes a video game if no user-owned data references it.
      *
      * @param id the video game ID
-     * @return 204 on success; 409 (handled by {@code GlobalExceptionHandler}) if blocked
+     * @return 204 on success; 409 (handled by {@code CatalogExceptionHandler}) if blocked
      */
     @DeleteMapping("/games/{id}")
     public ResponseEntity<Void> deleteGame(@PathVariable UUID id) {
