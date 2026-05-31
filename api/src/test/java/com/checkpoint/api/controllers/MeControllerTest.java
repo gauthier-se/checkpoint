@@ -3,9 +3,15 @@ package com.checkpoint.api.controllers;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -15,7 +21,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -23,29 +33,58 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.checkpoint.api.dto.catalog.GameCardDto;
 import com.checkpoint.api.dto.catalog.PagedResponseDto;
+import com.checkpoint.api.dto.export.UserDataExportDto;
+import com.checkpoint.api.dto.export.UserExportProfile;
+import com.checkpoint.api.dto.profile.ProfileUpdatedDto;
+import com.checkpoint.api.dto.profile.UpdateProfileDto;
 import com.checkpoint.api.dto.social.FeedGameDto;
 import com.checkpoint.api.dto.social.FeedItemDto;
 import com.checkpoint.api.dto.social.FeedUserDto;
 import com.checkpoint.api.enums.FeedItemType;
+import com.checkpoint.api.exceptions.PseudoAlreadyExistsException;
 import com.checkpoint.api.security.ApiAuthenticationEntryPoint;
 import com.checkpoint.api.security.JwtAuthenticationFilter;
+import com.checkpoint.api.services.AccountService;
+import com.checkpoint.api.services.AuthService;
+import com.checkpoint.api.services.DataExportService;
 import com.checkpoint.api.services.FeedService;
+import com.checkpoint.api.services.ProfileService;
+
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 
 /**
- * Unit tests for {@link FeedController}.
+ * Unit tests for {@link MeController} (current user's account, profile, and feed).
  */
-@WebMvcTest(FeedController.class)
+@WebMvcTest(MeController.class)
 @AutoConfigureMockMvc(addFilters = false)
-class FeedControllerTest {
+class MeControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @MockitoBean
+    private AccountService accountService;
+
+    @MockitoBean
+    private AuthService authService;
+
+    @MockitoBean
+    private DataExportService dataExportService;
+
+    @MockitoBean
+    private ProfileService profileService;
 
     @MockitoBean
     private FeedService feedService;
@@ -55,6 +94,156 @@ class FeedControllerTest {
 
     @MockitoBean
     private ApiAuthenticationEntryPoint apiAuthenticationEntryPoint;
+
+    @Test
+    @DisplayName("DELETE /api/v1/me - deletes the account and clears auth cookies")
+    @WithMockUser(username = "alice@test.com")
+    void deleteAccount_returns204AndClearsCookies() throws Exception {
+        mockMvc.perform(delete("/api/v1/me")
+                        .cookie(new Cookie("checkpoint_refresh", "refresh-token-value")))
+                .andExpect(status().isNoContent());
+
+        verify(accountService).deleteCurrentUser("alice@test.com");
+        verify(authService).clearAuthCookie(eq("refresh-token-value"), any(HttpServletResponse.class));
+    }
+
+    @Test
+    @DisplayName("DELETE /api/v1/me - still clears cookies when no refresh cookie is sent")
+    @WithMockUser(username = "alice@test.com")
+    void deleteAccount_handlesMissingRefreshCookie() throws Exception {
+        mockMvc.perform(delete("/api/v1/me"))
+                .andExpect(status().isNoContent());
+
+        verify(accountService).deleteCurrentUser("alice@test.com");
+        verify(authService).clearAuthCookie(eq(null), any(HttpServletResponse.class));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/me/export - returns the export as a JSON attachment")
+    @WithMockUser(username = "alice@test.com")
+    void exportData_returnsJsonAttachment() throws Exception {
+        UserDataExportDto export = new UserDataExportDto(
+                new UserExportProfile(null, "alice", "alice@test.com", null, null,
+                        false, 1, 0, LocalDateTime.now()),
+                List.of(), List.of(), List.of(), List.of(), List.of(),
+                List.of(), List.of(), List.of(), List.of(), List.of(), List.of(),
+                LocalDateTime.now());
+        when(dataExportService.exportForUser("alice@test.com")).thenReturn(export);
+
+        mockMvc.perform(get("/api/v1/me/export"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(header().string("Content-Disposition",
+                        Matchers.allOf(
+                                Matchers.startsWith("attachment; filename=\"checkpoint-export-"),
+                                Matchers.endsWith(".json\""))))
+                .andExpect(jsonPath("$.profile.username").value("alice"))
+                .andExpect(jsonPath("$.exportedAt").exists());
+
+        verify(dataExportService).exportForUser("alice@test.com");
+    }
+
+    @Nested
+    @DisplayName("PUT /api/v1/me/profile")
+    class UpdateProfile {
+
+        @Test
+        @DisplayName("Should update profile successfully")
+        @WithMockUser(username = "alice@test.com")
+        void updateProfile_shouldReturnUpdatedProfile() throws Exception {
+            // Given
+            UpdateProfileDto request = new UpdateProfileDto("newpseudo", "My new bio", false);
+            ProfileUpdatedDto response = new ProfileUpdatedDto("newpseudo", "My new bio", null, false);
+
+            when(profileService.updateProfile(eq("alice@test.com"), any(UpdateProfileDto.class)))
+                    .thenReturn(response);
+
+            // When / Then
+            mockMvc.perform(put("/api/v1/me/profile")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.username").value("newpseudo"))
+                    .andExpect(jsonPath("$.bio").value("My new bio"))
+                    .andExpect(jsonPath("$.isPrivate").value(false));
+
+            verify(profileService).updateProfile(eq("alice@test.com"), any(UpdateProfileDto.class));
+        }
+
+        @Test
+        @DisplayName("Should return 400 when pseudo is blank")
+        @WithMockUser(username = "alice@test.com")
+        void updateProfile_shouldReturn400WhenPseudoBlank() throws Exception {
+            // Given
+            UpdateProfileDto request = new UpdateProfileDto("", "bio", false);
+
+            // When / Then
+            mockMvc.perform(put("/api/v1/me/profile")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("Should return 409 when pseudo already exists")
+        @WithMockUser(username = "alice@test.com")
+        void updateProfile_shouldReturn409WhenPseudoTaken() throws Exception {
+            // Given
+            UpdateProfileDto request = new UpdateProfileDto("takenpseudo", "bio", false);
+
+            when(profileService.updateProfile(eq("alice@test.com"), any(UpdateProfileDto.class)))
+                    .thenThrow(new PseudoAlreadyExistsException("takenpseudo"));
+
+            // When / Then
+            mockMvc.perform(put("/api/v1/me/profile")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isConflict());
+        }
+    }
+
+    @Nested
+    @DisplayName("POST /api/v1/me/picture")
+    class UpdatePicture {
+
+        @Test
+        @DisplayName("Should upload picture successfully")
+        @WithMockUser(username = "alice@test.com")
+        void updatePicture_shouldReturnPictureUrl() throws Exception {
+            // Given
+            MockMultipartFile file = new MockMultipartFile(
+                    "file", "avatar.jpg", "image/jpeg", "fake-image-data".getBytes());
+
+            when(profileService.updatePicture(eq("alice@test.com"), any()))
+                    .thenReturn("/uploads/profiles/uuid.jpg");
+
+            // When / Then
+            mockMvc.perform(multipart("/api/v1/me/picture").file(file))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.picture").value("/uploads/profiles/uuid.jpg"));
+
+            verify(profileService).updatePicture(eq("alice@test.com"), any());
+        }
+    }
+
+    @Nested
+    @DisplayName("DELETE /api/v1/me/picture")
+    class DeletePicture {
+
+        @Test
+        @DisplayName("Should delete picture successfully")
+        @WithMockUser(username = "alice@test.com")
+        void deletePicture_shouldReturn204() throws Exception {
+            // Given
+            doNothing().when(profileService).deletePicture("alice@test.com");
+
+            // When / Then
+            mockMvc.perform(delete("/api/v1/me/picture"))
+                    .andExpect(status().isNoContent());
+
+            verify(profileService).deletePicture("alice@test.com");
+        }
+    }
 
     @Test
     @DisplayName("GET /api/v1/me/feed should return paginated feed")
