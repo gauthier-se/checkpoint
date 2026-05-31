@@ -1,0 +1,21 @@
+### CheckPoint — Admin Reports endpoints
+### Requires an ADMIN account. See admin-users.http for the login request.
+
+@baseUrl = http://localhost:8080/api
+@token = PASTE_YOUR_ADMIN_JWT_HERE
+
+### List all reports (paginated)
+GET {{baseUrl}}/admin/reports?page=0&size=20&sort=createdAt,desc
+Authorization: Bearer {{token}}
+
+### List reports filtered by type ("review" or "comment")
+GET {{baseUrl}}/admin/reports?page=0&size=20&sort=createdAt,desc&type=review
+Authorization: Bearer {{token}}
+
+### Get a single report by id
+GET {{baseUrl}}/admin/reports/00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{token}}
+
+### Dismiss (delete) a report
+DELETE {{baseUrl}}/admin/reports/00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{token}}

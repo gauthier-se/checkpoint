@@ -1,0 +1,9 @@
+### CheckPoint — Admin Comments endpoints
+### Requires an ADMIN account. See admin-users.http for the login request.
+
+@baseUrl = http://localhost:8080/api
+@token = PASTE_YOUR_ADMIN_JWT_HERE
+
+### Delete a comment (moderation)
+DELETE {{baseUrl}}/admin/comments/00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{token}}

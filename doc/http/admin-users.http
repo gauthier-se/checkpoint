@@ -1,0 +1,42 @@
+### CheckPoint — Admin Users endpoints
+### Requires an ADMIN account. Obtain a JWT via the login request below,
+### then paste it into the @token variable.
+
+@baseUrl = http://localhost:8080/api
+@token = PASTE_YOUR_ADMIN_JWT_HERE
+
+### Login to obtain a JWT (copy "accessToken" from the response into @token)
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@checkpoint.local",
+  "password": "your-password"
+}
+
+### List all users
+GET {{baseUrl}}/admin/users
+Authorization: Bearer {{token}}
+
+### Get a single user by id
+GET {{baseUrl}}/admin/users/00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{token}}
+
+### Edit a user (clear bio/picture, toggle profile visibility)
+PUT {{baseUrl}}/admin/users/00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "clearBio": true,
+  "clearPicture": false,
+  "isPrivate": true
+}
+
+### Ban a user
+POST {{baseUrl}}/admin/users/00000000-0000-0000-0000-000000000000/ban
+Authorization: Bearer {{token}}
+
+### Unban a user
+POST {{baseUrl}}/admin/users/00000000-0000-0000-0000-000000000000/unban
+Authorization: Bearer {{token}}

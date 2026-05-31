@@ -1,0 +1,69 @@
+### CheckPoint — Admin Games endpoints
+### Requires an ADMIN account. See admin-users.http for the login request.
+
+@baseUrl = http://localhost:8080/api
+@token = PASTE_YOUR_ADMIN_JWT_HERE
+
+### Search external games (IGDB) by title
+GET {{baseUrl}}/admin/external-games/search?query=zelda&limit=20
+Authorization: Bearer {{token}}
+
+### Import a single external game by its external (IGDB) id
+POST {{baseUrl}}/admin/games/import/1020
+Authorization: Bearer {{token}}
+
+### Bulk import the top-rated games (async job)
+POST {{baseUrl}}/admin/games/import/top-rated?limit=100&minRatingCount=100
+Authorization: Bearer {{token}}
+
+### Bulk import recently released games (async job)
+POST {{baseUrl}}/admin/games/import/recent?limit=100
+Authorization: Bearer {{token}}
+
+### Poll the status of a bulk import job
+GET {{baseUrl}}/admin/games/import/jobs/00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{token}}
+
+### Manually create a game
+POST {{baseUrl}}/admin/games
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "My Manual Game",
+  "description": "A game entered manually by an admin.",
+  "coverUrl": "https://example.com/cover.jpg",
+  "artworkUrl": "https://example.com/artwork.jpg",
+  "trailerYoutubeId": "dQw4w9WgXcQ",
+  "timeToBeatNormally": 1200,
+  "timeToBeatHastily": 600,
+  "timeToBeatCompletely": 3000,
+  "releaseDate": "2024-05-01",
+  "genreIds": [],
+  "platformIds": [],
+  "companyIds": []
+}
+
+### Update a game
+PUT {{baseUrl}}/admin/games/00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Updated Game Title",
+  "description": "Updated description.",
+  "coverUrl": "https://example.com/cover.jpg",
+  "artworkUrl": "https://example.com/artwork.jpg",
+  "trailerYoutubeId": "dQw4w9WgXcQ",
+  "timeToBeatNormally": 1200,
+  "timeToBeatHastily": 600,
+  "timeToBeatCompletely": 3000,
+  "releaseDate": "2024-05-01",
+  "genreIds": [],
+  "platformIds": [],
+  "companyIds": []
+}
+
+### Delete a game
+DELETE {{baseUrl}}/admin/games/00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{token}}

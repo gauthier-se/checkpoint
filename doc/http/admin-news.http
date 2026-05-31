@@ -1,0 +1,51 @@
+### CheckPoint — Admin News endpoints
+### Requires an ADMIN account. See admin-users.http for the login request.
+
+@baseUrl = http://localhost:8080/api
+@token = PASTE_YOUR_ADMIN_JWT_HERE
+
+### Create a news article (draft)
+POST {{baseUrl}}/admin/news
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "New roadmap published",
+  "description": "We just shipped the public roadmap. Check it out!",
+  "picture": "https://example.com/cover.jpg"
+}
+
+### List all news articles (drafts + published, paginated)
+GET {{baseUrl}}/admin/news?page=0&size=20&sort=createdAt,desc
+Authorization: Bearer {{token}}
+
+### Get a single news article by id (any status)
+GET {{baseUrl}}/admin/news/00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{token}}
+
+### Update a news article
+PUT {{baseUrl}}/admin/news/00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Updated title",
+  "description": "Updated content.",
+  "picture": "https://example.com/new-cover.jpg"
+}
+
+### Publish a news article
+POST {{baseUrl}}/admin/news/00000000-0000-0000-0000-000000000000/publish
+Authorization: Bearer {{token}}
+
+### Unpublish a news article (back to draft)
+POST {{baseUrl}}/admin/news/00000000-0000-0000-0000-000000000000/unpublish
+Authorization: Bearer {{token}}
+
+### Delete a news article
+DELETE {{baseUrl}}/admin/news/00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{token}}
+
+### Trigger a news import from an external source (MANUAL | STEAM | RSS)
+POST {{baseUrl}}/admin/news/import/RSS
+Authorization: Bearer {{token}}

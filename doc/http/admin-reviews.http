@@ -1,0 +1,21 @@
+### CheckPoint — Admin Reviews endpoints
+### Requires an ADMIN account. See admin-users.http for the login request.
+
+@baseUrl = http://localhost:8080/api
+@token = PASTE_YOUR_ADMIN_JWT_HERE
+
+### List all reviews (paginated)
+GET {{baseUrl}}/admin/reviews?page=0&size=20&sort=createdAt,desc
+Authorization: Bearer {{token}}
+
+### List reported reviews (moderation queue)
+GET {{baseUrl}}/admin/reviews/reported?page=0&size=20&sort=createdAt,desc
+Authorization: Bearer {{token}}
+
+### List the reports filed against a specific review
+GET {{baseUrl}}/admin/reviews/00000000-0000-0000-0000-000000000000/reports?page=0&size=20&sort=createdAt,desc
+Authorization: Bearer {{token}}
+
+### Delete a review
+DELETE {{baseUrl}}/admin/reviews/00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{token}}

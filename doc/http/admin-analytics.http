@@ -1,0 +1,10 @@
+### CheckPoint — Admin Analytics endpoint
+### Requires an ADMIN account. See admin-users.http for the login request.
+### Backs the desktop analytics dashboard (see TE-253).
+
+@baseUrl = http://localhost:8080/api
+@token = PASTE_YOUR_ADMIN_JWT_HERE
+
+### Get the aggregated analytics dashboard data
+GET {{baseUrl}}/admin/analytics
+Authorization: Bearer {{token}}

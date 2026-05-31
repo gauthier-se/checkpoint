@@ -1,2 +1,8 @@
 .idea/
 api/uploads/
+
+# Local environment files (use .env.example as a template)
+.env
+.env.local
+*.env
+!.env.example

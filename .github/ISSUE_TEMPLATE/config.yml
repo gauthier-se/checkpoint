@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 🔒 Report a security vulnerability
+    url: https://github.com/gauthier-se/checkpoint/security/advisories/new
+    about: Please report security issues privately, not as public issues. See SECURITY.md.
+  - name: 💬 Questions & discussions
+    url: https://github.com/gauthier-se/checkpoint/discussions
+    about: Ask questions and discuss ideas with the community.
