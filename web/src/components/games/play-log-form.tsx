@@ -2,7 +2,7 @@ import { useForm } from '@tanstack/react-form'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { z } from 'zod'
-import { Star } from 'lucide-react'
+import { Heart, Star } from 'lucide-react'
 import type { GameDetail } from '@/types/game'
 import type { GamePlayLogRequestDto, PlayStatus } from '@/types/interaction'
 import type { PlayLogDetail } from '@/types/play-log'
@@ -27,6 +27,7 @@ import {
   updatePlayLogReview,
 } from '@/queries/review'
 import { isApiError } from '@/services/api'
+import { cn } from '@/lib/utils'
 
 interface CreateProps {
   mode?: 'create'
@@ -34,6 +35,9 @@ interface CreateProps {
   initialPlayLog?: never
   onSuccess?: () => void
   onCancel?: () => void
+  isLiked?: boolean
+  onToggleLike?: () => void
+  isLikePending?: boolean
 }
 
 interface EditProps {
@@ -42,6 +46,9 @@ interface EditProps {
   initialPlayLog: PlayLogDetail
   onSuccess?: () => void
   onCancel?: () => void
+  isLiked?: boolean
+  onToggleLike?: () => void
+  isLikePending?: boolean
 }
 
 type PlayLogFormProps = CreateProps | EditProps
@@ -178,63 +185,67 @@ export function PlayLogForm(props: PlayLogFormProps) {
         e.stopPropagation()
         void form.handleSubmit()
       }}
-      className="space-y-4 py-4"
+      className="space-y-5 pt-2"
     >
-      <form.Field
-        name="platformId"
-        children={(field) => (
-          <div className="space-y-2">
-            <Label htmlFor={field.name}>Platform *</Label>
-            <Select
-              value={field.state.value}
-              onValueChange={field.handleChange}
-            >
-              <SelectTrigger id={field.name}>
-                <SelectValue placeholder="Select platform" />
-              </SelectTrigger>
-              <SelectContent>
-                {game.platforms.map((p) => (
-                  <SelectItem key={p.id} value={p.id}>
-                    {p.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {field.state.meta.errors.length > 0 ? (
-              <p className="text-sm text-destructive">
-                {field.state.meta.errors
-                  .map((e) => (typeof e === 'string' ? e : (e as any).message))
-                  .join(', ')}
-              </p>
-            ) : null}
-          </div>
-        )}
-      />
+      <div className="grid grid-cols-2 gap-4">
+        <form.Field
+          name="platformId"
+          children={(field) => (
+            <div className="space-y-2">
+              <Label htmlFor={field.name}>Platform *</Label>
+              <Select
+                value={field.state.value}
+                onValueChange={field.handleChange}
+              >
+                <SelectTrigger id={field.name}>
+                  <SelectValue placeholder="Select platform" />
+                </SelectTrigger>
+                <SelectContent>
+                  {game.platforms.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {field.state.meta.errors.length > 0 ? (
+                <p className="text-sm text-destructive">
+                  {field.state.meta.errors
+                    .map((e) =>
+                      typeof e === 'string' ? e : (e as any).message,
+                    )
+                    .join(', ')}
+                </p>
+              ) : null}
+            </div>
+          )}
+        />
 
-      <form.Field
-        name="status"
-        children={(field) => (
-          <div className="space-y-2">
-            <Label htmlFor={field.name}>Play Status</Label>
-            <Select
-              value={field.state.value}
-              onValueChange={field.handleChange as any}
-            >
-              <SelectTrigger id={field.name}>
-                <SelectValue placeholder="Select status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ARE_PLAYING">Playing</SelectItem>
-                <SelectItem value="PLAYED">Played</SelectItem>
-                <SelectItem value="COMPLETED">Completed</SelectItem>
-                <SelectItem value="RETIRED">Retired</SelectItem>
-                <SelectItem value="SHELVED">Shelved</SelectItem>
-                <SelectItem value="ABANDONED">Abandoned</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        )}
-      />
+        <form.Field
+          name="status"
+          children={(field) => (
+            <div className="space-y-2">
+              <Label htmlFor={field.name}>Play Status</Label>
+              <Select
+                value={field.state.value}
+                onValueChange={field.handleChange as any}
+              >
+                <SelectTrigger id={field.name}>
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ARE_PLAYING">Playing</SelectItem>
+                  <SelectItem value="PLAYED">Played</SelectItem>
+                  <SelectItem value="COMPLETED">Completed</SelectItem>
+                  <SelectItem value="RETIRED">Retired</SelectItem>
+                  <SelectItem value="SHELVED">Shelved</SelectItem>
+                  <SelectItem value="ABANDONED">Abandoned</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+        />
+      </div>
 
       <div className="grid grid-cols-2 gap-4">
         <form.Field
@@ -267,69 +278,72 @@ export function PlayLogForm(props: PlayLogFormProps) {
         />
       </div>
 
-      <form.Field
-        name="timePlayed"
-        children={(field) => (
-          <div className="space-y-2">
-            <Label htmlFor={field.name}>Time Played (minutes)</Label>
-            <Input
-              type="number"
-              min="0"
-              id={field.name}
-              value={field.state.value}
-              onChange={(e) => field.handleChange(e.target.valueAsNumber)}
-            />
-          </div>
-        )}
-      />
+      <div className="grid grid-cols-2 gap-4">
+        <form.Field
+          name="timePlayed"
+          children={(field) => (
+            <div className="space-y-2">
+              <Label htmlFor={field.name}>Time Played (minutes)</Label>
+              <Input
+                type="number"
+                min="0"
+                id={field.name}
+                value={field.state.value}
+                onChange={(e) => field.handleChange(e.target.valueAsNumber)}
+              />
+            </div>
+          )}
+        />
 
-      <form.Field
-        name="ownership"
-        children={(field) => (
-          <div className="space-y-2">
-            <Label htmlFor={field.name}>Ownership</Label>
-            <Input
-              type="text"
-              placeholder="e.g. Owned, Borrowed, Subscription"
-              id={field.name}
-              value={field.state.value}
-              onChange={(e) => field.handleChange(e.target.value)}
-            />
-          </div>
-        )}
-      />
+        <form.Field
+          name="ownership"
+          children={(field) => (
+            <div className="space-y-2">
+              <Label htmlFor={field.name}>Ownership</Label>
+              <Input
+                type="text"
+                placeholder="e.g. Owned, Borrowed, Subscription"
+                id={field.name}
+                value={field.state.value}
+                onChange={(e) => field.handleChange(e.target.value)}
+              />
+            </div>
+          )}
+        />
+      </div>
 
-      <form.Field
-        name="isReplay"
-        children={(field) => (
-          <div className="flex items-center gap-2 pt-2">
-            <Switch
-              id={field.name}
-              checked={field.state.value}
-              onCheckedChange={field.handleChange}
-            />
-            <Label htmlFor={field.name} className="cursor-pointer">
-              This is a replay
-            </Label>
-          </div>
-        )}
-      />
+      <div className="grid grid-cols-2 gap-4 items-end">
+        <form.Field
+          name="tagIds"
+          children={(field) => (
+            <div className="space-y-2">
+              <Label>Tags</Label>
+              <TagSelector
+                selectedTagIds={field.state.value}
+                onChange={field.handleChange}
+              />
+            </div>
+          )}
+        />
 
-      <form.Field
-        name="tagIds"
-        children={(field) => (
-          <div className="space-y-2">
-            <Label>Tags</Label>
-            <TagSelector
-              selectedTagIds={field.state.value}
-              onChange={field.handleChange}
-            />
-          </div>
-        )}
-      />
+        <form.Field
+          name="isReplay"
+          children={(field) => (
+            <div className="flex items-center gap-2 pb-2">
+              <Switch
+                id={field.name}
+                checked={field.state.value}
+                onCheckedChange={field.handleChange}
+              />
+              <Label htmlFor={field.name} className="cursor-pointer">
+                This is a replay
+              </Label>
+            </div>
+          )}
+        />
+      </div>
 
-      <div className="my-6 border-t pt-4">
-        <h3 className="text-md font-medium mb-4">Rating & Review (Optional)</h3>
+      <div className="mt-6 border-t pt-6 mb-2">
         <div className="space-y-4">
           <form.Field
             name="score"
@@ -345,44 +359,66 @@ export function PlayLogForm(props: PlayLogFormProps) {
                       </span>
                     )}
                   </Label>
-                  <div className="flex gap-1">
-                    {[1, 2, 3, 4, 5].map((star) => {
-                      const leftScore = star * 2 - 1
-                      const rightScore = star * 2
-                      const isFullFilled = value >= rightScore
-                      const isHalfFilled = value === leftScore
-                      return (
-                        <div key={star} className="relative h-7 w-7">
-                          <Star
-                            aria-hidden
-                            className="absolute inset-0 h-7 w-7 text-muted-foreground/30"
-                          />
-                          {(isFullFilled || isHalfFilled) && (
+                  <div className="flex items-center gap-6">
+                    <div className="flex gap-1">
+                      {[1, 2, 3, 4, 5].map((star) => {
+                        const leftScore = star * 2 - 1
+                        const rightScore = star * 2
+                        const isFullFilled = value >= rightScore
+                        const isHalfFilled = value === leftScore
+                        return (
+                          <div key={star} className="relative h-7 w-7">
                             <Star
                               aria-hidden
-                              className="absolute inset-0 h-7 w-7 fill-yellow-400 text-yellow-500"
-                              style={
-                                isHalfFilled
-                                  ? { clipPath: 'inset(0 50% 0 0)' }
-                                  : undefined
-                              }
+                              className="absolute inset-0 h-7 w-7 text-muted-foreground/30"
                             />
-                          )}
-                          <button
-                            type="button"
-                            aria-label={`Set score to ${(leftScore / 2).toFixed(1)}`}
-                            className="absolute inset-y-0 left-0 w-1/2 cursor-pointer focus-visible:outline-none"
-                            onClick={() => field.handleChange(leftScore)}
+                            {(isFullFilled || isHalfFilled) && (
+                              <Star
+                                aria-hidden
+                                className="absolute inset-0 h-7 w-7 fill-yellow-400 text-yellow-500"
+                                style={
+                                  isHalfFilled
+                                    ? { clipPath: 'inset(0 50% 0 0)' }
+                                    : undefined
+                                }
+                              />
+                            )}
+                            <button
+                              type="button"
+                              aria-label={`Set score to ${(leftScore / 2).toFixed(1)}`}
+                              className="absolute inset-y-0 left-0 w-1/2 cursor-pointer focus-visible:outline-none"
+                              onClick={() => field.handleChange(leftScore)}
+                            />
+                            <button
+                              type="button"
+                              aria-label={`Set score to ${(rightScore / 2).toFixed(1)}`}
+                              className="absolute inset-y-0 right-0 w-1/2 cursor-pointer focus-visible:outline-none"
+                              onClick={() => field.handleChange(rightScore)}
+                            />
+                          </div>
+                        )
+                      })}
+                    </div>
+                    {props.onToggleLike && (
+                      <div className="flex items-center gap-4 border-l pl-4">
+                        <button
+                          type="button"
+                          className="relative h-7 w-7 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                          disabled={props.isLikePending}
+                          onClick={props.onToggleLike}
+                          title={props.isLiked ? 'Unlike' : 'Like'}
+                        >
+                          <Heart
+                            className={cn(
+                              'absolute inset-0 h-7 w-7 transition-colors',
+                              props.isLiked
+                                ? 'fill-orange-500 text-orange-500'
+                                : 'text-muted-foreground/30 hover:text-muted-foreground/50',
+                            )}
                           />
-                          <button
-                            type="button"
-                            aria-label={`Set score to ${(rightScore / 2).toFixed(1)}`}
-                            className="absolute inset-y-0 right-0 w-1/2 cursor-pointer focus-visible:outline-none"
-                            onClick={() => field.handleChange(rightScore)}
-                          />
-                        </div>
-                      )
-                    })}
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               )
@@ -429,7 +465,7 @@ export function PlayLogForm(props: PlayLogFormProps) {
       <form.Subscribe
         selector={(s) => [s.canSubmit, s.isSubmitting]}
         children={([canSubmit, isSubmitting]) => (
-          <div className="pt-4 flex justify-end gap-2">
+          <div className="pt-2 flex justify-end gap-2">
             <Button variant="outline" type="button" onClick={onCancel}>
               Cancel
             </Button>

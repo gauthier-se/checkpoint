@@ -40,7 +40,7 @@ export function MemberCard({ member }: MemberCardProps) {
   const canFollow = user && !isOwnProfile
 
   return (
-    <div className="flex flex-col items-center gap-3 rounded-lg border p-5 transition-colors hover:bg-accent">
+    <div className="flex flex-col items-center gap-3 rounded-lg border p-5 transition-colors hover:border-foreground/20 hover:bg-muted/40">
       <Link
         to="/profile/$username"
         params={{ username: member.pseudo }}

@@ -166,112 +166,127 @@ function NotificationsPage() {
   const hasUnread = (unreadData?.count ?? 0) > 0
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-6 sm:py-10">
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Notifications</h1>
-          <p className="text-sm text-muted-foreground">
-            {unreadData?.count ?? 0} unread
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {selectMode ? (
-            <>
+    <div className="mx-auto max-w-7xl px-4 py-6 sm:py-10">
+      <div className="grid gap-8 md:grid-cols-[200px_1fr] lg:grid-cols-[250px_1fr]">
+        <div className="flex flex-col gap-6">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Notifications</h1>
+            <p className="text-sm text-muted-foreground">
+              {unreadData?.count ?? 0} unread
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            {NOTIFICATION_FILTERS.map((f) => (
               <Button
+                key={f}
                 size="sm"
-                onClick={handleMarkSelected}
-                disabled={selectedIds.size === 0 || markBulkMutation.isPending}
+                variant={f === filter ? 'secondary' : 'ghost'}
+                onClick={() => handleFilterClick(f)}
+                className="justify-start min-h-9"
               >
-                <CheckCheck className="mr-1 size-4" />
-                Mark selected as read ({selectedIds.size})
+                {NOTIFICATION_FILTER_LABELS[f]}
               </Button>
-              <Button size="sm" variant="ghost" onClick={toggleSelectMode}>
-                <X className="mr-1 size-4" />
-                Cancel
-              </Button>
-            </>
-          ) : (
-            <>
-              {hasUnread && (
+            ))}
+          </div>
+        </div>
+
+        <div className="flex min-w-0 flex-col">
+          <div className="mb-4 flex flex-wrap items-center justify-end gap-2">
+            {selectMode ? (
+              <>
+                <Button
+                  size="sm"
+                  onClick={handleMarkSelected}
+                  disabled={
+                    selectedIds.size === 0 || markBulkMutation.isPending
+                  }
+                >
+                  <CheckCheck className="mr-1 size-4" />
+                  Mark selected as read ({selectedIds.size})
+                </Button>
+                <Button size="sm" variant="ghost" onClick={toggleSelectMode}>
+                  <X className="mr-1 size-4" />
+                  Cancel
+                </Button>
+              </>
+            ) : (
+              <>
+                {hasUnread && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => markAllMutation.mutate()}
+                    disabled={markAllMutation.isPending}
+                  >
+                    <CheckCheck className="mr-1 size-4" />
+                    Mark all as read
+                  </Button>
+                )}
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => markAllMutation.mutate()}
-                  disabled={markAllMutation.isPending}
+                  onClick={toggleSelectMode}
+                  disabled={notifications.length === 0}
                 >
-                  <CheckCheck className="mr-1 size-4" />
-                  Mark all as read
+                  Select
                 </Button>
-              )}
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={toggleSelectMode}
-                disabled={notifications.length === 0}
-              >
-                Select
-              </Button>
-            </>
+              </>
+            )}
+          </div>
+
+          <Separator />
+
+          <div
+            className={cn(
+              'mt-2 divide-y divide-border/50',
+              isFetching && 'opacity-60',
+            )}
+          >
+            {isLoading ? (
+              <p className="px-3 py-8 text-center text-sm text-muted-foreground">
+                Loading...
+              </p>
+            ) : notifications.length === 0 ? (
+              <div className="flex flex-col items-center justify-center gap-4 py-20 text-center">
+                <div className="flex size-16 items-center justify-center rounded-full bg-muted">
+                  <Bell className="size-8 text-muted-foreground" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-lg font-semibold">
+                    You're all caught up!
+                  </h3>
+                  <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+                    When you get new notifications about games, lists, or
+                    friends, they'll appear right here.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              notifications.map((notification) => (
+                <NotificationItem
+                  key={notification.id}
+                  notification={notification}
+                  selectable={selectMode}
+                  selected={selectedIds.has(notification.id)}
+                  onToggleSelect={() => toggleSelect(notification.id)}
+                  onClick={() => handleItemClick(notification)}
+                />
+              ))
+            )}
+          </div>
+
+          {totalPages > 1 && (
+            <NotificationsPagination
+              page={page}
+              totalPages={totalPages}
+              hasNext={hasNext}
+              hasPrevious={hasPrevious}
+              filter={filter}
+            />
           )}
         </div>
       </div>
-
-      <div className="mb-4 flex flex-wrap gap-2">
-        {NOTIFICATION_FILTERS.map((f) => (
-          <Button
-            key={f}
-            size="sm"
-            variant={f === filter ? 'default' : 'outline'}
-            onClick={() => handleFilterClick(f)}
-            className="min-h-9"
-          >
-            {NOTIFICATION_FILTER_LABELS[f]}
-          </Button>
-        ))}
-      </div>
-
-      <Separator />
-
-      <div
-        className={cn(
-          'mt-2 divide-y divide-border/50',
-          isFetching && 'opacity-60',
-        )}
-      >
-        {isLoading ? (
-          <p className="px-3 py-8 text-center text-sm text-muted-foreground">
-            Loading...
-          </p>
-        ) : notifications.length === 0 ? (
-          <div className="flex flex-col items-center gap-2 px-3 py-12">
-            <Bell className="size-10 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">
-              No notifications to show
-            </p>
-          </div>
-        ) : (
-          notifications.map((notification) => (
-            <NotificationItem
-              key={notification.id}
-              notification={notification}
-              selectable={selectMode}
-              selected={selectedIds.has(notification.id)}
-              onToggleSelect={() => toggleSelect(notification.id)}
-              onClick={() => handleItemClick(notification)}
-            />
-          ))
-        )}
-      </div>
-
-      {totalPages > 1 && (
-        <NotificationsPagination
-          page={page}
-          totalPages={totalPages}
-          hasNext={hasNext}
-          hasPrevious={hasPrevious}
-          filter={filter}
-        />
-      )}
     </div>
   )
 }

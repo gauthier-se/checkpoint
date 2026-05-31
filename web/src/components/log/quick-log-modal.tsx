@@ -17,6 +17,7 @@ import {
   gameDetailQueryOptions,
   searchGamesQueryOptions,
 } from '@/queries/catalog'
+import { useWishlistBacklogActions } from '@/hooks/use-wishlist-backlog-actions'
 
 interface QuickLogModalProps {
   open: boolean
@@ -66,6 +67,10 @@ export function QuickLogModal({ open, onOpenChange }: QuickLogModalProps) {
 
   const activeGame = contextGame ?? fetchedGame
 
+  const { liked, toggleLike, likePending } = useWishlistBacklogActions(
+    activeGame?.id ?? '',
+  )
+
   function handleGameSelect(gameId: string) {
     setSelectedGameId(gameId)
     setStep('form')
@@ -82,7 +87,14 @@ export function QuickLogModal({ open, onOpenChange }: QuickLogModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+      <DialogContent
+        className={cn(
+          'max-h-[90vh] overflow-y-auto',
+          step === 'search'
+            ? 'sm:max-w-[500px]'
+            : 'sm:max-w-[700px] md:max-w-[800px]',
+        )}
+      >
         {step === 'search' && (
           <>
             <DialogHeader>
@@ -202,7 +214,7 @@ export function QuickLogModal({ open, onOpenChange }: QuickLogModalProps) {
 
         {step === 'form' && (
           <>
-            <DialogHeader>
+            <DialogHeader className="flex flex-row items-center space-y-0 gap-3 border-b pb-4 mb-2">
               <DialogTitle className="flex items-center gap-2">
                 <button
                   type="button"
@@ -214,9 +226,8 @@ export function QuickLogModal({ open, onOpenChange }: QuickLogModalProps) {
                 Log Play Session
               </DialogTitle>
               {activeGame && (
-                <DialogDescription>
-                  Record your playtime, dates, and thoughts for{' '}
-                  {activeGame.title}.
+                <DialogDescription className="mt-0 pt-0.5">
+                  — Record your playtime, dates, and thoughts.
                 </DialogDescription>
               )}
             </DialogHeader>
@@ -228,35 +239,42 @@ export function QuickLogModal({ open, onOpenChange }: QuickLogModalProps) {
             )}
 
             {activeGame && (
-              <div className="flex items-center gap-3 rounded-md border p-3">
-                {activeGame.coverUrl ? (
-                  <img
-                    src={activeGame.coverUrl}
-                    alt=""
-                    className="h-12 w-9 rounded-sm object-cover"
-                  />
-                ) : (
-                  <div className="flex h-12 w-9 items-center justify-center rounded-sm bg-muted">
-                    <Gamepad2 className="size-4 text-muted-foreground" />
-                  </div>
-                )}
-                <div>
-                  <p className="font-medium text-sm">{activeGame.title}</p>
-                  {activeGame.releaseDate && (
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(activeGame.releaseDate).getFullYear()}
-                    </p>
+              <div className="grid grid-cols-1 md:grid-cols-[160px_1fr] gap-8 mt-2">
+                <div className="flex flex-col gap-3">
+                  {activeGame.coverUrl ? (
+                    <img
+                      src={activeGame.coverUrl}
+                      alt={activeGame.title}
+                      className="w-full rounded-lg object-cover aspect-[3/4] shadow-sm"
+                    />
+                  ) : (
+                    <div className="flex w-full items-center justify-center rounded-lg bg-muted aspect-[3/4] shadow-sm">
+                      <Gamepad2 className="size-10 text-muted-foreground/40" />
+                    </div>
                   )}
+                  <div>
+                    <h3 className="font-bold text-lg leading-tight">
+                      {activeGame.title}
+                    </h3>
+                    {activeGame.releaseDate && (
+                      <p className="text-sm text-muted-foreground mt-0.5">
+                        {new Date(activeGame.releaseDate).getFullYear()}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex flex-col min-w-0">
+                  <PlayLogForm
+                    game={activeGame}
+                    onCancel={handleBack}
+                    onSuccess={handleClose}
+                    isLiked={liked}
+                    onToggleLike={toggleLike}
+                    isLikePending={likePending}
+                  />
                 </div>
               </div>
-            )}
-
-            {activeGame && (
-              <PlayLogForm
-                game={activeGame}
-                onCancel={handleBack}
-                onSuccess={handleClose}
-              />
             )}
           </>
         )}

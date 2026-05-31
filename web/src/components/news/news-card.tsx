@@ -25,7 +25,7 @@ export function NewsCard({ article }: NewsCardProps) {
     <Link
       to="/news/$newsId"
       params={{ newsId: article.id }}
-      className="group flex flex-col gap-3 rounded-lg border p-4 transition-colors hover:bg-accent"
+      className="group flex flex-col gap-3 rounded-lg border p-4 transition-colors hover:border-foreground/20 hover:bg-muted/40"
     >
       <div className="aspect-[16/9] overflow-hidden rounded-md bg-muted">
         {article.picture ? (

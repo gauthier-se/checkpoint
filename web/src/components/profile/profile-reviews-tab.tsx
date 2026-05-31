@@ -1,8 +1,10 @@
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { AlignLeft, Lock } from 'lucide-react'
+import { AlignLeft, Lock, MessageCircleWarning } from 'lucide-react'
 import type { UserProfile } from '@/types/profile'
 import { userReviewsQueryOptions } from '@/queries/profile'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 
 interface ProfileReviewsTabProps {
   profile: UserProfile
@@ -10,10 +12,17 @@ interface ProfileReviewsTabProps {
 }
 
 export function ProfileReviewsTab({ profile, page }: ProfileReviewsTabProps) {
+  const [revealedSpoilers, setRevealedSpoilers] = useState<
+    Record<string, boolean>
+  >({})
   const apiPage = Math.max(0, page - 1)
   const { data, isLoading, isError } = useQuery(
     userReviewsQueryOptions(profile.username, apiPage),
   )
+
+  const toggleSpoilers = (id: string) => {
+    setRevealedSpoilers((prev) => ({ ...prev, [id]: !prev[id] }))
+  }
 
   if (profile.isPrivate && !profile.isOwner) {
     return (
@@ -75,11 +84,26 @@ export function ProfileReviewsTab({ profile, page }: ProfileReviewsTabProps) {
             </div>
           </CardHeader>
           <CardContent>
-            <p className="text-sm leading-relaxed">
-              {review.haveSpoilers
-                ? '⚠️ This review contains spoilers'
-                : review.content}
-            </p>
+            {review.haveSpoilers &&
+            !revealedSpoilers[review.id] &&
+            !profile.isOwner ? (
+              <p className="text-sm italic flex items-center gap-2">
+                <MessageCircleWarning className="size-4" />
+                This review contains spoilers
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-6 text-[10px] px-2 not-italic"
+                  onClick={() => toggleSpoilers(review.id)}
+                >
+                  Show
+                </Button>
+              </p>
+            ) : (
+              <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                {review.content}
+              </p>
+            )}
           </CardContent>
         </Card>
       ))}

@@ -267,7 +267,9 @@ export function ReviewList({
                 </div>
               </CardHeader>
               <CardContent className="py-0">
-                {review.haveSpoilers && !revealedSpoilers[review.id] ? (
+                {review.haveSpoilers &&
+                !revealedSpoilers[review.id] &&
+                (!user || user.id !== review.user.id) ? (
                   <div className="mt-3 p-4 border rounded-md bg-muted/50 flex flex-col items-center justify-center gap-2">
                     <p className="text-sm font-medium text-muted-foreground">
                       This review contains spoilers

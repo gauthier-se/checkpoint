@@ -87,9 +87,8 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HotkeysProvider>
           <ThemeProvider
             attribute="class"
-            defaultTheme="system"
-            enableSystem
-            storageKey="theme"
+            defaultTheme="dark"
+            forcedTheme="dark"
             disableTransitionOnChange
           >
             <TooltipProvider>

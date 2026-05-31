@@ -47,8 +47,9 @@ export function FriendAvatarTile({
         </Avatar>
         {hasReview && (
           <Badge
+            variant="secondary"
             aria-label="has a review"
-            className="absolute -top-1 -right-1 size-4 rounded-full p-0 ring-2 ring-background [&>svg]:size-2.5"
+            className="absolute -top-1 -right-1 size-4 rounded-full p-0 ring-2 ring-background [&>svg]:size-2.5 bg-muted-foreground text-background"
           >
             <AlignLeft />
           </Badge>

@@ -1,9 +1,11 @@
+import { useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { formatDistanceToNow } from 'date-fns'
 import { AlignLeft, Heart, ListMusic, Play, Star } from 'lucide-react'
 import type { FeedItem as FeedItemType } from '@/types/feed'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { resolvePictureUrl } from '@/lib/picture'
+import { useAuth } from '@/hooks/use-auth'
 
 interface FeedItemProps {
   item: FeedItemType
@@ -47,6 +49,9 @@ function getActivityText(item: FeedItemType) {
 }
 
 export function FeedItem({ item }: FeedItemProps) {
+  const { user } = useAuth()
+  const isOwner = user?.id === item.user.id
+  const [showSpoilers, setShowSpoilers] = useState(false)
   const timeAgo = formatDistanceToNow(new Date(item.createdAt), {
     addSuffix: true,
   })
@@ -99,7 +104,13 @@ export function FeedItem({ item }: FeedItemProps) {
             </span>
           )}
           {item.type === 'LIST' && item.listTitle && (
-            <span className="truncate font-medium">{item.listTitle}</span>
+            <Link
+              to="/lists/$listId"
+              params={{ listId: item.id }}
+              className="truncate font-medium hover:underline"
+            >
+              {item.listTitle}
+            </Link>
           )}
         </div>
 
@@ -111,18 +122,48 @@ export function FeedItem({ item }: FeedItemProps) {
               params={{ id: item.logId }}
               className="mt-1 line-clamp-2 block text-sm text-muted-foreground hover:text-foreground hover:underline"
             >
-              {item.haveSpoilers ? (
-                <span className="italic">Contains spoilers</span>
+              {item.haveSpoilers && !showSpoilers && !isOwner ? (
+                <span className="italic flex items-center gap-2">
+                  Contains spoilers
+                  <button
+                    type="button"
+                    className="not-italic text-[10px] font-medium px-2 py-0.5 border rounded hover:bg-muted transition-colors text-foreground"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      setShowSpoilers(true)
+                    }}
+                  >
+                    Show
+                  </button>
+                </span>
               ) : (
-                item.reviewContent
+                <span className="whitespace-pre-wrap">
+                  {item.reviewContent}
+                </span>
               )}
             </Link>
           ) : (
             <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
-              {item.haveSpoilers ? (
-                <span className="italic">Contains spoilers</span>
+              {item.haveSpoilers && !showSpoilers && !isOwner ? (
+                <span className="italic flex items-center gap-2">
+                  Contains spoilers
+                  <button
+                    type="button"
+                    className="not-italic text-[10px] font-medium px-2 py-0.5 border rounded hover:bg-muted transition-colors text-foreground"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      setShowSpoilers(true)
+                    }}
+                  >
+                    Show
+                  </button>
+                </span>
               ) : (
-                item.reviewContent
+                <span className="whitespace-pre-wrap">
+                  {item.reviewContent}
+                </span>
               )}
             </p>
           ))}

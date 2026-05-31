@@ -48,19 +48,14 @@ export function FriendActivitySection({ gameId }: FriendActivitySectionProps) {
     <DiscoverySection
       title="Friend activity"
       action={
-        <div className="flex flex-wrap items-center justify-end gap-2">
+        <div className="flex flex-wrap items-center justify-end text-sm text-muted-foreground font-medium">
           {STATUS_DISPLAY_ORDER.map((status) => {
             const count = data.countsByPlayStatus[status]
             if (!count) return null
-            return (
-              <Badge
-                key={status}
-                className={`${PLAY_STATUS_COLORS[status]} h-6 px-2 text-xs`}
-              >
-                {count} {PLAY_STATUS_LABELS[status].toLowerCase()}
-              </Badge>
-            )
-          })}
+            return `${count} ${PLAY_STATUS_LABELS[status]}`
+          })
+            .filter(Boolean)
+            .join(' • ')}
         </div>
       }
     >

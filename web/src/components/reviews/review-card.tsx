@@ -1,9 +1,12 @@
+import { useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { Heart, MessageSquare } from 'lucide-react'
 import type { ReviewCard as ReviewCardType } from '@/types/review'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { resolvePictureUrl } from '@/lib/picture'
+import { useAuth } from '@/hooks/use-auth'
 
 interface ReviewCardProps {
   review: ReviewCardType
@@ -11,17 +14,34 @@ interface ReviewCardProps {
 }
 
 export function ReviewCard({ review, showCover = true }: ReviewCardProps) {
-  const contentNode = review.haveSpoilers ? (
-    <div className="flex items-center justify-center bg-muted/20 border border-border/5 rounded-md p-3 h-20">
-      <p className="text-xs italic text-muted-foreground">
-        This review contains spoilers.
+  const { user } = useAuth()
+  const isOwner = user?.id === review.user.id
+  const [showSpoilers, setShowSpoilers] = useState(false)
+
+  const contentNode =
+    review.haveSpoilers && !showSpoilers && !isOwner ? (
+      <div className="flex flex-col items-center justify-center bg-muted/20 border border-border/5 rounded-md p-3 h-20 gap-1.5">
+        <p className="text-xs italic text-muted-foreground">
+          This review contains spoilers.
+        </p>
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-6 text-[10px] px-2"
+          onClick={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            setShowSpoilers(true)
+          }}
+        >
+          Show
+        </Button>
+      </div>
+    ) : (
+      <p className="line-clamp-4 text-sm leading-relaxed text-foreground/80 whitespace-pre-wrap">
+        {review.content}
       </p>
-    </div>
-  ) : (
-    <p className="line-clamp-4 text-sm leading-relaxed text-foreground/80">
-      {review.content}
-    </p>
-  )
+    )
 
   const footerNode = (
     <div className="flex items-center justify-end gap-4 text-xs font-medium text-muted-foreground">

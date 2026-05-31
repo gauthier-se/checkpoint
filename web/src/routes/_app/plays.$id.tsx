@@ -9,6 +9,7 @@ import {
   Heart,
   Loader2,
   Lock,
+  MessageCircleWarning,
   MessageSquare,
   Pencil,
   RefreshCw,
@@ -202,9 +203,9 @@ function PlayLogDetailPage() {
           <Link
             to="/games/$gameId"
             params={{ gameId: play.videoGameId }}
-            className="block group"
+            className="block"
           >
-            <div className="aspect-[3/4] w-full overflow-hidden rounded-lg bg-muted shadow-lg border border-border/10 transition-transform group-hover:scale-[1.02]">
+            <div className="aspect-[3/4] w-full overflow-hidden rounded-lg bg-muted shadow-lg border border-border/10">
               {play.coverUrl ? (
                 <img
                   src={play.coverUrl}
@@ -300,29 +301,22 @@ function PlayLogDetailPage() {
             )}
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge
-              className={`${PLAY_STATUS_COLORS[play.status]} px-2.5 py-0.5 font-semibold`}
-            >
+          <div className="flex flex-wrap items-center gap-4 text-sm font-medium">
+            <span className="flex items-center gap-1.5 text-green-500">
+              <Gamepad2 className="size-4" />
               {PLAY_STATUS_LABELS[play.status]}
-            </Badge>
+            </span>
             {play.isReplay && (
-              <Badge
-                variant="outline"
-                className="gap-1.5 px-2.5 py-0.5 bg-background border-border/60"
-              >
-                <RefreshCw className="size-3" />
+              <span className="flex items-center gap-1.5 text-muted-foreground">
+                <RefreshCw className="size-4" />
                 Replay
-              </Badge>
+              </span>
             )}
             {play.isLikedByViewer && (
-              <Badge
-                variant="outline"
-                className="gap-1.5 px-2.5 py-0.5 border-red-500/30 bg-red-500/10 text-red-500 font-medium"
-              >
-                <Heart className="size-3 fill-current" />
-                Liked the game
-              </Badge>
+              <span className="flex items-center gap-1.5 text-orange-500">
+                <Heart className="size-4 fill-current" />
+                Liked
+              </span>
             )}
           </div>
 
@@ -509,9 +503,10 @@ function ReviewBlock({
     <div className="space-y-3">
       <h2 className="text-lg font-semibold">Review</h2>
       {isHidden ? (
-        <div className="space-y-2 rounded-md border border-dashed p-4">
-          <p className="text-sm text-muted-foreground">
-            ⚠️ This review contains spoilers.
+        <div className="space-y-3 rounded-md border border-dashed p-4">
+          <p className="text-sm text-muted-foreground flex items-center gap-2">
+            <MessageCircleWarning className="size-4" />
+            This review contains spoilers.
           </p>
           <Button variant="outline" size="sm" onClick={onRevealSpoilers}>
             Show spoilers

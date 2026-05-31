@@ -4,14 +4,22 @@ import { useNavigate } from '@tanstack/react-router'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { z } from 'zod'
+import { Gamepad2, GripVertical, Loader2, Trash2, X } from 'lucide-react'
 import {
-  ChevronDown,
-  ChevronUp,
-  Gamepad2,
-  Loader2,
-  Trash2,
-  X,
-} from 'lucide-react'
+  DndContext,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core'
+import {
+  SortableContext,
+  arrayMove,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import type { DragEndEvent } from '@dnd-kit/core'
 import type { Game } from '@/types/game'
 import type { GameListDetail, GameListEntry } from '@/types/list'
 import { isApiError } from '@/services/api'
@@ -68,6 +76,10 @@ export function ListForm({ mode, initialData }: ListFormProps) {
   const [isDeleting, setIsDeleting] = useState(false)
   const [gameActionLoading, setGameActionLoading] = useState<string | null>(
     null,
+  )
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
   )
 
   const form = useForm({
@@ -185,14 +197,19 @@ export function ListForm({ mode, initialData }: ListFormProps) {
     }
   }
 
-  async function handleMoveGame(index: number, direction: 'up' | 'down') {
-    const newIndex = direction === 'up' ? index - 1 : index + 1
-    if (newIndex < 0 || newIndex >= entries.length) return
+  async function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
 
-    const reordered = [...entries]
-    const [moved] = reordered.splice(index, 1)
-    reordered.splice(newIndex, 0, moved)
-    const updated = reordered.map((e, i) => ({ ...e, position: i }))
+    const oldIndex = entries.findIndex((e) => e.videoGameId === active.id)
+    const newIndex = entries.findIndex((e) => e.videoGameId === over.id)
+    if (oldIndex < 0 || newIndex < 0) return
+
+    const previous = entries
+    const updated = arrayMove(entries, oldIndex, newIndex).map((e, i) => ({
+      ...e,
+      position: i,
+    }))
     setEntries(updated)
 
     if (mode === 'edit' && initialData) {
@@ -206,7 +223,7 @@ export function ListForm({ mode, initialData }: ListFormProps) {
         })
       } catch (err) {
         toast.error(isApiError(err) ? err.message : 'Failed to reorder games.')
-        setEntries(entries)
+        setEntries(previous)
       }
     }
   }
@@ -240,156 +257,113 @@ export function ListForm({ mode, initialData }: ListFormProps) {
       }}
       className="space-y-8"
     >
-      <div className="space-y-4">
-        <form.Field
-          name="title"
-          children={(field) => (
-            <div className="space-y-2">
-              <Label htmlFor={field.name}>Title *</Label>
-              <Input
-                id={field.name}
-                placeholder="My game list"
-                value={field.state.value}
-                onChange={(e) => field.handleChange(e.target.value)}
-              />
-              {field.state.meta.errors.length > 0 ? (
-                <p className="text-sm text-destructive">
-                  {field.state.meta.errors
-                    .map((e) =>
-                      typeof e === 'string' ? e : (e as any).message,
-                    )
-                    .join(', ')}
-                </p>
-              ) : null}
-            </div>
-          )}
-        />
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+        <div className="space-y-4 lg:sticky lg:top-20 lg:self-start">
+          <form.Field
+            name="title"
+            children={(field) => (
+              <div className="space-y-2">
+                <Label htmlFor={field.name}>Title *</Label>
+                <Input
+                  id={field.name}
+                  placeholder="My game list"
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                />
+                {field.state.meta.errors.length > 0 ? (
+                  <p className="text-sm text-destructive">
+                    {field.state.meta.errors
+                      .map((e) =>
+                        typeof e === 'string' ? e : (e as any).message,
+                      )
+                      .join(', ')}
+                  </p>
+                ) : null}
+              </div>
+            )}
+          />
 
-        <form.Field
-          name="description"
-          children={(field) => (
-            <div className="space-y-2">
-              <Label htmlFor={field.name}>Description</Label>
-              <Textarea
-                id={field.name}
-                placeholder="Describe your list..."
-                className="resize-y min-h-[80px]"
-                value={field.state.value}
-                onChange={(e) => field.handleChange(e.target.value)}
-              />
-              {field.state.meta.errors.length > 0 ? (
-                <p className="text-sm text-destructive">
-                  {field.state.meta.errors
-                    .map((e) =>
-                      typeof e === 'string' ? e : (e as any).message,
-                    )
-                    .join(', ')}
-                </p>
-              ) : null}
-            </div>
-          )}
-        />
+          <form.Field
+            name="description"
+            children={(field) => (
+              <div className="space-y-2">
+                <Label htmlFor={field.name}>Description</Label>
+                <Textarea
+                  id={field.name}
+                  placeholder="Describe your list..."
+                  className="resize-y min-h-[80px]"
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                />
+                {field.state.meta.errors.length > 0 ? (
+                  <p className="text-sm text-destructive">
+                    {field.state.meta.errors
+                      .map((e) =>
+                        typeof e === 'string' ? e : (e as any).message,
+                      )
+                      .join(', ')}
+                  </p>
+                ) : null}
+              </div>
+            )}
+          />
 
-        <form.Field
-          name="isPrivate"
-          children={(field) => (
-            <div className="flex items-center gap-2 pt-2">
-              <Switch
-                id={field.name}
-                checked={field.state.value}
-                onCheckedChange={field.handleChange}
-              />
-              <Label htmlFor={field.name} className="cursor-pointer">
-                Private list
-              </Label>
-            </div>
-          )}
-        />
-      </div>
+          <form.Field
+            name="isPrivate"
+            children={(field) => (
+              <div className="flex items-center gap-2 pt-2">
+                <Switch
+                  id={field.name}
+                  checked={field.state.value}
+                  onCheckedChange={field.handleChange}
+                />
+                <Label htmlFor={field.name} className="cursor-pointer">
+                  Private list
+                </Label>
+              </div>
+            )}
+          />
+        </div>
 
-      <div className="space-y-4">
-        <h3 className="text-md font-medium">Games</h3>
+        <div className="space-y-4 lg:col-span-2">
+          <h3 className="text-md font-medium">Games</h3>
 
-        <ListGameSearch
-          onSelect={handleAddGame}
-          excludeIds={entries.map((e) => e.videoGameId)}
-        />
+          <ListGameSearch
+            onSelect={handleAddGame}
+            excludeIds={entries.map((e) => e.videoGameId)}
+          />
 
-        {entries.length > 0 ? (
-          <ul className="space-y-2">
-            {entries.map((entry, index) => (
-              <li
-                key={entry.videoGameId}
-                className="flex items-center gap-3 rounded-md border p-3"
+          {entries.length > 0 ? (
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext
+                items={entries.map((e) => e.videoGameId)}
+                strategy={verticalListSortingStrategy}
               >
-                <span className="text-sm font-medium text-muted-foreground w-6 text-center shrink-0">
-                  {entry.position + 1}
-                </span>
-                {entry.coverUrl ? (
-                  <img
-                    src={entry.coverUrl}
-                    alt=""
-                    className="h-12 w-9 rounded-sm object-cover shrink-0"
-                  />
-                ) : (
-                  <div className="flex h-12 w-9 items-center justify-center rounded-sm bg-muted shrink-0">
-                    <Gamepad2 className="size-4 text-muted-foreground" />
-                  </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm truncate">{entry.title}</p>
-                  {entry.releaseDate && (
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(entry.releaseDate).getFullYear()}
-                    </p>
-                  )}
-                </div>
-                {gameActionLoading === entry.videoGameId ? (
-                  <Loader2 className="size-4 animate-spin text-muted-foreground shrink-0" />
-                ) : (
-                  <div className="flex items-center gap-1 shrink-0">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="size-7"
-                      disabled={index === 0}
-                      onClick={() => handleMoveGame(index, 'up')}
-                    >
-                      <ChevronUp className="size-4" />
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="size-7"
-                      disabled={index === entries.length - 1}
-                      onClick={() => handleMoveGame(index, 'down')}
-                    >
-                      <ChevronDown className="size-4" />
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="size-7 text-destructive hover:text-destructive"
-                      onClick={() => handleRemoveGame(entry.videoGameId)}
-                    >
-                      <X className="size-4" />
-                    </Button>
-                  </div>
-                )}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <div className="flex flex-col items-center gap-2 rounded-md border border-dashed py-8 text-center">
-            <Gamepad2 className="size-8 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">
-              No games added yet. Search above to add games.
-            </p>
-          </div>
-        )}
+                <ul className="space-y-2">
+                  {entries.map((entry) => (
+                    <SortableListEntry
+                      key={entry.videoGameId}
+                      entry={entry}
+                      isLoading={gameActionLoading === entry.videoGameId}
+                      onRemove={() => handleRemoveGame(entry.videoGameId)}
+                    />
+                  ))}
+                </ul>
+              </SortableContext>
+            </DndContext>
+          ) : (
+            <div className="flex flex-col items-center gap-2 rounded-md border border-dashed py-8 text-center">
+              <Gamepad2 className="size-8 text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">
+                No games added yet. Search above to add games.
+              </p>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="flex items-center justify-between pt-4">
@@ -443,5 +417,85 @@ export function ListForm({ mode, initialData }: ListFormProps) {
         />
       </div>
     </form>
+  )
+}
+
+interface SortableListEntryProps {
+  entry: GameListEntry
+  isLoading: boolean
+  onRemove: () => void
+}
+
+function SortableListEntry({
+  entry,
+  isLoading,
+  onRemove,
+}: SortableListEntryProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: entry.videoGameId })
+
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  }
+
+  return (
+    <li
+      ref={setNodeRef}
+      style={style}
+      className="flex items-center gap-3 rounded-md border bg-card p-3"
+    >
+      <button
+        type="button"
+        className="shrink-0 cursor-grab touch-none text-muted-foreground transition-colors hover:text-foreground active:cursor-grabbing"
+        aria-label={`Reorder ${entry.title}`}
+        {...attributes}
+        {...listeners}
+      >
+        <GripVertical className="size-4" />
+      </button>
+      <span className="w-6 shrink-0 text-center text-sm font-medium text-muted-foreground">
+        {entry.position + 1}
+      </span>
+      {entry.coverUrl ? (
+        <img
+          src={entry.coverUrl}
+          alt=""
+          className="h-12 w-9 shrink-0 rounded-sm object-cover"
+        />
+      ) : (
+        <div className="flex h-12 w-9 shrink-0 items-center justify-center rounded-sm bg-muted">
+          <Gamepad2 className="size-4 text-muted-foreground" />
+        </div>
+      )}
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-medium">{entry.title}</p>
+        {entry.releaseDate && (
+          <p className="text-xs text-muted-foreground">
+            {new Date(entry.releaseDate).getFullYear()}
+          </p>
+        )}
+      </div>
+      {isLoading ? (
+        <Loader2 className="size-4 shrink-0 animate-spin text-muted-foreground" />
+      ) : (
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="size-7 shrink-0 text-destructive hover:text-destructive"
+          onClick={onRemove}
+        >
+          <X className="size-4" />
+        </Button>
+      )}
+    </li>
   )
 }

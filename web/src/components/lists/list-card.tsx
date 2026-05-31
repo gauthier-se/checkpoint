@@ -3,6 +3,7 @@ import { Gamepad2, Heart, Lock } from 'lucide-react'
 import type { GameListCard } from '@/types/list'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { resolvePictureUrl } from '@/lib/picture'
+import { cn } from '@/lib/utils'
 
 interface ListCardProps {
   list: GameListCard
@@ -10,21 +11,30 @@ interface ListCardProps {
 
 export function ListCard({ list }: ListCardProps) {
   const initials = list.authorPseudo.slice(0, 2).toUpperCase()
+  const covers = list.coverUrls.slice(0, 4)
 
   return (
     <Link
       to="/lists/$listId"
       params={{ listId: list.id }}
-      className="group flex flex-col gap-3 rounded-lg border p-4 transition-colors hover:bg-accent"
+      className="group flex flex-col gap-3 rounded-lg border p-4 transition-colors hover:border-foreground/20 hover:bg-muted/40"
     >
-      <div className="grid grid-cols-2 gap-1 aspect-[4/3] overflow-hidden rounded-md bg-muted">
-        {list.coverUrls.slice(0, 4).map((url, i) => (
-          <img key={i} src={url} alt="" className="size-full object-cover" />
-        ))}
-        {list.coverUrls.length === 0 && (
-          <div className="col-span-2 flex items-center justify-center">
-            <Gamepad2 className="size-10 text-muted-foreground/40" />
-          </div>
+      <div className="flex aspect-[3/2] items-center justify-center overflow-hidden rounded-md bg-muted">
+        {covers.length > 0 ? (
+          covers.map((url, i) => (
+            <img
+              key={i}
+              src={url}
+              alt=""
+              style={{ zIndex: covers.length - i }}
+              className={cn(
+                'aspect-[3/4] h-full object-cover shadow-md ring-1 ring-black/15 transition-[margin] duration-200',
+                i !== 0 && '-ml-[24%] group-hover:-ml-[19%]',
+              )}
+            />
+          ))
+        ) : (
+          <Gamepad2 className="size-10 text-muted-foreground/40" />
         )}
       </div>
 

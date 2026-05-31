@@ -321,10 +321,10 @@ function LegalPage() {
             </p>
             <p>
               <a
-                href="mailto:privacy@checkpoint.app"
+                href="mailto:gseyzeriat1@gmail.com"
                 className="text-primary hover:underline"
               >
-                privacy@checkpoint.app
+                gseyzeriat1@gmail.com
               </a>
             </p>
             <p>
