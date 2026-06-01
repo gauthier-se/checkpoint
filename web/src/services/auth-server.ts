@@ -18,7 +18,8 @@ export const fetchCurrentUserServerFn = createServerFn({
   const res = await fetch(`${apiUrl}${API_PREFIX}/auth/me`, {
     headers: { Cookie: cookie },
   })
-  if (!res.ok) return null
+  if (res.status === 401 || res.status === 403) return null
+  if (!res.ok) throw new Error('auth_server_error')
   return (await res.json()) as User
 })
 
