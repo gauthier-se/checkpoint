@@ -1,4 +1,8 @@
-import { MutationCache, QueryClient } from '@tanstack/react-query'
+import {
+  MutationCache,
+  QueryClient,
+  defaultShouldDehydrateQuery,
+} from '@tanstack/react-query'
 import { createRouter } from '@tanstack/react-router'
 import { setupRouterSsrQueryIntegration } from '@tanstack/react-router-ssr-query'
 import { toast } from 'sonner'
@@ -31,6 +35,16 @@ export const getRouter = () => {
       queries: {
         staleTime: 30_000,
         retry: 1,
+      },
+      dehydrate: {
+        // Exclude auth from SSR dehydration so the client always re-fetches it
+        // using the browser cookie rather than trusting the server's result.
+        // The server may not be able to forward the cookie (cross-origin dev) or
+        // may get a transient API error, both of which would dehydrate a false
+        // "logged out" state. useAuth handles the resulting hydration mismatch
+        // by staying in loading state until mounted.
+        shouldDehydrateQuery: (q) =>
+          defaultShouldDehydrateQuery(q) && q.queryKey[0] !== 'auth',
       },
     },
   })
