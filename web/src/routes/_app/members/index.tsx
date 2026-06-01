@@ -90,7 +90,7 @@ function RouteComponent() {
   })
 
   return (
-    <div className="max-w-7xl mx-auto">
+    <div className="max-w-7xl mx-auto px-4">
       <div className="mt-10 py-2">
         <h1 className="text-xl font-bold text-foreground">Members</h1>
       </div>

@@ -67,7 +67,7 @@ function RouteComponent() {
 }
 
 function ListsContent() {
-  const navigate = useNavigate({ from: '/lists' })
+  const navigate = useNavigate({ from: '/lists/' })
   const { user } = useAuth()
   const [searchInput, setSearchInput] = useState('')
 
@@ -88,7 +88,7 @@ function ListsContent() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto">
+    <div className="max-w-7xl mx-auto px-4">
       <div className="mt-10 flex items-center justify-between gap-4 flex-wrap py-2">
         <h1 className="text-xl font-bold">Lists</h1>
         <div className="flex items-center gap-4">
@@ -157,7 +157,7 @@ function ListsContent() {
 
 function ListsIndexSkeleton() {
   return (
-    <div className="max-w-7xl mx-auto">
+    <div className="max-w-7xl mx-auto px-4">
       <div className="mt-10 flex items-center justify-between gap-4 flex-wrap py-2">
         <Skeleton className="h-7 w-16" />
         <Skeleton className="h-9 w-56" />

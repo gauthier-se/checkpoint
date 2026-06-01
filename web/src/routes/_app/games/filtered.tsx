@@ -165,7 +165,7 @@ function RouteComponent() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto">
+    <div className="max-w-7xl mx-auto px-4">
       <div className="mt-10 py-2 text-muted-foreground font-semibold flex flex-col xl:flex-row items-start justify-between gap-4">
         <CatalogFilters search={search} />
         <div className="flex items-center gap-4 mt-1 xl:mt-0">

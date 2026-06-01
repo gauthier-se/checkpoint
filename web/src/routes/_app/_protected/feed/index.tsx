@@ -69,7 +69,7 @@ function RouteComponent() {
   )?.label
 
   return (
-    <div className="max-w-7xl mx-auto">
+    <div className="max-w-7xl mx-auto px-4">
       <div className="mt-10">
         <OnboardingChecklist />
         <h1 className="text-xl font-bold">New from friends</h1>

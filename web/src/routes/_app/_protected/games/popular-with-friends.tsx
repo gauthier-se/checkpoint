@@ -40,7 +40,7 @@ function RouteComponent() {
   const { page } = Route.useSearch()
 
   return (
-    <div className="max-w-7xl mx-auto">
+    <div className="max-w-7xl mx-auto px-4">
       <div className="mt-10">
         <h1 className="text-xl font-bold">Popular with friends</h1>
       </div>

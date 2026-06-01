@@ -82,7 +82,7 @@ function AllMembersContent() {
   const formattedTotal = totalElements.toLocaleString()
 
   return (
-    <div className="max-w-7xl mx-auto">
+    <div className="max-w-7xl mx-auto px-4">
       <div className="mt-10">
         <Link
           to="/members"
@@ -153,7 +153,7 @@ function AllMembersContent() {
 
 function AllMembersSkeleton() {
   return (
-    <div className="max-w-7xl mx-auto">
+    <div className="max-w-7xl mx-auto px-4">
       <div className="mt-10">
         <Skeleton className="h-4 w-20" />
       </div>

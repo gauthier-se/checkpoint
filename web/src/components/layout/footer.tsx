@@ -8,9 +8,9 @@ interface FooterProps {
 export const Footer = ({ onOpenKeymaps }: FooterProps) => {
   return (
     <footer className="w-full bg-muted">
-      <div className="max-w-7xl mx-auto py-10">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center font-semibold gap-4">
+      <div className="mx-auto max-w-7xl px-4 py-10">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 font-semibold">
             <Link to="/about" hash="about">
               About
             </Link>
@@ -18,7 +18,7 @@ export const Footer = ({ onOpenKeymaps }: FooterProps) => {
               Contact
             </Link>
             <Link to="/roadmap">Roadmap</Link>
-            <Link to="/leaderboard" search={{ sortBy: 'xp' }}>
+            <Link to="/leaderboard" search={{ sortBy: 'xp', following: false }}>
               Leaderboard
             </Link>
             {onOpenKeymaps && (
@@ -44,7 +44,7 @@ export const Footer = ({ onOpenKeymaps }: FooterProps) => {
             </a>
           </div>
         </div>
-        <div className="flex items-center justify-between mt-4 text-sm text-muted-foreground">
+        <div className="mt-4 flex flex-col gap-1 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
           <p>Checkpoint is proudly made in Strasbourg, France</p>
           <p>
             © {new Date().getFullYear()} Checkpoint ·{' '}

@@ -148,7 +148,7 @@ function GamesIndexContent() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto">
+    <div className="max-w-7xl mx-auto px-4">
       <div className="mt-10 py-2 text-muted-foreground font-semibold flex items-center justify-between gap-4 flex-wrap">
         <CatalogFilters search={{}} />
         <div className="flex items-center gap-4">
@@ -262,7 +262,7 @@ function ReviewCardsRowSkeleton() {
 
 function GamesIndexSkeleton() {
   return (
-    <div className="max-w-7xl mx-auto">
+    <div className="max-w-7xl mx-auto px-4">
       <div className="mt-10 py-2 flex items-center justify-between gap-4 flex-wrap">
         <Skeleton className="h-8 w-48" />
         <Skeleton className="h-8 w-48" />
