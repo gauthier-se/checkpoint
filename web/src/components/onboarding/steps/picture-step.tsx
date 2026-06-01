@@ -48,6 +48,17 @@ export function PictureStep({ onNext }: PictureStepProps) {
     }
   }
 
+  const handleKeepCurrent = () => {
+    onNext()
+    updateOnboardingStep('picture', true)
+      .catch(() => {})
+      .finally(() => {
+        void queryClient.invalidateQueries({
+          queryKey: authQueryOptions.queryKey,
+        })
+      })
+  }
+
   const handleSkip = () => {
     onNext()
     updateOnboardingStep('picture', false)
@@ -70,6 +81,11 @@ export function PictureStep({ onNext }: PictureStepProps) {
           <Button variant="ghost" onClick={handleSkip}>
             Skip for now
           </Button>
+          {user?.picture && (
+            <Button variant="outline" onClick={handleKeepCurrent}>
+              Keep current
+            </Button>
+          )}
           <Button
             onClick={() => inputRef.current?.click()}
             disabled={isUploading}
