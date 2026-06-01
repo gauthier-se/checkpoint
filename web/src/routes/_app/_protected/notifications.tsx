@@ -64,13 +64,17 @@ export const Route = createFileRoute('/_app/_protected/notifications')({
   }),
   loaderDeps: ({ search }) => search,
   loader: async ({ deps, context }) => {
-    await context.queryClient.ensureQueryData(
-      notificationsQueryOptions({
-        page: deps.page - 1,
-        size: PAGE_SIZE,
-        ...filterToQueryParams(deps.filter),
-      }),
-    )
+    try {
+      await context.queryClient.ensureQueryData(
+        notificationsQueryOptions({
+          page: deps.page - 1,
+          size: PAGE_SIZE,
+          ...filterToQueryParams(deps.filter),
+        }),
+      )
+    } catch {
+      // SSR: cookie unavailable server-side; client refetch recovers after hydration
+    }
   },
   component: NotificationsPage,
 })

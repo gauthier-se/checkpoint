@@ -65,9 +65,7 @@ describe('LoginForm', () => {
 
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/password/i)).toBeInTheDocument()
-    expect(
-      screen.getByRole('button', { name: /continue with steam/i }),
-    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^steam$/i })).toBeInTheDocument()
     expect(screen.queryByLabelText(/2fa code/i)).not.toBeInTheDocument()
   })
 

@@ -231,28 +231,22 @@ public class GameController {
 
     /**
      * Returns games similar to the given game, ranked by shared genre / company / platform
-     * overlap. The result is item-to-item (driven by the seed game, not the viewer's
-     * library), but when the viewer is authenticated, games already in their library,
-     * wishlist, favorites, or likes are excluded. Anonymous viewers get the unfiltered list.
+     * overlap (item-to-item, driven by the seed game's tags).
      *
-     * @param gameId      the seed game ID
-     * @param size        the number of similar games to return (default 12, max 30)
-     * @param userDetails the authenticated user, or null if anonymous
+     * @param gameId the seed game ID
+     * @param size   the number of similar games to return (default 12, max 30)
      * @return a list of similar game cards, best match first (may be empty)
      */
     @GetMapping("/{gameId}/similar")
     public ResponseEntity<List<GameCardDto>> getSimilarGames(
             @PathVariable UUID gameId,
-            @RequestParam(defaultValue = "" + DEFAULT_SIMILAR_SIZE) int size,
-            @AuthenticationPrincipal UserDetails userDetails) {
+            @RequestParam(defaultValue = "" + DEFAULT_SIMILAR_SIZE) int size) {
 
-        String viewerEmail = userDetails != null ? userDetails.getUsername() : null;
-        log.info("GET /api/v1/games/{}/similar - size: {}, viewer: {}",
-                gameId, size, viewerEmail != null ? viewerEmail : "anonymous");
+        log.info("GET /api/v1/games/{}/similar - size: {}", gameId, size);
 
         int validatedSize = Math.min(Math.max(1, size), MAX_SIMILAR_SIZE);
 
-        List<GameCardDto> similar = gameSimilarityService.getSimilarGames(gameId, viewerEmail, validatedSize);
+        List<GameCardDto> similar = gameSimilarityService.getSimilarGames(gameId, validatedSize);
         return ResponseEntity.ok(similar);
     }
 

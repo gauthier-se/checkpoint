@@ -149,7 +149,7 @@ class ReviewControllerTest {
         @Test
         @DisplayName("should return 200 OK with up to N popular reviews")
         void shouldReturnPopularReviews() throws Exception {
-            when(reviewService.getPopularReviews(eq(7), any()))
+            when(reviewService.getPopularReviews(eq(8), any()))
                     .thenReturn(List.of(sampleCard("Best game ever", "Elden Ring")));
 
             mockMvc.perform(get("/api/v1/reviews/popular"))
@@ -201,7 +201,7 @@ class ReviewControllerTest {
         @Test
         @DisplayName("should return 200 OK with up to N recent reviews")
         void shouldReturnRecentReviews() throws Exception {
-            when(reviewService.getRecentReviews(eq(7), any()))
+            when(reviewService.getRecentReviews(eq(8), any()))
                     .thenReturn(List.of(
                             sampleCard("Just finished it!", "Hollow Knight"),
                             sampleCard("Played all weekend", "Celeste")
@@ -255,7 +255,7 @@ class ReviewControllerTest {
         @Test
         @DisplayName("should return 200 OK with popular reviews scoped to the game")
         void shouldReturnPopularGameReviews() throws Exception {
-            when(reviewService.getPopularGameReviews(eq(gameId), eq(7), any()))
+            when(reviewService.getPopularGameReviews(eq(gameId), eq(8), any()))
                     .thenReturn(List.of(sampleCard("Loved it", "Elden Ring")));
 
             mockMvc.perform(get("/api/v1/games/{gameId}/reviews/popular", gameId))

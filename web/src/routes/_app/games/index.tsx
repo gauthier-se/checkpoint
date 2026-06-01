@@ -34,6 +34,7 @@ import {
 } from '@/lib/search-params'
 
 const DISCOVERY_SIZE = 7
+const REVIEW_DISCOVERY_SIZE = 8
 
 export type GamesSearchParams = {
   page?: number
@@ -105,10 +106,10 @@ export const Route = createFileRoute('/_app/games/')({
     ] = await Promise.all([
       context.queryClient.ensureQueryData(trendingGamesQueryOptions()),
       context.queryClient.ensureQueryData(
-        popularReviewsQueryOptions(DISCOVERY_SIZE),
+        popularReviewsQueryOptions(REVIEW_DISCOVERY_SIZE),
       ),
       context.queryClient.ensureQueryData(
-        recentReviewsQueryOptions(DISCOVERY_SIZE),
+        recentReviewsQueryOptions(REVIEW_DISCOVERY_SIZE),
       ),
       context.queryClient.ensureQueryData(
         mostBackloggedGamesQueryOptions(DISCOVERY_SIZE),
@@ -134,8 +135,8 @@ function RouteComponent() {
   const navigate = useNavigate({ from: '/games' })
 
   // Keep loader-prefetched data live so likes/comments stay fresh on revisit.
-  useQuery(popularReviewsQueryOptions(DISCOVERY_SIZE))
-  useQuery(recentReviewsQueryOptions(DISCOVERY_SIZE))
+  useQuery(popularReviewsQueryOptions(REVIEW_DISCOVERY_SIZE))
+  useQuery(recentReviewsQueryOptions(REVIEW_DISCOVERY_SIZE))
 
   const [searchInput, setSearchInput] = useState('')
 

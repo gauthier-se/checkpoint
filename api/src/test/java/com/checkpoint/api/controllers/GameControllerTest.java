@@ -602,7 +602,7 @@ class GameControllerTest {
         List<GameCardDto> similar = List.of(
                 new GameCardDto(similarId, "Similar Game", "cover.jpg", LocalDate.of(2021, 3, 1), 4.5, 200L)
         );
-        when(gameSimilarityService.getSimilarGames(eq(gameId), isNull(), anyInt())).thenReturn(similar);
+        when(gameSimilarityService.getSimilarGames(eq(gameId), anyInt())).thenReturn(similar);
 
         mockMvc.perform(get("/api/v1/games/{gameId}/similar", gameId))
                 .andExpect(status().isOk())
@@ -612,40 +612,26 @@ class GameControllerTest {
     }
 
     @Test
-    @DisplayName("GET /api/v1/games/{gameId}/similar should pass null viewerEmail when anonymous")
-    void getSimilarGames_shouldPassNullViewerEmailWhenAnonymous() throws Exception {
+    @DisplayName("GET /api/v1/games/{gameId}/similar should return empty list when no similar games")
+    void getSimilarGames_shouldReturnEmptyList() throws Exception {
         UUID gameId = UUID.randomUUID();
-        when(gameSimilarityService.getSimilarGames(eq(gameId), isNull(), anyInt())).thenReturn(List.of());
+        when(gameSimilarityService.getSimilarGames(eq(gameId), anyInt())).thenReturn(List.of());
 
         mockMvc.perform(get("/api/v1/games/{gameId}/similar", gameId))
-                .andExpect(status().isOk());
-
-        verify(gameSimilarityService).getSimilarGames(eq(gameId), isNull(), anyInt());
-    }
-
-    @Test
-    @DisplayName("GET /api/v1/games/{gameId}/similar should pass viewer email when authenticated")
-    @WithMockUser(username = "user@example.com")
-    void getSimilarGames_shouldPassViewerEmailWhenAuthenticated() throws Exception {
-        UUID gameId = UUID.randomUUID();
-        when(gameSimilarityService.getSimilarGames(eq(gameId), eq("user@example.com"), anyInt()))
-                .thenReturn(List.of());
-
-        mockMvc.perform(get("/api/v1/games/{gameId}/similar", gameId))
-                .andExpect(status().isOk());
-
-        verify(gameSimilarityService).getSimilarGames(eq(gameId), eq("user@example.com"), anyInt());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$").isEmpty());
     }
 
     @Test
     @DisplayName("GET /api/v1/games/{gameId}/similar should clamp size to maximum 30")
     void getSimilarGames_shouldClampSizeToMaximum() throws Exception {
         UUID gameId = UUID.randomUUID();
-        when(gameSimilarityService.getSimilarGames(eq(gameId), isNull(), eq(30))).thenReturn(List.of());
+        when(gameSimilarityService.getSimilarGames(eq(gameId), eq(30))).thenReturn(List.of());
 
         mockMvc.perform(get("/api/v1/games/{gameId}/similar", gameId).param("size", "999"))
                 .andExpect(status().isOk());
 
-        verify(gameSimilarityService).getSimilarGames(eq(gameId), isNull(), eq(30));
+        verify(gameSimilarityService).getSimilarGames(eq(gameId), eq(30));
     }
 }

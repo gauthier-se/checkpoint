@@ -24,7 +24,7 @@ export const gameReviewsQueryOptions = (
   })
 }
 
-export const popularReviewsQueryOptions = (size: number = 7) => {
+export const popularReviewsQueryOptions = (size: number = 8) => {
   return queryOptions({
     queryKey: ['reviews', 'popular', size],
     queryFn: async (): Promise<Array<ReviewCard>> => {
@@ -35,7 +35,7 @@ export const popularReviewsQueryOptions = (size: number = 7) => {
   })
 }
 
-export const recentReviewsQueryOptions = (size: number = 7) => {
+export const recentReviewsQueryOptions = (size: number = 8) => {
   return queryOptions({
     queryKey: ['reviews', 'recent', size],
     queryFn: async (): Promise<Array<ReviewCard>> => {

@@ -112,68 +112,70 @@ export function GameDetailCard({
         <GameCardHoverActions gameId={link.gameId} isHovered={isHovered} />
       ) : null}
 
-      <div className="flex min-h-4 items-center justify-between gap-1">
-        {score != null ? (
-          <ScoreStars score={score} starClassName="h-3 w-3" />
-        ) : (
-          <span aria-hidden className="h-3" />
-        )}
+      {(score != null || status || hasReview || isLiked || isReplay) && (
+        <div className="flex min-h-4 items-center justify-between gap-1">
+          {score != null ? (
+            <ScoreStars score={score} starClassName="h-3 w-3" />
+          ) : (
+            <span aria-hidden className="h-3" />
+          )}
 
-        <div className="flex items-center gap-1">
-          {StatusIcon && status && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <StatusIcon
-                  aria-label={PLAY_STATUS_LABELS[status]}
-                  className={cn('size-3.5', PLAY_STATUS_ICON_COLORS[status])}
-                />
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{PLAY_STATUS_LABELS[status]}</p>
-              </TooltipContent>
-            </Tooltip>
-          )}
-          {hasReview && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <AlignLeft
-                  aria-label="Has review"
-                  className="text-muted-foreground size-3"
-                />
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Has review</p>
-              </TooltipContent>
-            </Tooltip>
-          )}
-          {isLiked && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Heart
-                  aria-label="Liked this game"
-                  className="size-3 fill-red-500 text-red-500"
-                />
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Liked this game</p>
-              </TooltipContent>
-            </Tooltip>
-          )}
-          {isReplay && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <RefreshCw
-                  aria-label="Replay"
-                  className="text-muted-foreground size-3"
-                />
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Replay</p>
-              </TooltipContent>
-            </Tooltip>
-          )}
+          <div className="flex items-center gap-1">
+            {StatusIcon && status && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <StatusIcon
+                    aria-label={PLAY_STATUS_LABELS[status]}
+                    className={cn('size-3.5', PLAY_STATUS_ICON_COLORS[status])}
+                  />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{PLAY_STATUS_LABELS[status]}</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+            {hasReview && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <AlignLeft
+                    aria-label="Has review"
+                    className="text-muted-foreground size-3"
+                  />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Has review</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+            {isLiked && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Heart
+                    aria-label="Liked this game"
+                    className="size-3 fill-red-500 text-red-500"
+                  />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Liked this game</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+            {isReplay && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <RefreshCw
+                    aria-label="Replay"
+                    className="text-muted-foreground size-3"
+                  />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Replay</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {statusBadge}
     </div>

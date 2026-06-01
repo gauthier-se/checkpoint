@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/card'
 import { Field, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import { useAuth } from '@/hooks/use-auth'
 import { deleteAccount } from '@/queries/profile'
 
 interface DeleteAccountCardProps {
@@ -33,6 +34,7 @@ interface DeleteAccountCardProps {
 export function DeleteAccountCard({ username }: DeleteAccountCardProps) {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const { logout } = useAuth()
 
   const [open, setOpen] = useState(false)
   const [confirmation, setConfirmation] = useState('')
@@ -41,12 +43,17 @@ export function DeleteAccountCard({ username }: DeleteAccountCardProps) {
     meta: { suppressGlobalError: true },
     mutationFn: deleteAccount,
     onSuccess: async () => {
-      queryClient.clear()
+      queryClient.removeQueries({ queryKey: ['members'] })
       toast.success('Your account has been deleted')
-      await navigate({ to: '/' })
+      await logout()
+      await navigate({ to: '/login' })
     },
-    onError: () => {
+    onError: async () => {
+      // Account may already be deleted despite the API error; force logout either way
+      queryClient.removeQueries({ queryKey: ['members'] })
       toast.error('Failed to delete account. Please try again.')
+      await logout()
+      await navigate({ to: '/login' })
     },
   })
 
