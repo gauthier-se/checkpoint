@@ -46,7 +46,7 @@ public class ReviewController {
     private static final int MAX_SIZE = 100;
     private static final String DEFAULT_SORT = "createdAt,desc";
 
-    private static final int DEFAULT_DISCOVERY_SIZE = 7;
+    private static final int DEFAULT_DISCOVERY_SIZE = 8;
     private static final int MAX_DISCOVERY_SIZE = 20;
 
     private final ReviewService reviewService;

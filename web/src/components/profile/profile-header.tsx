@@ -84,29 +84,28 @@ export function ProfileHeader({ profile, nav }: ProfileHeaderProps) {
             <span>Member since {memberSince}</span>
           </div>
 
-          {/* Stats */}
-          <div className="flex gap-6 text-sm">
-            <div>
-              <span className="font-semibold">{profile.followerCount}</span>{' '}
-              <span className="text-muted-foreground">followers</span>
+          {/* Stats + XP Progress — grouped so the bar matches the stats width */}
+          <div className="w-fit space-y-2">
+            <div className="flex gap-6 text-sm">
+              <div>
+                <span className="font-semibold">{profile.followerCount}</span>{' '}
+                <span className="text-muted-foreground">followers</span>
+              </div>
+              <div>
+                <span className="font-semibold">{profile.followingCount}</span>{' '}
+                <span className="text-muted-foreground">following</span>
+              </div>
+              <div>
+                <span className="font-semibold">{profile.reviewCount}</span>{' '}
+                <span className="text-muted-foreground">reviews</span>
+              </div>
             </div>
-            <div>
-              <span className="font-semibold">{profile.followingCount}</span>{' '}
-              <span className="text-muted-foreground">following</span>
-            </div>
-            <div>
-              <span className="font-semibold">{profile.reviewCount}</span>{' '}
-              <span className="text-muted-foreground">reviews</span>
-            </div>
+            <XpProgressBar
+              level={profile.level}
+              xpPoint={profile.xpPoint}
+              xpThreshold={profile.xpThreshold}
+            />
           </div>
-
-          {/* XP Progress */}
-          <XpProgressBar
-            level={profile.level}
-            xpPoint={profile.xpPoint}
-            xpThreshold={profile.xpThreshold}
-            className="max-w-md"
-          />
 
           {/* Actions */}
           <div className="flex flex-wrap gap-2 pt-1">

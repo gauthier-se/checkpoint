@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 
-import { createFileRoute, useRouter } from '@tanstack/react-router'
+import { Link, createFileRoute } from '@tanstack/react-router'
 import { Play, Star } from 'lucide-react'
 import type { GameDetail } from '@/types/game'
 import { ErrorPage } from '@/components/errors/error-page'
@@ -86,7 +86,6 @@ function formatDuration(seconds: number | null): string {
 
 function RouteComponent() {
   const game = Route.useLoaderData()
-  const router = useRouter()
 
   const hasTimeToBeat =
     game.timeToBeatNormally != null ||
@@ -117,12 +116,9 @@ function RouteComponent() {
       )}
 
       <div className="px-4 pt-24 pb-6">
-        <button
-          onClick={() => router.history.back()}
-          className="text-muted-foreground hover:underline"
-        >
+        <Link to="/games" className="text-muted-foreground hover:underline">
           &larr; Back to catalog
-        </button>
+        </Link>
 
         <div className="mt-6 grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Left: Cover */}

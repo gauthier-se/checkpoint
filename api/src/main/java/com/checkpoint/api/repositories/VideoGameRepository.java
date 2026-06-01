@@ -186,21 +186,10 @@ public interface VideoGameRepository extends JpaRepository<VideoGame, UUID>, Vid
             Pageable pageable);
 
     /**
-     * Pre-filters the catalog to games similar to a single seed game — those sharing at
-     * least one genre or company with it — excluding the seed game itself and any DLC
-     * ({@code parentGame IS NULL}). When the viewer is authenticated, also excludes any
-     * game they already have a relationship with — library ({@code UserGame}), wishlist
-     * ({@code Wish}), favorites ({@code Favorite}), backlog ({@code Backlog}), or a
-     * top-level game-like ({@code Like}). Anonymous callers pass a sentinel
-     * {@code viewerId} that matches no user, so the five {@code NOT IN} clauses leave
-     * every game in place.
-     *
-     * <p>Item-to-item counterpart of {@link #findCandidateIdsForRecommendation}. Returns
-     * only IDs so the caller can cap the pool via {@link Pageable} and hydrate the
-     * entities in a second pass through {@link #findAllByIdInWithRelationships}.</p>
+     * Pre-filters the catalog to games sharing at least one genre or company with the
+     * seed game, excluding the seed itself and DLC ({@code parentGame IS NULL}).
      *
      * @param seedGameId the game whose neighbours are sought
-     * @param viewerId   the authenticated viewer's ID, or a sentinel UUID when anonymous
      * @param genreIds   genre IDs of the seed game
      * @param companyIds company IDs of the seed game
      * @param pageable   caps the candidate set (sort is ignored)
@@ -213,29 +202,10 @@ public interface VideoGameRepository extends JpaRepository<VideoGame, UUID>, Vid
             WHERE vg.parentGame IS NULL
               AND vg.id <> :seedGameId
               AND (g.id IN :genreIds OR c.id IN :companyIds)
-              AND vg.id NOT IN (
-                  SELECT ug.videoGame.id FROM UserGame ug WHERE ug.user.id = :viewerId
-              )
-              AND vg.id NOT IN (
-                  SELECT w.videoGame.id FROM Wish w WHERE w.user.id = :viewerId
-              )
-              AND vg.id NOT IN (
-                  SELECT f.videoGame.id FROM Favorite f WHERE f.user.id = :viewerId
-              )
-              AND vg.id NOT IN (
-                  SELECT l.videoGame.id FROM Like l WHERE l.user.id = :viewerId AND l.videoGame IS NOT NULL
-              )
-              AND vg.id NOT IN (
-                  SELECT b.videoGame.id FROM Backlog b WHERE b.user.id = :viewerId
-              )
-              AND vg.id NOT IN (
-                  SELECT r.videoGame.id FROM Rate r WHERE r.user.id = :viewerId
-              )
             GROUP BY vg.id
             """)
     List<UUID> findSimilarCandidateIds(
             @Param("seedGameId") UUID seedGameId,
-            @Param("viewerId") UUID viewerId,
             @Param("genreIds") Collection<UUID> genreIds,
             @Param("companyIds") Collection<UUID> companyIds,
             Pageable pageable);

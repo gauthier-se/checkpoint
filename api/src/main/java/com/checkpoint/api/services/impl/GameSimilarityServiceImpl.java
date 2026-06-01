@@ -20,10 +20,8 @@ import com.checkpoint.api.dto.catalog.GameCardDto;
 import com.checkpoint.api.entities.Company;
 import com.checkpoint.api.entities.Genre;
 import com.checkpoint.api.entities.Platform;
-import com.checkpoint.api.entities.User;
 import com.checkpoint.api.entities.VideoGame;
 import com.checkpoint.api.exceptions.GameNotFoundException;
-import com.checkpoint.api.repositories.UserRepository;
 import com.checkpoint.api.repositories.VideoGameRepository;
 import com.checkpoint.api.services.GameSimilarityService;
 
@@ -33,9 +31,7 @@ import com.checkpoint.api.services.GameSimilarityService;
  * <p>Seeds {@link GameTagScorer} from a single game's genres / platforms / companies,
  * pre-filters the catalog to games sharing at least one genre or company, scores the
  * pool by tag overlap (plus the rating tiebreaker and recency boost), and returns the
- * top matches. Per-viewer exclusions (library / wishlist / favorites / likes) are pushed
- * into the candidate query; anonymous callers use a sentinel viewer id that filters
- * nothing.</p>
+ * top matches.</p>
  */
 @Service
 @Transactional(readOnly = true)
@@ -45,28 +41,18 @@ public class GameSimilarityServiceImpl implements GameSimilarityService {
 
     private static final int DEFAULT_SIZE = 12;
     private static final int MAX_SIZE = 30;
-    private static final int CANDIDATE_POOL_CAP = 200;
+    private static final int CANDIDATE_POOL_CAP = 50;
 
     private static final double SEED_TAG_WEIGHT = 1.0;
 
-    /**
-     * Sentinel viewer id for anonymous requests: it matches no real user, so the
-     * per-viewer {@code NOT IN} exclusions in the candidate query leave every game
-     * in place.
-     */
-    private static final UUID ANONYMOUS_VIEWER = new UUID(0L, 0L);
-
     private final VideoGameRepository videoGameRepository;
-    private final UserRepository userRepository;
 
-    public GameSimilarityServiceImpl(VideoGameRepository videoGameRepository,
-                                     UserRepository userRepository) {
+    public GameSimilarityServiceImpl(VideoGameRepository videoGameRepository) {
         this.videoGameRepository = videoGameRepository;
-        this.userRepository = userRepository;
     }
 
     @Override
-    public List<GameCardDto> getSimilarGames(UUID gameId, String viewerEmail, int size) {
+    public List<GameCardDto> getSimilarGames(UUID gameId, int size) {
         int validatedSize = clampSize(size);
 
         VideoGame seed = videoGameRepository.findByIdWithRelationships(gameId)
@@ -76,22 +62,19 @@ public class GameSimilarityServiceImpl implements GameSimilarityService {
         Map<UUID, Double> platformScores = presenceScores(seed.getPlatforms().stream().map(Platform::getId).toList());
         Map<UUID, Double> companyScores = presenceScores(seed.getCompanies().stream().map(Company::getId).toList());
 
-        // Item-to-item similarity needs at least one genre or company to match on.
         if (genreScores.isEmpty() && companyScores.isEmpty()) {
             log.debug("Game {} has no genre/company tags — no similar games", gameId);
             return List.of();
         }
 
-        UUID viewerId = resolveViewerId(viewerEmail);
         List<UUID> candidateIds = videoGameRepository.findSimilarCandidateIds(
                 gameId,
-                viewerId,
                 GameTagScorer.ensureNonEmpty(genreScores.keySet()),
                 GameTagScorer.ensureNonEmpty(companyScores.keySet()),
                 PageRequest.of(0, CANDIDATE_POOL_CAP));
 
         if (candidateIds.isEmpty()) {
-            log.debug("No similar candidates for game {} (viewer={})", gameId, viewerId);
+            log.debug("No similar candidates for game {}", gameId);
             return List.of();
         }
 
@@ -120,7 +103,6 @@ public class GameSimilarityServiceImpl implements GameSimilarityService {
             topIds.add(s.id());
         }
 
-        // Materialise card projections (accurate rating counts), then restore the ranked order.
         Map<UUID, GameCardDto> cardsById = videoGameRepository.findGameCardsByIdIn(topIds).stream()
                 .collect(Collectors.toMap(GameCardDto::id, Function.identity()));
 
@@ -134,21 +116,6 @@ public class GameSimilarityServiceImpl implements GameSimilarityService {
         return result;
     }
 
-    /**
-     * Resolves the viewer's user id for the candidate-query exclusions. Anonymous viewers
-     * (and unknown emails) map to the {@link #ANONYMOUS_VIEWER} sentinel, which excludes
-     * nothing.
-     */
-    private UUID resolveViewerId(String viewerEmail) {
-        if (viewerEmail == null) {
-            return ANONYMOUS_VIEWER;
-        }
-        return userRepository.findByEmail(viewerEmail)
-                .map(User::getId)
-                .orElse(ANONYMOUS_VIEWER);
-    }
-
-    /** Builds a uniform-weight tag map (every tag contributes {@link #SEED_TAG_WEIGHT}). */
     private static Map<UUID, Double> presenceScores(List<UUID> ids) {
         Map<UUID, Double> scores = new HashMap<>();
         for (UUID id : ids) {

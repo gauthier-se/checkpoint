@@ -3,10 +3,8 @@ package com.checkpoint.api.services.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
@@ -28,19 +26,14 @@ import com.checkpoint.api.dto.catalog.GameCardDto;
 import com.checkpoint.api.entities.Company;
 import com.checkpoint.api.entities.Genre;
 import com.checkpoint.api.entities.Platform;
-import com.checkpoint.api.entities.User;
 import com.checkpoint.api.entities.VideoGame;
 import com.checkpoint.api.exceptions.GameNotFoundException;
-import com.checkpoint.api.repositories.UserRepository;
 import com.checkpoint.api.repositories.VideoGameRepository;
 
 @ExtendWith(MockitoExtension.class)
 class GameSimilarityServiceImplTest {
 
-    private static final UUID ANONYMOUS_VIEWER = new UUID(0L, 0L);
-
     @Mock private VideoGameRepository videoGameRepository;
-    @Mock private UserRepository userRepository;
 
     private GameSimilarityServiceImpl service;
 
@@ -52,7 +45,7 @@ class GameSimilarityServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        service = new GameSimilarityServiceImpl(videoGameRepository, userRepository);
+        service = new GameSimilarityServiceImpl(videoGameRepository);
 
         rpgGenre = newGenre("RPG");
         actionGenre = newGenre("Action");
@@ -67,7 +60,7 @@ class GameSimilarityServiceImplTest {
         UUID missingId = UUID.randomUUID();
         when(videoGameRepository.findByIdWithRelationships(missingId)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.getSimilarGames(missingId, null, 12))
+        assertThatThrownBy(() -> service.getSimilarGames(missingId, 12))
                 .isInstanceOf(GameNotFoundException.class);
     }
 
@@ -77,11 +70,11 @@ class GameSimilarityServiceImplTest {
         VideoGame seed = newGame("Tagless", List.of(), List.of(pcPlatform), List.of());
         when(videoGameRepository.findByIdWithRelationships(seed.getId())).thenReturn(Optional.of(seed));
 
-        List<GameCardDto> result = service.getSimilarGames(seed.getId(), null, 12);
+        List<GameCardDto> result = service.getSimilarGames(seed.getId(), 12);
 
         assertThat(result).isEmpty();
         verify(videoGameRepository, never())
-                .findSimilarCandidateIds(any(), any(), any(), any(), any(Pageable.class));
+                .findSimilarCandidateIds(any(), any(), any(), any(Pageable.class));
     }
 
     @Test
@@ -96,7 +89,7 @@ class GameSimilarityServiceImplTest {
 
         List<UUID> candidateIds = List.of(strong.getId(), weak.getId());
         when(videoGameRepository.findSimilarCandidateIds(
-                eq(seed.getId()), any(), any(), any(), any(Pageable.class)))
+                any(), any(), any(), any(Pageable.class)))
                 .thenReturn(candidateIds);
         when(videoGameRepository.findAllByIdInWithRelationships(candidateIds))
                 .thenReturn(List.of(strong, weak));
@@ -105,7 +98,7 @@ class GameSimilarityServiceImplTest {
         when(videoGameRepository.findGameCardsByIdIn(List.of(strong.getId(), weak.getId())))
                 .thenReturn(List.of(card(weak), card(strong)));
 
-        List<GameCardDto> result = service.getSimilarGames(seed.getId(), null, 12);
+        List<GameCardDto> result = service.getSimilarGames(seed.getId(), 12);
 
         assertThat(result).extracting(GameCardDto::id)
                 .containsExactly(strong.getId(), weak.getId());
@@ -116,48 +109,13 @@ class GameSimilarityServiceImplTest {
     void emptyCandidatePoolReturnsEmpty() {
         VideoGame seed = newGame("Seed", List.of(rpgGenre), List.of(), List.of(studioA));
         when(videoGameRepository.findByIdWithRelationships(seed.getId())).thenReturn(Optional.of(seed));
-        when(videoGameRepository.findSimilarCandidateIds(any(), any(), any(), any(), any(Pageable.class)))
+        when(videoGameRepository.findSimilarCandidateIds(any(), any(), any(), any(Pageable.class)))
                 .thenReturn(List.of());
 
-        List<GameCardDto> result = service.getSimilarGames(seed.getId(), null, 12);
+        List<GameCardDto> result = service.getSimilarGames(seed.getId(), 12);
 
         assertThat(result).isEmpty();
         verify(videoGameRepository, never()).findAllByIdInWithRelationships(any());
-    }
-
-    @Test
-    @DisplayName("anonymous viewer uses the sentinel id and never looks up a user")
-    void anonymousViewerUsesSentinel() {
-        VideoGame seed = newGame("Seed", List.of(rpgGenre), List.of(), List.of(studioA));
-        when(videoGameRepository.findByIdWithRelationships(seed.getId())).thenReturn(Optional.of(seed));
-        when(videoGameRepository.findSimilarCandidateIds(any(), any(), any(), any(), any(Pageable.class)))
-                .thenReturn(List.of());
-
-        service.getSimilarGames(seed.getId(), null, 12);
-
-        verify(videoGameRepository).findSimilarCandidateIds(
-                eq(seed.getId()), eq(ANONYMOUS_VIEWER), any(), any(), any(Pageable.class));
-        verifyNoInteractions(userRepository);
-    }
-
-    @Test
-    @DisplayName("authenticated viewer's id is resolved and passed to the exclusion query")
-    void authenticatedViewerIdResolved() {
-        UUID userId = UUID.randomUUID();
-        User user = new User();
-        user.setId(userId);
-        user.setEmail("player@example.com");
-        when(userRepository.findByEmail("player@example.com")).thenReturn(Optional.of(user));
-
-        VideoGame seed = newGame("Seed", List.of(rpgGenre), List.of(), List.of(studioA));
-        when(videoGameRepository.findByIdWithRelationships(seed.getId())).thenReturn(Optional.of(seed));
-        when(videoGameRepository.findSimilarCandidateIds(any(), any(), any(), any(), any(Pageable.class)))
-                .thenReturn(List.of());
-
-        service.getSimilarGames(seed.getId(), "player@example.com", 12);
-
-        verify(videoGameRepository).findSimilarCandidateIds(
-                eq(seed.getId()), eq(userId), any(), any(), any(Pageable.class));
     }
 
     @Test
@@ -173,7 +131,7 @@ class GameSimilarityServiceImplTest {
             candidateIds.add(c.getId());
             candidateGames.add(c);
         }
-        when(videoGameRepository.findSimilarCandidateIds(any(), any(), any(), any(), any(Pageable.class)))
+        when(videoGameRepository.findSimilarCandidateIds(any(), any(), any(), any(Pageable.class)))
                 .thenReturn(candidateIds);
         when(videoGameRepository.findAllByIdInWithRelationships(candidateIds)).thenReturn(candidateGames);
         when(videoGameRepository.findGameCardsByIdIn(any())).thenAnswer(invocation -> {
@@ -182,7 +140,7 @@ class GameSimilarityServiceImplTest {
                     new GameCardDto(id, "t", "cover.jpg", LocalDate.now().minusYears(3), null, 0L)).toList();
         });
 
-        List<GameCardDto> result = service.getSimilarGames(seed.getId(), null, 2);
+        List<GameCardDto> result = service.getSimilarGames(seed.getId(), 2);
 
         assertThat(result).hasSize(2);
     }

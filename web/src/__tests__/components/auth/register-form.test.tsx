@@ -96,14 +96,12 @@ describe('RegisterForm', () => {
   it('renders a "Continue with Steam" OAuth button alongside Google and Twitch', () => {
     render(<RegisterForm />)
 
+    expect(screen.getByRole('button', { name: /^steam$/i })).toBeInTheDocument()
     expect(
-      screen.getByRole('button', { name: /continue with steam/i }),
+      screen.getByRole('button', { name: /^google$/i }),
     ).toBeInTheDocument()
     expect(
-      screen.getByRole('button', { name: /continue with google/i }),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole('button', { name: /continue with twitch/i }),
+      screen.getByRole('button', { name: /^twitch$/i }),
     ).toBeInTheDocument()
   })
 

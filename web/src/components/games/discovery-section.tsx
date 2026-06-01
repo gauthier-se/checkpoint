@@ -13,7 +13,7 @@ export function DiscoverySection({
   children,
 }: DiscoverySectionProps) {
   return (
-    <section className="my-8">
+    <section className="my-4">
       <div className="flex items-center justify-between py-2">
         <h2 className="text-muted-foreground font-semibold">{title}</h2>
         {action}

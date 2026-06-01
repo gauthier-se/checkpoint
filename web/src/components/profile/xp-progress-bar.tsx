@@ -23,7 +23,7 @@ export function XpProgressBar({
           {xpPoint.toLocaleString()} / {xpThreshold.toLocaleString()} XP
         </span>
       </div>
-      <div className="bg-secondary h-2 w-full overflow-hidden rounded-full">
+      <div className="bg-secondary h-1 w-full overflow-hidden rounded-full">
         <div
           className="bg-primary h-full rounded-full transition-all duration-500"
           style={{ width: `${percentage}%` }}

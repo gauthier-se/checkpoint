@@ -152,6 +152,7 @@ public interface ReviewRepository extends JpaRepository<Review, UUID> {
     @Query(value = """
             SELECT r.*
             FROM reviews r
+            JOIN users u ON u.id = r.user_id AND u.is_private = false
             LEFT JOIN likes l ON l.review_id = r.id
             GROUP BY r.id
             ORDER BY (COUNT(l.id)::float
@@ -162,11 +163,12 @@ public interface ReviewRepository extends JpaRepository<Review, UUID> {
     List<Review> findPopularReviews(@Param("limit") int limit);
 
     /**
-     * Finds the most recently created reviews across all games and users.
+     * Finds the most recently created reviews across all games and users, excluding private profiles.
      *
      * @param pageable pagination parameters (used to cap the result size; sort is ignored)
      * @return a page of reviews ordered by creation time (descending)
      */
+    @Query("SELECT r FROM Review r WHERE r.user.isPrivate = false ORDER BY r.createdAt DESC")
     Page<Review> findAllByOrderByCreatedAtDesc(Pageable pageable);
 
     /**
@@ -180,6 +182,7 @@ public interface ReviewRepository extends JpaRepository<Review, UUID> {
     @Query(value = """
             SELECT r.*
             FROM reviews r
+            JOIN users u ON u.id = r.user_id AND u.is_private = false
             LEFT JOIN likes l ON l.review_id = r.id
             WHERE r.video_game_id = :videoGameId
             GROUP BY r.id

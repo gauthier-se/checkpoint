@@ -9,7 +9,6 @@ import type { Priority, WishlistResponse } from '@/types/collection'
 import { GameDetailCard } from '@/components/games/game-detail-card'
 import { CollectionPagination } from '@/components/collection/collection-pagination'
 import { EmptyState } from '@/components/collection/empty-state'
-import { PriorityBadge } from '@/components/collection/priority-badge'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -132,11 +131,6 @@ export function WishlistTab({ page, sort }: WishlistTabProps) {
             coverUrl={game.coverUrl}
             releaseDate={game.releaseDate}
             link={{ type: 'game', gameId: game.videoGameId }}
-            statusBadge={
-              game.priority ? (
-                <PriorityBadge priority={game.priority} />
-              ) : undefined
-            }
             actions={
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

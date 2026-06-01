@@ -8,8 +8,7 @@ import viteTsConfigPaths from 'vite-tsconfig-paths'
 
 const config = defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
-  const apiInternalUrl =
-    env['API_INTERNAL_URL'] || env['VITE_API_URL'] || 'http://localhost:8080'
+  const apiInternalUrl = env['API_INTERNAL_URL'] || 'http://localhost:8080'
   // Vitest sets mode to "test"; skip the SSR/Nitro plugins there. They wrap
   // React in ways that break component tests (duplicate hook dispatcher).
   const isTest = mode === 'test'
