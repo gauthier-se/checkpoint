@@ -74,6 +74,7 @@ public class AuthServiceImpl implements AuthService {
     private final TwoFactorService twoFactorService;
     private final SteamSignupTokenService steamSignupTokenService;
     private final boolean cookieSecure;
+    private final String cookieDomain;
     private final long jwtExpirationMs;
     private final long refreshExpirationMs;
 
@@ -89,6 +90,7 @@ public class AuthServiceImpl implements AuthService {
                            TwoFactorService twoFactorService,
                            SteamSignupTokenService steamSignupTokenService,
                            @Value("${app.cookie.secure:true}") boolean cookieSecure,
+                           @Value("${app.cookie.domain:}") String cookieDomain,
                            @Value("${jwt.expiration-ms:86400000}") long jwtExpirationMs,
                            @Value("${jwt.refresh-expiration-ms:604800000}") long refreshExpirationMs) {
         this.authenticationManager = authenticationManager;
@@ -103,6 +105,7 @@ public class AuthServiceImpl implements AuthService {
         this.twoFactorService = twoFactorService;
         this.steamSignupTokenService = steamSignupTokenService;
         this.cookieSecure = cookieSecure;
+        this.cookieDomain = cookieDomain;
         this.jwtExpirationMs = jwtExpirationMs;
         this.refreshExpirationMs = refreshExpirationMs;
     }
@@ -426,12 +429,15 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private ResponseCookie buildCookie(String name, String value, long maxAgeSeconds, String path) {
-        return ResponseCookie.from(name, value)
+        ResponseCookie.ResponseCookieBuilder builder = ResponseCookie.from(name, value)
                 .httpOnly(true)
                 .secure(cookieSecure)
                 .sameSite("Lax")
                 .path(path)
-                .maxAge(maxAgeSeconds)
-                .build();
+                .maxAge(maxAgeSeconds);
+        if (cookieDomain != null && !cookieDomain.isBlank()) {
+            builder.domain(cookieDomain);
+        }
+        return builder.build();
     }
 }

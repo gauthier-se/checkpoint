@@ -49,6 +49,7 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
     private final String fallbackTargetUrl;
     private final String twoFactorChallengeUrl;
     private final boolean cookieSecure;
+    private final String cookieDomain;
     private final long jwtExpirationMs;
 
     /**
@@ -62,6 +63,7 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
                                               @Lazy AuthService authService,
                                               @Value("${app.frontend-url:http://localhost:3000}") String frontendUrl,
                                               @Value("${app.cookie.secure:true}") boolean cookieSecure,
+                                              @Value("${app.cookie.domain:}") String cookieDomain,
                                               @Value("${jwt.expiration-ms:86400000}") long jwtExpirationMs) {
         this.userDetailsService = userDetailsService;
         this.jwtService = jwtService;
@@ -70,6 +72,7 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
         this.twoFactorChallengeUrl = frontendUrl + "/login?2fa=required";
         this.delegate = new SimpleUrlAuthenticationSuccessHandler(this.fallbackTargetUrl);
         this.cookieSecure = cookieSecure;
+        this.cookieDomain = cookieDomain;
         this.jwtExpirationMs = jwtExpirationMs;
     }
 
@@ -93,13 +96,16 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
         UserDetails userDetails = userDetailsService.loadUserByUsername(email);
         String token = jwtService.generateToken(userDetails);
 
-        ResponseCookie cookie = ResponseCookie.from(COOKIE_NAME, token)
+        ResponseCookie.ResponseCookieBuilder cookieBuilder = ResponseCookie.from(COOKIE_NAME, token)
                 .httpOnly(true)
                 .secure(cookieSecure)
                 .sameSite("Lax")
                 .path("/api/v1")
-                .maxAge(jwtExpirationMs / 1000)
-                .build();
+                .maxAge(jwtExpirationMs / 1000);
+        if (cookieDomain != null && !cookieDomain.isBlank()) {
+            cookieBuilder.domain(cookieDomain);
+        }
+        ResponseCookie cookie = cookieBuilder.build();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
