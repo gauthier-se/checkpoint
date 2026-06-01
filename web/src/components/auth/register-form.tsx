@@ -34,8 +34,7 @@ function startOAuthLogin(provider: 'google' | 'twitch') {
 }
 
 function startSteamSignup() {
-  // Steam OpenID is stateless; route through Nitro to keep cookies on the web origin.
-  window.location.href = `${API_PREFIX}/auth/steam/openid/start?action=signup`
+  window.location.href = `${API_URL}${API_PREFIX}/auth/steam/openid/start?action=signup`
 }
 
 const standardSchema = z

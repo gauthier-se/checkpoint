@@ -9,6 +9,8 @@ import { updateOnboardingStep } from '@/queries/onboarding'
 import { apiFetch, isApiError } from '@/services/api'
 import { API_PREFIX } from '@/services/api-config'
 
+const API_URL = import.meta.env.VITE_API_URL ?? ''
+
 interface SteamStepProps {
   onNext: () => void
 }
@@ -49,7 +51,7 @@ export function SteamStep({ onNext }: SteamStepProps) {
 
   const handleLink = () => {
     setReturnToStep('steam')
-    window.location.href = `${API_PREFIX}/auth/steam/openid/start?action=link`
+    window.location.href = `${API_URL}${API_PREFIX}/auth/steam/openid/start?action=link`
   }
 
   const handleSkip = () => {

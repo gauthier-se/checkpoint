@@ -17,6 +17,8 @@ import { authQueryOptions, useAuth } from '@/hooks/use-auth'
 import { apiFetch, isApiError } from '@/services/api'
 import { API_PREFIX } from '@/services/api-config'
 
+const API_URL = import.meta.env.VITE_API_URL ?? ''
+
 const linkSchema = z.object({
   steamId: z
     .string()
@@ -75,7 +77,7 @@ export function SteamAccountCard() {
   }
 
   const handleOpenIdLink = () => {
-    window.location.href = `${API_PREFIX}/auth/steam/openid/start?action=link`
+    window.location.href = `${API_URL}${API_PREFIX}/auth/steam/openid/start?action=link`
   }
 
   const syncMutation = useMutation<SteamSyncSummary>({
