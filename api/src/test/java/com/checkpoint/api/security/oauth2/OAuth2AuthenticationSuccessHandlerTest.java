@@ -53,7 +53,7 @@ class OAuth2AuthenticationSuccessHandlerTest {
     void setUp() {
         handler = new OAuth2AuthenticationSuccessHandler(
                 userDetailsService, jwtService, authService,
-                FRONTEND_URL, false, 86400000L);
+                FRONTEND_URL, false, "", 86400000L);
         when(authentication.getPrincipal()).thenReturn(oAuth2User);
         when(oAuth2User.getAttributes()).thenReturn(Map.of("email", EMAIL));
     }

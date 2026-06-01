@@ -104,6 +104,7 @@ class AuthServiceImplTest {
                 twoFactorService,
                 steamSignupTokenService,
                 false,       // cookieSecure = false in tests
+                "",          // cookieDomain
                 86400000L,   // jwtExpirationMs = 24h
                 604800000L   // refreshExpirationMs = 7d
         );
