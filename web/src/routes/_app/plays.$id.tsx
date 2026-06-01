@@ -1,6 +1,11 @@
 import { Suspense, useEffect, useState } from 'react'
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  useSuspenseQuery,
+} from '@tanstack/react-query'
 import {
   ArrowLeft,
   Calendar,

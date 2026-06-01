@@ -61,7 +61,9 @@ export const Route = createFileRoute('/_app/news/')({
   }),
   loaderDeps: ({ search }) => search,
   loader: ({ deps, context }) => {
-    void context.queryClient.prefetchQuery(newsListQueryOptions(deps, PAGE_SIZE))
+    void context.queryClient.prefetchQuery(
+      newsListQueryOptions(deps, PAGE_SIZE),
+    )
   },
 })
 
@@ -76,7 +78,9 @@ function RouteComponent() {
 function NewsListContent() {
   const searchParams = Route.useSearch()
   const { page } = searchParams
-  const { data } = useSuspenseQuery(newsListQueryOptions(searchParams, PAGE_SIZE))
+  const { data } = useSuspenseQuery(
+    newsListQueryOptions(searchParams, PAGE_SIZE),
+  )
 
   const hasActiveFilters =
     searchParams.q != null ||
