@@ -1,5 +1,4 @@
 import { getRequestCookieServerFn } from '@/services/auth-server'
-import { logDebug } from '@/debug-cookie'
 import { API_PREFIX } from '@/services/api-config'
 
 /**

@@ -19,6 +19,12 @@ export const Route = createFileRoute('/_app/_protected')({
       return
     }
 
+    // On the server, fall through to the client-side auth check rather than
+    // issuing an immediate SSR redirect. This prevents false logouts caused by
+    // transient server-to-server fetch failures on hard refresh when the query
+    // cache is empty. ProtectedLayout handles the redirect on the client.
+    if (typeof window === 'undefined') return
+
     if (!user) {
       throw redirect({
         to: '/login',
