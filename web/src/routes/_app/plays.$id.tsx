@@ -1,5 +1,11 @@
+import { Suspense, useEffect, useState } from 'react'
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  useSuspenseQuery,
+} from '@tanstack/react-query'
 import {
   ArrowLeft,
   Calendar,
@@ -7,7 +13,6 @@ import {
   Flag,
   Gamepad2,
   Heart,
-  Loader2,
   Lock,
   MessageCircleWarning,
   MessageSquare,
@@ -16,7 +21,6 @@ import {
   Tag as TagIcon,
   Trash2,
 } from 'lucide-react'
-import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import type { PlayStatus } from '@/types/interaction'
 import type { ReviewSummary } from '@/types/play-log'
@@ -43,6 +47,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
+import { Skeleton } from '@/components/ui/skeleton'
 import { resolvePictureUrl } from '@/lib/picture'
 import {
   Tooltip,
@@ -53,13 +58,30 @@ import { isApiError } from '@/services/api'
 import { seo } from '@/lib/seo'
 
 export const Route = createFileRoute('/_app/plays/$id')({
-  component: PlayLogDetailPage,
+  component: RouteComponent,
+  pendingComponent: PlayLogDetailSkeleton,
+  pendingMs: 0,
   head: () => ({
     meta: seo({ title: 'Play log — Checkpoint' }),
   }),
-  loader: async ({ params: { id }, context }) => {
+  errorComponent: ({ error }) => {
+    const isForbidden = isApiError(error) && error.status === 403
+    return (
+      <main className="mx-auto max-w-7xl px-4 py-10">
+        <div className="flex flex-col items-center gap-3 py-12 text-center">
+          <Lock className="text-muted-foreground size-12" />
+          <p className="text-muted-foreground text-lg">
+            {isForbidden
+              ? 'This play log belongs to a private profile.'
+              : 'This play log does not exist or has been removed.'}
+          </p>
+        </div>
+      </main>
+    )
+  },
+  loader: ({ params: { id }, context }) => {
     if (typeof window === 'undefined') return
-    await context.queryClient.ensureQueryData(playLogDetailQueryOptions(id))
+    void context.queryClient.prefetchQuery(playLogDetailQueryOptions(id))
   },
 })
 
@@ -96,23 +118,27 @@ function formatDate(dateStr: string): string {
   })
 }
 
+function RouteComponent() {
+  return (
+    <Suspense fallback={<PlayLogDetailSkeleton />}>
+      <PlayLogDetailPage />
+    </Suspense>
+  )
+}
+
 function PlayLogDetailPage() {
   const { id } = Route.useParams()
   const queryClient = useQueryClient()
   const navigate = useNavigate()
   const { user } = useAuth()
-  const {
-    data: play,
-    isLoading,
-    error,
-  } = useQuery(playLogDetailQueryOptions(id))
+  const { data: play } = useSuspenseQuery(playLogDetailQueryOptions(id))
 
   // STAY_AWHILE_REVIEWS: signal that the viewer opened a review by someone
   // else. The server dedupes and ignores self-views.
   useEffect(() => {
-    if (!user || !play?.review || play.isOwner) return
+    if (!user || !play.review || play.isOwner) return
     void triggerReviewView(play.review.id)
-  }, [user, play?.review?.id, play?.isOwner])
+  }, [user, play.review?.id, play.isOwner])
 
   // Editing requires platforms list; we load the game detail lazily once the
   // owner opens the dialog. Keep it stable across renders.
@@ -124,8 +150,8 @@ function PlayLogDetailPage() {
   )
 
   const { data: gameDetail } = useQuery({
-    ...gameDetailQueryOptions(play?.videoGameId ?? ''),
-    enabled: !!play?.videoGameId && play.isOwner && isEditing,
+    ...gameDetailQueryOptions(play.videoGameId),
+    enabled: !!play.videoGameId && play.isOwner && isEditing,
   })
 
   const deleteMutation = useMutation({
@@ -133,17 +159,15 @@ function PlayLogDetailPage() {
     mutationFn: () => deletePlayLog(id),
     onSuccess: () => {
       toast.success('Play session deleted.')
-      if (play) {
-        void queryClient.invalidateQueries({
-          queryKey: ['users', play.username, 'profile'],
-        })
-        void queryClient.invalidateQueries({ queryKey: ['plays', 'me'] })
-        void navigate({
-          to: '/profile/$username',
-          params: { username: play.username },
-          search: { tab: 'reviews', page: 1 },
-        })
-      }
+      void queryClient.invalidateQueries({
+        queryKey: ['users', play.username, 'profile'],
+      })
+      void queryClient.invalidateQueries({ queryKey: ['plays', 'me'] })
+      void navigate({
+        to: '/profile/$username',
+        params: { username: play.username },
+        search: { tab: 'reviews', page: 1 },
+      })
     },
     onError: (err) => {
       toast.error(
@@ -151,32 +175,6 @@ function PlayLogDetailPage() {
       )
     },
   })
-
-  if (isLoading) {
-    return (
-      <main className="mx-auto max-w-7xl px-4 py-10">
-        <div className="flex min-h-[40vh] items-center justify-center">
-          <Loader2 className="size-6 animate-spin text-muted-foreground" />
-        </div>
-      </main>
-    )
-  }
-
-  if (error || !play) {
-    const isForbidden = isApiError(error) && error.status === 403
-    return (
-      <main className="mx-auto max-w-7xl px-4 py-10">
-        <div className="flex flex-col items-center gap-3 py-12 text-center">
-          <Lock className="text-muted-foreground size-12" />
-          <p className="text-muted-foreground text-lg">
-            {isForbidden
-              ? 'This play log belongs to a private profile.'
-              : 'This play log does not exist or has been removed.'}
-          </p>
-        </div>
-      </main>
-    )
-  }
 
   const authorInitials = play.username.slice(0, 2).toUpperCase()
   const createdDate = new Date(play.createdAt).toLocaleDateString('en-US', {
@@ -479,6 +477,56 @@ function PlayLogDetailPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+    </main>
+  )
+}
+
+function PlayLogDetailSkeleton() {
+  return (
+    <main className="mx-auto max-w-7xl px-4 py-10">
+      <Skeleton className="mb-6 h-4 w-48" />
+      <div className="grid gap-8 md:grid-cols-[260px_1fr] items-start">
+        {/* Left column */}
+        <div className="space-y-4">
+          <Skeleton className="aspect-3/4 w-full rounded-lg" />
+          <div className="space-y-2">
+            <Skeleton className="h-6 w-40" />
+            <Skeleton className="h-4 w-28" />
+          </div>
+        </div>
+        {/* Right column */}
+        <div className="space-y-6">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <Skeleton className="size-12 rounded-full" />
+              <div className="space-y-1.5">
+                <Skeleton className="h-5 w-28" />
+                <Skeleton className="h-3 w-36" />
+              </div>
+            </div>
+          </div>
+          <div className="flex gap-4">
+            <Skeleton className="h-5 w-20" />
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 rounded-lg bg-muted/30">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="space-y-2">
+                <Skeleton className="h-3 w-12" />
+                <Skeleton className="h-6 w-16" />
+              </div>
+            ))}
+          </div>
+          <Separator className="opacity-50" />
+          <div className="space-y-3">
+            <Skeleton className="h-6 w-20" />
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-3/4" />
+            </div>
+          </div>
+        </div>
+      </div>
     </main>
   )
 }

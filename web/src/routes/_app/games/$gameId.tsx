@@ -1,8 +1,8 @@
 import { Suspense } from 'react'
 
 import { Link, createFileRoute } from '@tanstack/react-router'
+import { useSuspenseQuery } from '@tanstack/react-query'
 import { Play, Star } from 'lucide-react'
-import type { GameDetail } from '@/types/game'
 import { ErrorPage } from '@/components/errors/error-page'
 import { FriendActivitySection } from '@/components/games/friend-activity-section'
 import { FriendReviewsSection } from '@/components/games/friend-reviews-section'
@@ -23,37 +23,33 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Separator } from '@/components/ui/separator'
+import { Skeleton } from '@/components/ui/skeleton'
 import { seo } from '@/lib/seo'
+import { gameDetailQueryOptions } from '@/queries/games'
 import { similarGamesQueryOptions } from '@/queries/catalog'
 import { listsContainingGameQueryOptions } from '@/queries/lists'
-import { apiFetch, isApiError } from '@/services/api'
+import { isApiError } from '@/services/api'
 
 export const Route = createFileRoute('/_app/games/$gameId')({
   component: RouteComponent,
-  loader: async ({ params: { gameId }, context }) => {
+  pendingComponent: GameDetailSkeleton,
+  pendingMs: 0,
+  loader: ({ params: { gameId }, context }) => {
     // We intentionally don't prefetch the social queries (friends activity, etc.)
     // here because background prefetching during SSR loses the request context
     // and causes the backend to see the request as anonymous. They will fetch
     // naturally on the client.
 
-    // Warm the lists + similar caches in the background so they're ready when
-    // their sections mount, but do NOT await them: both render inside their own
-    // <Suspense> boundaries (useSuspenseQuery) and are below the fold, so the
-    // main game fetch must not be blocked behind them.
+    // Warm all caches in the background — none are awaited so navigation is
+    // immediate and each section renders as its data arrives.
+    void context.queryClient.prefetchQuery(gameDetailQueryOptions(gameId))
     void context.queryClient.prefetchQuery(
       listsContainingGameQueryOptions(gameId, 0, 6),
     )
     void context.queryClient.prefetchQuery(similarGamesQueryOptions(gameId))
-
-    const res = await apiFetch(`/api/games/${gameId}`)
-    return res.json() as Promise<GameDetail>
   },
-  head: ({ loaderData }) => ({
-    meta: seo({
-      title: loaderData
-        ? `${loaderData.title} — Checkpoint`
-        : 'Game — Checkpoint',
-    }),
+  head: () => ({
+    meta: seo({ title: 'Game — Checkpoint' }),
   }),
   errorComponent: ({ error, reset }) => {
     if (isApiError(error) && error.status === 404) {
@@ -75,6 +71,15 @@ export const Route = createFileRoute('/_app/games/$gameId')({
   },
 })
 
+function RouteComponent() {
+  const { gameId } = Route.useParams()
+  return (
+    <Suspense fallback={<GameDetailSkeleton />}>
+      <GameDetailContent gameId={gameId} />
+    </Suspense>
+  )
+}
+
 function formatDuration(seconds: number | null): string {
   if (seconds == null) return 'N/A'
   const hours = Math.floor(seconds / 3600)
@@ -84,8 +89,8 @@ function formatDuration(seconds: number | null): string {
   return `${hours}h ${minutes}m`
 }
 
-function RouteComponent() {
-  const game = Route.useLoaderData()
+function GameDetailContent({ gameId }: { gameId: string }) {
+  const { data: game } = useSuspenseQuery(gameDetailQueryOptions(gameId))
 
   const hasTimeToBeat =
     game.timeToBeatNormally != null ||
@@ -130,7 +135,7 @@ function RouteComponent() {
                 className="w-full h-auto rounded-lg object-cover shadow-md"
               />
             ) : (
-              <div className="w-full aspect-[3/4] rounded-lg bg-muted flex items-center justify-center text-muted-foreground">
+              <div className="w-full aspect-3/4 rounded-lg bg-muted flex items-center justify-center text-muted-foreground">
                 No cover
               </div>
             )}
@@ -337,6 +342,38 @@ function RouteComponent() {
         <Suspense fallback={null}>
           <GameListsSection gameId={game.id} />
         </Suspense>
+      </div>
+    </div>
+  )
+}
+
+function GameDetailSkeleton() {
+  return (
+    <div className="relative isolate max-w-7xl mx-auto">
+      <div className="px-4 pt-24 pb-6">
+        <Skeleton className="h-4 w-28" />
+        <div className="mt-6 grid grid-cols-1 lg:grid-cols-4 gap-8">
+          <div className="lg:col-span-1">
+            <Skeleton className="aspect-3/4 w-full rounded-lg" />
+          </div>
+          <div className="lg:col-span-2 flex flex-col gap-4">
+            <Skeleton className="h-9 w-3/4" />
+            <Skeleton className="h-4 w-40" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-2/3" />
+            <div className="mt-4 flex gap-2 flex-wrap">
+              <Skeleton className="h-5 w-20 rounded-full" />
+              <Skeleton className="h-5 w-16 rounded-full" />
+              <Skeleton className="h-5 w-24 rounded-full" />
+            </div>
+          </div>
+          <div className="lg:col-span-1 flex flex-col gap-3">
+            <Skeleton className="h-10 w-full rounded-md" />
+            <Skeleton className="h-10 w-full rounded-md" />
+            <Skeleton className="h-10 w-full rounded-md" />
+          </div>
+        </div>
       </div>
     </div>
   )

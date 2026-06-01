@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { ArrowLeft, ExternalLink, Newspaper } from 'lucide-react'
@@ -6,24 +7,31 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
+import { Skeleton } from '@/components/ui/skeleton'
 import { resolvePictureUrl } from '@/lib/picture'
 import { seo } from '@/lib/seo'
 
 export const Route = createFileRoute('/_app/news/$newsId')({
   component: RouteComponent,
-  loader: async ({ params: { newsId }, context }) => {
-    return context.queryClient.ensureQueryData(newsDetailQueryOptions(newsId))
-  },
-  head: ({ loaderData }) => ({
-    meta: seo({
-      title: loaderData
-        ? `${loaderData.title} — Checkpoint`
-        : 'News — Checkpoint',
-    }),
+  pendingComponent: NewsDetailSkeleton,
+  pendingMs: 0,
+  head: () => ({
+    meta: seo({ title: 'News — Checkpoint' }),
   }),
+  loader: ({ params: { newsId }, context }) => {
+    void context.queryClient.prefetchQuery(newsDetailQueryOptions(newsId))
+  },
 })
 
 function RouteComponent() {
+  return (
+    <Suspense fallback={<NewsDetailSkeleton />}>
+      <NewsDetailContent />
+    </Suspense>
+  )
+}
+
+function NewsDetailContent() {
   const { newsId } = Route.useParams()
   const { data: article } = useSuspenseQuery(newsDetailQueryOptions(newsId))
 
@@ -120,6 +128,37 @@ function RouteComponent() {
 
           <div className="prose prose-neutral dark:prose-invert max-w-none whitespace-pre-wrap">
             {article.description}
+          </div>
+        </div>
+      </div>
+    </main>
+  )
+}
+
+function NewsDetailSkeleton() {
+  return (
+    <main className="mx-auto max-w-7xl px-4 py-10">
+      <Skeleton className="mb-6 h-4 w-28" />
+      <div className="grid md:grid-cols-3 gap-8 lg:gap-12 items-start">
+        <div className="md:col-span-1">
+          <Skeleton className="aspect-4/3 w-full rounded-lg" />
+        </div>
+        <div className="md:col-span-2 space-y-4">
+          <Skeleton className="h-9 w-full" />
+          <Skeleton className="h-9 w-2/3" />
+          <div className="flex items-center gap-3 mt-4">
+            <Skeleton className="size-8 rounded-full" />
+            <div className="space-y-1.5">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-3 w-32" />
+            </div>
+          </div>
+          <Separator className="my-6" />
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-3/4" />
           </div>
         </div>
       </div>

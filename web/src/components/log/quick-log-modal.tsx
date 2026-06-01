@@ -1,6 +1,6 @@
 import { useDeferredValue, useEffect, useState } from 'react'
 import { useMatch } from '@tanstack/react-router'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft, Gamepad2, Loader2, Search } from 'lucide-react'
 import type { GameDetail } from '@/types/game'
 import {
@@ -38,7 +38,13 @@ export function QuickLogModal({ open, onOpenChange }: QuickLogModalProps) {
     shouldThrow: false,
   })
 
-  const contextGame = gameMatch?.loaderData
+  const queryClient = useQueryClient()
+  const contextGameId = gameMatch?.params.gameId
+  const contextGame = contextGameId
+    ? queryClient.getQueryData<GameDetail>(
+        gameDetailQueryOptions(contextGameId).queryKey,
+      )
+    : undefined
 
   // Reset state when modal closes
   useEffect(() => {

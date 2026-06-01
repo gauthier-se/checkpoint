@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { List, Plus, Search } from 'lucide-react'
@@ -10,6 +10,7 @@ import { ListsGrid } from '@/components/lists/lists-grid'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
+import { Skeleton } from '@/components/ui/skeleton'
 import { useAuth } from '@/hooks/use-auth'
 
 import { seo } from '@/lib/seo'
@@ -24,15 +25,15 @@ export const Route = createFileRoute('/_app/lists/')({
     meta: seo({ title: 'Lists — Checkpoint' }),
   }),
   component: RouteComponent,
-  loader: async ({ context }) => {
-    await Promise.all([
-      context.queryClient.ensureQueryData(
-        popularListsQueryOptions(0, POPULAR_SIZE),
-      ),
-      context.queryClient.ensureQueryData(
-        searchListsQueryOptions(TRENDING_CRITERIA, TRENDING_SIZE),
-      ),
-    ])
+  pendingComponent: ListsIndexSkeleton,
+  pendingMs: 0,
+  loader: ({ context }) => {
+    void context.queryClient.prefetchQuery(
+      popularListsQueryOptions(0, POPULAR_SIZE),
+    )
+    void context.queryClient.prefetchQuery(
+      searchListsQueryOptions(TRENDING_CRITERIA, TRENDING_SIZE),
+    )
   },
 })
 
@@ -58,6 +59,14 @@ function DiscoverySection({
 }
 
 function RouteComponent() {
+  return (
+    <Suspense fallback={<ListsIndexSkeleton />}>
+      <ListsContent />
+    </Suspense>
+  )
+}
+
+function ListsContent() {
   const navigate = useNavigate({ from: '/lists' })
   const { user } = useAuth()
   const [searchInput, setSearchInput] = useState('')
@@ -142,6 +151,30 @@ function RouteComponent() {
           </div>
         )}
       </DiscoverySection>
+    </div>
+  )
+}
+
+function ListsIndexSkeleton() {
+  return (
+    <div className="max-w-7xl mx-auto">
+      <div className="mt-10 flex items-center justify-between gap-4 flex-wrap py-2">
+        <Skeleton className="h-7 w-16" />
+        <Skeleton className="h-9 w-56" />
+      </div>
+      {[5, 12].map((count) => (
+        <section key={count} className="my-8">
+          <div className="py-2">
+            <Skeleton className="h-5 w-32" />
+          </div>
+          <Separator />
+          <div className="grid grid-cols-1 gap-3 py-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {Array.from({ length: count > 6 ? 4 : count }).map((_, i) => (
+              <Skeleton key={i} className="h-24 w-full rounded-md" />
+            ))}
+          </div>
+        </section>
+      ))}
     </div>
   )
 }

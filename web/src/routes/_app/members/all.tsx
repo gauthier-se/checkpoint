@@ -1,47 +1,55 @@
-import { useDeferredValue, useEffect, useState } from 'react'
+import { Suspense, useDeferredValue, useEffect, useState } from 'react'
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useSuspenseQuery } from '@tanstack/react-query'
 import { ArrowLeft, Search, Users, X } from 'lucide-react'
-import type { MembersResponse, MembersSearchParams } from '@/types/member'
+import type { MembersSearchParams } from '@/types/member'
+import { browseMembersQueryOptions } from '@/queries/members'
 import { MemberCard } from '@/components/members/member-card'
 import { MembersPagination } from '@/components/members/members-pagination'
 import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
-import { apiFetch } from '@/services/api'
+import { Skeleton } from '@/components/ui/skeleton'
 
 import { seo } from '@/lib/seo'
 import { parseOptionalString } from '@/lib/search-params'
 
 const PAGE_SIZE = 20
 
-function buildBrowseUrl(params: MembersSearchParams): string {
-  const qs = new URLSearchParams()
-  qs.set('page', String(params.page - 1))
-  qs.set('size', String(PAGE_SIZE))
-  if (params.search) qs.set('search', params.search)
-  return `/api/members?${qs.toString()}`
-}
-
 export const Route = createFileRoute('/_app/members/all')({
   head: () => ({
     meta: seo({ title: 'All members — Checkpoint' }),
   }),
   component: RouteComponent,
+  pendingComponent: AllMembersSkeleton,
+  pendingMs: 0,
   validateSearch: (search: Record<string, unknown>): MembersSearchParams => ({
     page: Math.max(1, Math.floor(Number(search.page ?? 1)) || 1),
     search: parseOptionalString(search.search),
   }),
   loaderDeps: ({ search }) => search,
-  loader: async ({ deps }): Promise<MembersResponse> => {
-    const res = await apiFetch(buildBrowseUrl(deps))
-    return res.json()
+  loader: ({ deps, context }) => {
+    void context.queryClient.prefetchQuery(
+      browseMembersQueryOptions(deps.page - 1, PAGE_SIZE, deps.search),
+    )
   },
 })
 
 function RouteComponent() {
-  const data = Route.useLoaderData()
+  return (
+    <Suspense fallback={<AllMembersSkeleton />}>
+      <AllMembersContent />
+    </Suspense>
+  )
+}
+
+function AllMembersContent() {
   const searchParams = Route.useSearch()
   const { page, search: urlSearch } = searchParams
   const navigate = useNavigate({ from: '/members/all' })
+
+  const { data } = useSuspenseQuery(
+    browseMembersQueryOptions(page - 1, PAGE_SIZE, urlSearch),
+  )
 
   const [inputValue, setInputValue] = useState(urlSearch ?? '')
   const deferredQuery = useDeferredValue(inputValue)
@@ -139,6 +147,29 @@ function RouteComponent() {
           </p>
         </div>
       )}
+    </div>
+  )
+}
+
+function AllMembersSkeleton() {
+  return (
+    <div className="max-w-7xl mx-auto">
+      <div className="mt-10">
+        <Skeleton className="h-4 w-20" />
+      </div>
+      <div className="mt-4 py-2 flex items-center justify-between gap-4">
+        <div className="space-y-1.5">
+          <Skeleton className="h-7 w-32" />
+          <Skeleton className="h-4 w-24" />
+        </div>
+        <Skeleton className="h-9 w-52" />
+      </div>
+      <Separator />
+      <div className="grid grid-cols-2 gap-4 py-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+        {Array.from({ length: 10 }).map((_, i) => (
+          <Skeleton key={i} className="h-24 w-full rounded-md" />
+        ))}
+      </div>
     </div>
   )
 }

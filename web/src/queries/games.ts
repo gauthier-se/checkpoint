@@ -1,5 +1,6 @@
 import { queryOptions } from '@tanstack/react-query'
 import type { Priority } from '@/types/collection'
+import type { GameDetail } from '@/types/game'
 import type {
   GameInteractionStatusDto,
   GamePlayLogRequestDto,
@@ -8,6 +9,17 @@ import type {
 } from '@/types/interaction'
 import type { UserGameRequest } from '@/types/library'
 import { apiFetch, isApiError } from '@/services/api'
+
+export function gameDetailQueryOptions(gameId: string) {
+  return queryOptions({
+    queryKey: ['games', gameId, 'detail'],
+    queryFn: async (): Promise<GameDetail> => {
+      const res = await apiFetch(`/api/games/${gameId}`)
+      return res.json()
+    },
+    staleTime: 60 * 1000,
+  })
+}
 
 export function gameInteractionStatusQueryOptions(gameId: string) {
   return queryOptions({

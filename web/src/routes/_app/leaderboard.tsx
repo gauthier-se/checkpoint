@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { Trophy } from 'lucide-react'
@@ -7,6 +8,7 @@ import { LeaderboardTable } from '@/components/leaderboard/leaderboard-table'
 import { Button } from '@/components/ui/button'
 import { ButtonGroup } from '@/components/ui/button-group'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { Skeleton } from '@/components/ui/skeleton'
 import { useAuth } from '@/hooks/use-auth'
 
 import { seo } from '@/lib/seo'
@@ -23,18 +25,29 @@ export const Route = createFileRoute('/_app/leaderboard')({
     meta: seo({ title: 'Leaderboard — Checkpoint' }),
   }),
   component: LeaderboardPage,
+  pendingComponent: LeaderboardSkeleton,
+  pendingMs: 0,
   validateSearch: (search: Record<string, unknown>): LeaderboardSearch => ({
     sortBy: search.sortBy === 'level' ? 'level' : 'xp',
     following: search.following === true || search.following === 'true',
   }),
   loaderDeps: ({ search }) => search,
-  loader: ({ deps, context }) =>
-    context.queryClient.ensureQueryData(
+  loader: ({ deps, context }) => {
+    void context.queryClient.prefetchQuery(
       leaderboardQueryOptions(deps.sortBy, LEADERBOARD_LIMIT, deps.following),
-    ),
+    )
+  },
 })
 
 function LeaderboardPage() {
+  return (
+    <Suspense fallback={<LeaderboardSkeleton />}>
+      <LeaderboardContent />
+    </Suspense>
+  )
+}
+
+function LeaderboardContent() {
   const { sortBy, following } = Route.useSearch()
   const navigate = useNavigate({ from: '/leaderboard' })
   const { user } = useAuth()
@@ -137,6 +150,37 @@ function LeaderboardPage() {
               }
             />
           </ScrollArea>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function LeaderboardSkeleton() {
+  return (
+    <div className="mx-auto max-w-5xl px-4 py-8">
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-8">
+        <aside className="space-y-6 lg:w-64 lg:shrink-0">
+          <div className="flex items-start gap-3">
+            <Skeleton className="size-7 shrink-0 rounded-full" />
+            <div className="space-y-2">
+              <Skeleton className="h-7 w-36" />
+              <Skeleton className="h-4 w-52" />
+            </div>
+          </div>
+          <div className="space-y-3">
+            <Skeleton className="h-4 w-16" />
+            <Skeleton className="h-8 w-full rounded-md" />
+          </div>
+        </aside>
+        <div className="min-w-0 flex-1">
+          <div className="rounded-lg border">
+            <div className="space-y-1 p-2">
+              {Array.from({ length: 15 }).map((_, i) => (
+                <Skeleton key={i} className="h-12 w-full rounded-md" />
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </div>

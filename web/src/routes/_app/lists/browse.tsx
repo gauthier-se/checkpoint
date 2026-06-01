@@ -1,17 +1,18 @@
+import { Suspense } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
+import { useSuspenseQuery } from '@tanstack/react-query'
 import { List } from 'lucide-react'
 import type {
   GameListSortOption,
   GameListVisibility,
-  GameListsResponse,
   GameListsSearchParams,
 } from '@/types/list'
-import { buildListsUrl } from '@/queries/lists'
+import { searchListsQueryOptions } from '@/queries/lists'
 import { ListsFilters } from '@/components/lists/lists-filters'
 import { ListsGrid } from '@/components/lists/lists-grid'
 import { ListsPagination } from '@/components/lists/lists-pagination'
 import { Separator } from '@/components/ui/separator'
-import { apiFetch } from '@/services/api'
+import { Skeleton } from '@/components/ui/skeleton'
 
 import { seo } from '@/lib/seo'
 import { parseTrimmedString } from '@/lib/search-params'
@@ -50,6 +51,8 @@ export const Route = createFileRoute('/_app/lists/browse')({
     meta: seo({ title: 'Browse lists — Checkpoint' }),
   }),
   component: RouteComponent,
+  pendingComponent: BrowseListsSkeleton,
+  pendingMs: 0,
   validateSearch: (search: Record<string, unknown>): GameListsSearchParams => ({
     page: Math.max(1, Math.floor(Number(search.page ?? 1)) || 1),
     q: parseTrimmedString(search.q),
@@ -59,16 +62,27 @@ export const Route = createFileRoute('/_app/lists/browse')({
     minGames: parseMinGames(search.minGames),
   }),
   loaderDeps: ({ search }) => search,
-  loader: async ({ deps }): Promise<GameListsResponse> => {
-    const res = await apiFetch(buildListsUrl(deps, PAGE_SIZE))
-    return res.json()
+  loader: ({ deps, context }) => {
+    void context.queryClient.prefetchQuery(
+      searchListsQueryOptions(deps, PAGE_SIZE),
+    )
   },
 })
 
 function RouteComponent() {
-  const data = Route.useLoaderData()
+  return (
+    <Suspense fallback={<BrowseListsSkeleton />}>
+      <BrowseListsContent />
+    </Suspense>
+  )
+}
+
+function BrowseListsContent() {
   const searchParams = Route.useSearch()
   const { page } = searchParams
+  const { data } = useSuspenseQuery(
+    searchListsQueryOptions(searchParams, PAGE_SIZE),
+  )
 
   const hasActiveFilters =
     searchParams.q != null ||
@@ -114,6 +128,30 @@ function RouteComponent() {
             </p>
           </div>
         )}
+      </div>
+    </div>
+  )
+}
+
+function BrowseListsSkeleton() {
+  return (
+    <div className="max-w-7xl mx-auto">
+      <div className="mt-10">
+        <Skeleton className="h-7 w-36" />
+      </div>
+      <div className="my-8">
+        <div className="py-2">
+          <Skeleton className="h-5 w-20" />
+        </div>
+        <Separator />
+        <div className="py-4">
+          <Skeleton className="h-9 w-full" />
+        </div>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <Skeleton key={i} className="h-24 w-full rounded-md" />
+          ))}
+        </div>
       </div>
     </div>
   )

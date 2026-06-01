@@ -1,19 +1,20 @@
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import {
   Link,
   createFileRoute,
   redirect,
   useNavigate,
 } from '@tanstack/react-router'
-import { useQuery } from '@tanstack/react-query'
+import { useSuspenseQueries } from '@tanstack/react-query'
 import { Search } from 'lucide-react'
-import type { Game } from '@/types/game'
 import type { ReviewCard as ReviewCardType } from '@/types/review'
 import { GameGrid } from '@/components/games/game-grid'
 import { CatalogFilters } from '@/components/games/catalog-filters'
 import { DiscoverySection } from '@/components/games/discovery-section'
 import { ReviewCard } from '@/components/reviews/review-card'
 import { Input } from '@/components/ui/input'
+import { Separator } from '@/components/ui/separator'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   genresQueryOptions,
   mostBackloggedGamesQueryOptions,
@@ -34,7 +35,6 @@ import {
 } from '@/lib/search-params'
 
 const DISCOVERY_SIZE = 7
-const REVIEW_DISCOVERY_SIZE = 8
 
 export type GamesSearchParams = {
   page?: number
@@ -45,6 +45,8 @@ export const Route = createFileRoute('/_app/games/')({
     meta: seo({ title: 'Games — Checkpoint' }),
   }),
   component: RouteComponent,
+  pendingComponent: GamesIndexSkeleton,
+  pendingMs: 0,
   validateSearch: (search: Record<string, unknown>): GamesSearchParams => ({
     page: parseOptionalNumber(search.page),
   }),
@@ -88,55 +90,51 @@ export const Route = createFileRoute('/_app/games/')({
       throw redirect({ to: '/games/filtered', search: forwardable })
     }
   },
-  loader: async ({
-    context,
-  }): Promise<{
-    trending: Array<Game>
-    popularReviews: Array<ReviewCardType>
-    recentReviews: Array<ReviewCardType>
-    mostBacklogged: Array<Game>
-    mostWishlisted: Array<Game>
-  }> => {
-    const [
-      trending,
-      popularReviews,
-      recentReviews,
-      mostBacklogged,
-      mostWishlisted,
-    ] = await Promise.all([
-      context.queryClient.ensureQueryData(trendingGamesQueryOptions()),
-      context.queryClient.ensureQueryData(
-        popularReviewsQueryOptions(REVIEW_DISCOVERY_SIZE),
-      ),
-      context.queryClient.ensureQueryData(
-        recentReviewsQueryOptions(REVIEW_DISCOVERY_SIZE),
-      ),
-      context.queryClient.ensureQueryData(
-        mostBackloggedGamesQueryOptions(DISCOVERY_SIZE),
-      ),
-      context.queryClient.ensureQueryData(
-        mostWishlistedGamesQueryOptions(DISCOVERY_SIZE),
-      ),
-      context.queryClient.ensureQueryData(genresQueryOptions()),
-      context.queryClient.ensureQueryData(platformsQueryOptions()),
-    ])
-    return {
-      trending,
-      popularReviews,
-      recentReviews,
-      mostBacklogged,
-      mostWishlisted,
-    }
+  loader: ({ context }) => {
+    void context.queryClient.prefetchQuery(trendingGamesQueryOptions())
+    void context.queryClient.prefetchQuery(
+      popularReviewsQueryOptions(DISCOVERY_SIZE),
+    )
+    void context.queryClient.prefetchQuery(
+      recentReviewsQueryOptions(DISCOVERY_SIZE),
+    )
+    void context.queryClient.prefetchQuery(
+      mostBackloggedGamesQueryOptions(DISCOVERY_SIZE),
+    )
+    void context.queryClient.prefetchQuery(
+      mostWishlistedGamesQueryOptions(DISCOVERY_SIZE),
+    )
+    void context.queryClient.prefetchQuery(genresQueryOptions())
+    void context.queryClient.prefetchQuery(platformsQueryOptions())
   },
 })
 
 function RouteComponent() {
-  const data = Route.useLoaderData()
+  return (
+    <Suspense fallback={<GamesIndexSkeleton />}>
+      <GamesIndexContent />
+    </Suspense>
+  )
+}
+
+function GamesIndexContent() {
   const navigate = useNavigate({ from: '/games' })
 
-  // Keep loader-prefetched data live so likes/comments stay fresh on revisit.
-  useQuery(popularReviewsQueryOptions(REVIEW_DISCOVERY_SIZE))
-  useQuery(recentReviewsQueryOptions(REVIEW_DISCOVERY_SIZE))
+  const [
+    { data: trending },
+    { data: popularReviews },
+    { data: recentReviews },
+    { data: mostBacklogged },
+    { data: mostWishlisted },
+  ] = useSuspenseQueries({
+    queries: [
+      trendingGamesQueryOptions(),
+      popularReviewsQueryOptions(DISCOVERY_SIZE),
+      recentReviewsQueryOptions(DISCOVERY_SIZE),
+      mostBackloggedGamesQueryOptions(DISCOVERY_SIZE),
+      mostWishlistedGamesQueryOptions(DISCOVERY_SIZE),
+    ],
+  })
 
   const [searchInput, setSearchInput] = useState('')
 
@@ -180,8 +178,8 @@ function RouteComponent() {
           </Link>
         }
       >
-        {data.trending.length > 0 ? (
-          <GameGrid games={data.trending} columns={7} />
+        {trending.length > 0 ? (
+          <GameGrid games={trending} columns={7} />
         ) : (
           <p className="py-8 text-center text-muted-foreground">
             No trending games yet.
@@ -190,8 +188,8 @@ function RouteComponent() {
       </DiscoverySection>
 
       <DiscoverySection title="Most backlogged">
-        {data.mostBacklogged.length > 0 ? (
-          <GameGrid games={data.mostBacklogged} columns={7} />
+        {mostBacklogged.length > 0 ? (
+          <GameGrid games={mostBacklogged} columns={7} />
         ) : (
           <p className="py-8 text-center text-muted-foreground">
             No games backlogged yet.
@@ -200,8 +198,8 @@ function RouteComponent() {
       </DiscoverySection>
 
       <DiscoverySection title="Most wishlisted">
-        {data.mostWishlisted.length > 0 ? (
-          <GameGrid games={data.mostWishlisted} columns={7} />
+        {mostWishlisted.length > 0 ? (
+          <GameGrid games={mostWishlisted} columns={7} />
         ) : (
           <p className="py-8 text-center text-muted-foreground">
             No games wishlisted yet.
@@ -210,8 +208,8 @@ function RouteComponent() {
       </DiscoverySection>
 
       <DiscoverySection title="Popular reviews">
-        {data.popularReviews.length > 0 ? (
-          <ReviewCardGrid reviews={data.popularReviews} />
+        {popularReviews.length > 0 ? (
+          <ReviewCardGrid reviews={popularReviews} />
         ) : (
           <p className="py-8 text-center text-muted-foreground">
             No popular reviews yet.
@@ -220,8 +218,8 @@ function RouteComponent() {
       </DiscoverySection>
 
       <DiscoverySection title="Just reviewed">
-        {data.recentReviews.length > 0 ? (
-          <ReviewCardGrid reviews={data.recentReviews} />
+        {recentReviews.length > 0 ? (
+          <ReviewCardGrid reviews={recentReviews} />
         ) : (
           <p className="py-8 text-center text-muted-foreground">
             No reviews yet.
@@ -237,6 +235,61 @@ function ReviewCardGrid({ reviews }: { reviews: Array<ReviewCardType> }) {
     <div className="grid grid-cols-1 gap-3 py-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {reviews.map((review) => (
         <ReviewCard key={review.id} review={review} />
+      ))}
+    </div>
+  )
+}
+
+function GameCoversRowSkeleton() {
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3 py-4">
+      {Array.from({ length: 7 }).map((_, i) => (
+        <Skeleton key={i} className="aspect-3/4 w-full rounded-sm" />
+      ))}
+    </div>
+  )
+}
+
+function ReviewCardsRowSkeleton() {
+  return (
+    <div className="grid grid-cols-1 gap-3 py-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <Skeleton key={i} className="h-32 w-full rounded-md" />
+      ))}
+    </div>
+  )
+}
+
+function GamesIndexSkeleton() {
+  return (
+    <div className="max-w-7xl mx-auto">
+      <div className="mt-10 py-2 flex items-center justify-between gap-4 flex-wrap">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-8 w-48" />
+      </div>
+      {(
+        [
+          'Popular games this week',
+          'Most backlogged',
+          'Most wishlisted',
+        ] as const
+      ).map((title) => (
+        <section key={title} className="my-8">
+          <div className="flex items-center justify-between py-2">
+            <Skeleton className="h-5 w-48" />
+          </div>
+          <Separator />
+          <GameCoversRowSkeleton />
+        </section>
+      ))}
+      {(['Popular reviews', 'Just reviewed'] as const).map((title) => (
+        <section key={title} className="my-8">
+          <div className="py-2">
+            <Skeleton className="h-5 w-36" />
+          </div>
+          <Separator />
+          <ReviewCardsRowSkeleton />
+        </section>
       ))}
     </div>
   )

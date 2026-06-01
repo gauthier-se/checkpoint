@@ -1,17 +1,18 @@
+import { Suspense } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
+import { useSuspenseQuery } from '@tanstack/react-query'
 import { Newspaper } from 'lucide-react'
 import type {
   NewsListSearchParams,
-  NewsResponse,
   NewsSortOption,
   NewsSource,
 } from '@/types/news'
+import { newsListQueryOptions } from '@/queries/news'
 import { NewsCard } from '@/components/news/news-card'
 import { NewsFilters } from '@/components/news/news-filters'
 import { NewsPagination } from '@/components/news/news-pagination'
 import { Separator } from '@/components/ui/separator'
-import { apiFetch } from '@/services/api'
-import { buildNewsUrl } from '@/queries/news'
+import { Skeleton } from '@/components/ui/skeleton'
 
 import { seo } from '@/lib/seo'
 import { parseTrimmedString } from '@/lib/search-params'
@@ -46,6 +47,8 @@ export const Route = createFileRoute('/_app/news/')({
     meta: seo({ title: 'News — Checkpoint' }),
   }),
   component: RouteComponent,
+  pendingComponent: NewsIndexSkeleton,
+  pendingMs: 0,
   validateSearch: (search: Record<string, unknown>): NewsListSearchParams => ({
     page: Math.max(1, Math.floor(Number(search.page ?? 1)) || 1),
     q: parseTrimmedString(search.q),
@@ -57,16 +60,27 @@ export const Route = createFileRoute('/_app/news/')({
     sort: parseSort(search.sort),
   }),
   loaderDeps: ({ search }) => search,
-  loader: async ({ deps }): Promise<NewsResponse> => {
-    const res = await apiFetch(buildNewsUrl(deps, PAGE_SIZE))
-    return res.json()
+  loader: ({ deps, context }) => {
+    void context.queryClient.prefetchQuery(
+      newsListQueryOptions(deps, PAGE_SIZE),
+    )
   },
 })
 
 function RouteComponent() {
-  const data = Route.useLoaderData()
+  return (
+    <Suspense fallback={<NewsIndexSkeleton />}>
+      <NewsListContent />
+    </Suspense>
+  )
+}
+
+function NewsListContent() {
   const searchParams = Route.useSearch()
   const { page } = searchParams
+  const { data } = useSuspenseQuery(
+    newsListQueryOptions(searchParams, PAGE_SIZE),
+  )
 
   const hasActiveFilters =
     searchParams.q != null ||
@@ -118,6 +132,42 @@ function RouteComponent() {
             </p>
           </div>
         )}
+      </div>
+    </div>
+  )
+}
+
+function NewsIndexSkeleton() {
+  return (
+    <div className="max-w-7xl mx-auto">
+      <div className="mt-10">
+        <Skeleton className="h-7 w-16" />
+      </div>
+      <div className="my-8">
+        <div className="py-2">
+          <Skeleton className="h-5 w-32" />
+        </div>
+        <Separator />
+        <div className="py-4">
+          <Skeleton className="h-9 w-full" />
+        </div>
+        <div className="grid grid-cols-1 gap-4 py-4 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="space-y-3 rounded-lg border p-4">
+              <Skeleton className="aspect-video w-full rounded-md" />
+              <div className="space-y-1.5">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-3 w-full" />
+                <Skeleton className="h-3 w-2/3" />
+              </div>
+              <div className="flex items-center gap-2">
+                <Skeleton className="size-5 rounded-full" />
+                <Skeleton className="h-3 w-24" />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   )
