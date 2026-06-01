@@ -6,6 +6,8 @@ import java.util.Locale;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -42,22 +44,42 @@ public class LeaderboardController {
     /**
      * Returns the leaderboard top-N.
      *
-     * @param sortBy ranking criterion: {@code xp} (default) or {@code level}
-     * @param limit  number of entries to return, 1..100 (default 50)
+     * <p>When {@code following=true} and the request is authenticated, the
+     * leaderboard is restricted to the users the viewer follows (ranked among
+     * themselves). When {@code following=true} but the request is anonymous, an
+     * empty list is returned.</p>
+     *
+     * @param sortBy      ranking criterion: {@code xp} (default) or {@code level}
+     * @param limit       number of entries to return, 1..100 (default 50)
+     * @param following   when {@code true}, restrict to users the viewer follows
+     * @param userDetails the authenticated user, or {@code null} if anonymous
      * @return the ordered list of leaderboard entries
      */
     @GetMapping
     public ResponseEntity<List<LeaderboardEntryDto>> getLeaderboard(
             @RequestParam(defaultValue = "xp") String sortBy,
-            @RequestParam(defaultValue = "" + DEFAULT_LIMIT) int limit) {
+            @RequestParam(defaultValue = "" + DEFAULT_LIMIT) int limit,
+            @RequestParam(defaultValue = "false") boolean following,
+            @AuthenticationPrincipal UserDetails userDetails) {
 
-        log.info("GET /api/v1/leaderboard - sortBy: {}, limit: {}", sortBy, limit);
+        log.info("GET /api/v1/leaderboard - sortBy: {}, limit: {}, following: {}, viewer: {}",
+                sortBy, limit, following,
+                userDetails != null ? userDetails.getUsername() : "anonymous");
 
         LeaderboardSortBy parsed = parseSortBy(sortBy);
         if (limit < MIN_LIMIT || limit > MAX_LIMIT) {
             throw new IllegalArgumentException(
                     "limit must be between " + MIN_LIMIT + " and " + MAX_LIMIT);
         }
+
+        if (following) {
+            if (userDetails == null) {
+                return ResponseEntity.ok(List.of());
+            }
+            return ResponseEntity.ok(leaderboardService.getFollowingLeaderboard(
+                    userDetails.getUsername(), parsed, limit));
+        }
+
         return ResponseEntity.ok(leaderboardService.getLeaderboard(parsed, limit));
     }
 

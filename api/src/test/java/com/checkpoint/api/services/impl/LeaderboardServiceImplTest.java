@@ -1,12 +1,15 @@
 package com.checkpoint.api.services.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.jupiter.api.DisplayName;
@@ -105,5 +108,54 @@ class LeaderboardServiceImplTest {
                 .thenReturn(new PageImpl<>(List.of()));
 
         assertThat(service.getLeaderboard(LeaderboardSortBy.XP, 50)).isEmpty();
+    }
+
+    @Test
+    @DisplayName("following XP sort resolves the viewer and ranks followed users")
+    void followingXpSort_assignsRanks() {
+        User viewer = user("viewer", 1, 0);
+        when(userRepository.findByEmail("viewer@example.com"))
+                .thenReturn(Optional.of(viewer));
+        Page<User> page = new PageImpl<>(List.of(
+                user("alpha", 5, 9000),
+                user("bravo", 4, 7000)));
+        when(userRepository.findFollowingLeaderboardByXp(eq(viewer.getId()), any(Pageable.class)))
+                .thenReturn(page);
+
+        List<LeaderboardEntryDto> result =
+                service.getFollowingLeaderboard("viewer@example.com", LeaderboardSortBy.XP, 10);
+
+        assertThat(result).hasSize(2);
+        assertThat(result.get(0).rank()).isEqualTo(1);
+        assertThat(result.get(0).pseudo()).isEqualTo("alpha");
+        assertThat(result.get(1).rank()).isEqualTo(2);
+        verify(userRepository, never()).findFollowingLeaderboardByLevel(any(), any());
+    }
+
+    @Test
+    @DisplayName("following LEVEL sort calls findFollowingLeaderboardByLevel")
+    void followingLevelSort_callsLevelRepository() {
+        User viewer = user("viewer", 1, 0);
+        when(userRepository.findByEmail("viewer@example.com"))
+                .thenReturn(Optional.of(viewer));
+        when(userRepository.findFollowingLeaderboardByLevel(eq(viewer.getId()), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(user("alpha", 99, 100))));
+
+        List<LeaderboardEntryDto> result =
+                service.getFollowingLeaderboard("viewer@example.com", LeaderboardSortBy.LEVEL, 5);
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).level()).isEqualTo(99);
+        verify(userRepository, never()).findFollowingLeaderboardByXp(any(), any());
+    }
+
+    @Test
+    @DisplayName("following leaderboard throws when the viewer email is unknown")
+    void followingUnknownViewer_throws() {
+        when(userRepository.findByEmail("ghost@example.com")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() ->
+                service.getFollowingLeaderboard("ghost@example.com", LeaderboardSortBy.XP, 10))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 }

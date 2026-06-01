@@ -1,0 +1,60 @@
+meta {
+  name: Get Following Leaderboard
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/v1/leaderboard?sortBy=xp&limit=50&following=true
+  body: none
+  auth: bearer
+}
+
+params:query {
+  sortBy: xp
+  limit: 50
+  following: true
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  # Get Following Leaderboard
+
+  Returns a leaderboard restricted to the users the authenticated viewer
+  follows, ranked among themselves. Banned users are excluded.
+
+  ## Authentication
+
+  Requires a valid JWT token when `following=true`. If the request is anonymous
+  while `following=true`, an empty list is returned.
+
+  ## Query Parameters
+
+  | Parameter | Type    | Default | Description                                  |
+  |-----------|---------|---------|----------------------------------------------|
+  | sortBy    | String  | xp      | Ranking criterion: `xp` or `level`           |
+  | limit     | Integer | 50      | Number of entries to return (1..100)         |
+  | following | Boolean | false   | When `true`, restrict to followed users only |
+
+  ## Response (200 OK)
+
+  ```json
+  [
+    {
+      "rank": 1,
+      "id": "uuid",
+      "pseudo": "friend",
+      "picture": "https://...",
+      "level": 42,
+      "xpPoint": 99999
+    }
+  ]
+  ```
+
+  ## Errors
+
+  - `400 Bad Request` when `limit` is outside `[1, 100]` or `sortBy` is not `xp`/`level`.
+}

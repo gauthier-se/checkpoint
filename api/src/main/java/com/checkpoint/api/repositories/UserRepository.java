@@ -238,6 +238,30 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     Page<User> findLeaderboardByLevel(Pageable pageable);
 
     /**
+     * Returns the non-banned users that the given user follows, ordered by XP descending.
+     * Used by the "following" leaderboard filter.
+     *
+     * @param userId   the viewer's ID
+     * @param pageable pagination parameters (the caller controls the limit)
+     * @return a page of followed users ranked by XP
+     */
+    @Query("SELECT f FROM User u JOIN u.following f "
+            + "WHERE u.id = :userId AND f.banned = false ORDER BY f.xpPoint DESC")
+    Page<User> findFollowingLeaderboardByXp(@Param("userId") UUID userId, Pageable pageable);
+
+    /**
+     * Returns the non-banned users that the given user follows, ordered by level descending,
+     * breaking ties on XP descending. Used by the "following" leaderboard filter.
+     *
+     * @param userId   the viewer's ID
+     * @param pageable pagination parameters (the caller controls the limit)
+     * @return a page of followed users ranked by level, then XP
+     */
+    @Query("SELECT f FROM User u JOIN u.following f "
+            + "WHERE u.id = :userId AND f.banned = false ORDER BY f.level DESC, f.xpPoint DESC")
+    Page<User> findFollowingLeaderboardByLevel(@Param("userId") UUID userId, Pageable pageable);
+
+    /**
      * Finds the IDs of all users that the given user follows.
      *
      * @param userId the user's ID

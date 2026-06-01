@@ -1,6 +1,7 @@
 package com.checkpoint.api.services.impl;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 import org.slf4j.Logger;
@@ -42,7 +43,30 @@ public class LeaderboardServiceImpl implements LeaderboardService {
             case LEVEL -> userRepository.findLeaderboardByLevel(pageable);
         };
 
-        List<User> users = page.getContent();
+        return rankedDtos(page.getContent());
+    }
+
+    @Override
+    public List<LeaderboardEntryDto> getFollowingLeaderboard(
+            String viewerEmail, LeaderboardSortBy sortBy, int limit) {
+        log.info("Fetching following leaderboard (viewer={}, sortBy={}, limit={})",
+                viewerEmail, sortBy, limit);
+
+        UUID viewerId = userRepository.findByEmail(viewerEmail)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "User not found with email: " + viewerEmail))
+                .getId();
+
+        Pageable pageable = PageRequest.of(0, limit);
+        Page<User> page = switch (sortBy) {
+            case XP -> userRepository.findFollowingLeaderboardByXp(viewerId, pageable);
+            case LEVEL -> userRepository.findFollowingLeaderboardByLevel(viewerId, pageable);
+        };
+
+        return rankedDtos(page.getContent());
+    }
+
+    private List<LeaderboardEntryDto> rankedDtos(List<User> users) {
         return IntStream.range(0, users.size())
                 .mapToObj(i -> toDto(i + 1, users.get(i)))
                 .toList();

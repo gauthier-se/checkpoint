@@ -7,6 +7,8 @@ import { resolvePictureUrl } from '@/lib/picture'
 interface LeaderboardTableProps {
   entries: Array<LeaderboardEntry>
   sortBy: LeaderboardSortBy
+  /** Overrides the empty-state copy (e.g. for the "Following" filter). */
+  emptyMessage?: string
 }
 
 function rankClass(rank: number): string {
@@ -16,17 +18,21 @@ function rankClass(rank: number): string {
   return 'text-muted-foreground'
 }
 
-export function LeaderboardTable({ entries, sortBy }: LeaderboardTableProps) {
+export function LeaderboardTable({
+  entries,
+  sortBy,
+  emptyMessage,
+}: LeaderboardTableProps) {
   if (entries.length === 0) {
     return (
       <p className="py-10 text-center text-muted-foreground">
-        No players to show yet.
+        {emptyMessage ?? 'No players to show yet.'}
       </p>
     )
   }
 
   return (
-    <ul className="divide-y rounded-lg border">
+    <ul className="divide-y">
       {entries.map((entry) => {
         const initials = entry.pseudo.slice(0, 2).toUpperCase()
         return (

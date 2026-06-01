@@ -66,12 +66,12 @@ describe('OnboardingChecklist', () => {
     expect(container).toBeEmptyDOMElement()
   })
 
-  it('shows progress as "X of 8 complete" with the right count', () => {
+  it('shows progress as "X of 8 steps complete" with the right count', () => {
     mockUser = baseUser({
       onboardingSteps: { welcome: true, picture: true, bio: false },
     })
     renderWithProviders(<OnboardingChecklist />)
-    expect(screen.getByText('2 of 8 complete')).toBeInTheDocument()
+    expect(screen.getByText('2 of 8 steps complete')).toBeInTheDocument()
   })
 
   it('lists all step labels', () => {

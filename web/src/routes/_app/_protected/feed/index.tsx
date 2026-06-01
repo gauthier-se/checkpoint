@@ -82,7 +82,11 @@ function RouteComponent() {
           </h2>
         </div>
         <Separator />
-        <FeedTabs value={type ?? 'all'} onValueChange={handleTabChange} />
+        <FeedTabs
+          value={type ?? 'all'}
+          onValueChange={handleTabChange}
+          className="mt-4"
+        />
 
         {!data ? (
           <FeedListSkeleton />

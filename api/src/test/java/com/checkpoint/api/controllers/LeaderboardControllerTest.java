@@ -4,6 +4,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.never;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -17,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -130,6 +132,33 @@ class LeaderboardControllerTest {
         void rejectsInvalidSortBy() throws Exception {
             mockMvc.perform(get("/api/v1/leaderboard").param("sortBy", "garbage"))
                     .andExpect(status().isBadRequest());
+
+            verifyNoInteractions(leaderboardService);
+        }
+
+        @Test
+        @DisplayName("following=true with an authenticated viewer calls the following service")
+        @WithMockUser(username = "viewer@example.com")
+        void followingWithAuth_callsFollowingService() throws Exception {
+            when(leaderboardService.getFollowingLeaderboard(
+                    eq("viewer@example.com"), eq(LeaderboardSortBy.XP), eq(50)))
+                    .thenReturn(List.of(entry(1, "friend", 12, 8000)));
+
+            mockMvc.perform(get("/api/v1/leaderboard").param("following", "true"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$[0].pseudo").value("friend"));
+
+            verify(leaderboardService).getFollowingLeaderboard(
+                    "viewer@example.com", LeaderboardSortBy.XP, 50);
+            verify(leaderboardService, never()).getLeaderboard(eq(LeaderboardSortBy.XP), eq(50));
+        }
+
+        @Test
+        @DisplayName("following=true while anonymous returns an empty list")
+        void followingAnonymous_returnsEmpty() throws Exception {
+            mockMvc.perform(get("/api/v1/leaderboard").param("following", "true"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.length()").value(0));
 
             verifyNoInteractions(leaderboardService);
         }

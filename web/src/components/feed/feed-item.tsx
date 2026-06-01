@@ -1,8 +1,21 @@
 import { useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { formatDistanceToNow } from 'date-fns'
-import { AlignLeft, Heart, ListMusic, Play, Star } from 'lucide-react'
+import {
+  AlignLeft,
+  Bookmark,
+  CheckCircle2,
+  Flag,
+  Heart,
+  ListMusic,
+  Pause,
+  PlayCircle,
+  Star,
+  XCircle,
+} from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import type { FeedItem as FeedItemType } from '@/types/feed'
+import type { PlayStatus } from '@/types/interaction'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { resolvePictureUrl } from '@/lib/picture'
 import { useAuth } from '@/hooks/use-auth'
@@ -18,10 +31,22 @@ const playStatusLabels: Record<string, string> = {
   PLANNING: 'is planning to play',
 }
 
-function getActivityIcon(type: FeedItemType['type']) {
-  switch (type) {
-    case 'PLAY':
-      return <Play className="size-4" />
+/** Play-status icons mirror the profile "Games" status tabs (ProfileStatusBar). */
+const playStatusIcons: Partial<Record<PlayStatus, LucideIcon>> = {
+  ARE_PLAYING: PlayCircle,
+  PLAYED: Flag,
+  COMPLETED: CheckCircle2,
+  RETIRED: Pause,
+  SHELVED: Bookmark,
+  ABANDONED: XCircle,
+}
+
+function getActivityIcon(item: FeedItemType) {
+  switch (item.type) {
+    case 'PLAY': {
+      const Icon = playStatusIcons[item.playStatus as PlayStatus] ?? PlayCircle
+      return <Icon className="size-4" />
+    }
     case 'RATING':
       return <Star className="size-4" />
     case 'REVIEW':
@@ -76,9 +101,7 @@ export function FeedItem({ item }: FeedItemProps) {
 
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5 text-sm">
-          <span className="text-muted-foreground">
-            {getActivityIcon(item.type)}
-          </span>
+          <span className="text-muted-foreground">{getActivityIcon(item)}</span>
           <Link
             to="/profile/$username"
             params={{ username: item.user.pseudo }}

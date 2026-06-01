@@ -13,6 +13,23 @@ if (typeof globalThis.ResizeObserver === 'undefined') {
   } as unknown as typeof ResizeObserver
 }
 
+// jsdom also lacks IntersectionObserver, which framer-motion's `inView` (used by
+// `whileInView` animations) calls on mount. A no-op stub keeps those component
+// tests from crashing; visibility-triggered effects simply never fire in tests.
+if (typeof globalThis.IntersectionObserver === 'undefined') {
+  globalThis.IntersectionObserver = class {
+    readonly root = null
+    readonly rootMargin = ''
+    readonly thresholds = []
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+    takeRecords() {
+      return []
+    }
+  } as unknown as typeof IntersectionObserver
+}
+
 afterEach(() => {
   cleanup()
 })
