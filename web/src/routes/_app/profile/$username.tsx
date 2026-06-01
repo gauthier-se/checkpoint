@@ -1,8 +1,7 @@
-import { Suspense, useState } from 'react'
+import { Suspense } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import type { ProfileInlineTab } from '@/components/profile/profile-tab-bar'
-import type { WishlistSort } from '@/components/collection/wishlist-tab'
 import {
   userLibraryQueryOptions,
   userProfileQueryOptions,
@@ -11,41 +10,24 @@ import {
 import { userTagGamesQueryOptions, userTagsQueryOptions } from '@/queries/tags'
 import { ProfileHeader } from '@/components/profile/profile-header'
 import { ProfileReviewsTab } from '@/components/profile/profile-reviews-tab'
-import { ProfileWishlistTab } from '@/components/profile/profile-wishlist-tab'
 import { ProfileFollowersTab } from '@/components/profile/profile-followers-tab'
 import { ProfileFollowingTab } from '@/components/profile/profile-following-tab'
-import { ProfileBacklogTab } from '@/components/profile/profile-backlog-tab'
 import { ProfileJournalTab } from '@/components/profile/profile-journal-tab'
-import { ProfileLikedTab } from '@/components/profile/profile-liked-tab'
 import { ProfileTabBar } from '@/components/profile/profile-tab-bar'
 import { ProfileSocialBar } from '@/components/profile/profile-social-bar'
-import { ProfileCollectionBar } from '@/components/profile/profile-collection-bar'
 import { TagsTab } from '@/components/collection/tags-tab'
-import { BacklogTab } from '@/components/collection/backlog-tab'
-import { LikedTab } from '@/components/collection/liked-tab'
 import { PlayLogTab } from '@/components/collection/play-log-tab'
-import { WishlistTab } from '@/components/collection/wishlist-tab'
-import { SortSelect } from '@/components/collection/sort-select'
 import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useAuth } from '@/hooks/use-auth'
 import { seo } from '@/lib/seo'
-
-// Wishlist and backlog share the same sort options.
-const COLLECTION_SORT_LABELS: Record<WishlistSort, string> = {
-  addedAt: 'Date added',
-  priority: 'Priority',
-}
 
 // Search params
 
 const VALID_INLINE_TABS: Array<ProfileInlineTab> = [
   'profile',
   'journal',
-  'wishlist',
-  'backlog',
   'tags',
-  'liked',
   'reviews',
   'followers',
   'following',
@@ -101,8 +83,8 @@ export const Route = createFileRoute('/_app/profile/$username')({
           )
         }
         break
-      // wishlist, backlog, journal, liked, followers, following: require profile
-      // data (isOwner / profile.id) — loaded by the component after profile resolves
+      // journal, followers, following: require profile data (isOwner / profile.id)
+      // — loaded by the component after profile resolves
     }
   },
 })
@@ -123,7 +105,6 @@ function UserProfilePage() {
   const { tab, page, tagName } = Route.useSearch()
   const { user } = useAuth()
   const isOwner = user?.username === profile.username
-  const [collectionSort, setCollectionSort] = useState<WishlistSort>('addedAt')
 
   if (tab === 'profile') {
     return (
@@ -150,37 +131,6 @@ function UserProfilePage() {
         <ProfileSocialBar username={profile.username} activeTab={tab} />
       )}
 
-      {(tab === 'wishlist' || tab === 'backlog' || tab === 'liked') && (
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-          <ProfileCollectionBar
-            username={profile.username}
-            activeTab={tab}
-            className="mb-0"
-          />
-          {isOwner && (tab === 'wishlist' || tab === 'backlog') && (
-            <SortSelect
-              value={collectionSort}
-              options={COLLECTION_SORT_LABELS}
-              onChange={setCollectionSort}
-            />
-          )}
-        </div>
-      )}
-
-      {tab === 'wishlist' &&
-        (isOwner ? (
-          <WishlistTab page={page} sort={collectionSort} />
-        ) : (
-          <ProfileWishlistTab profile={profile} page={page} />
-        ))}
-
-      {tab === 'backlog' &&
-        (isOwner ? (
-          <BacklogTab page={page} sort={collectionSort} />
-        ) : (
-          <ProfileBacklogTab profile={profile} page={page} />
-        ))}
-
       {tab === 'journal' &&
         (isOwner ? (
           <PlayLogTab page={page} />
@@ -205,13 +155,6 @@ function UserProfilePage() {
           })}
         />
       )}
-
-      {tab === 'liked' &&
-        (isOwner ? (
-          <LikedTab page={page} />
-        ) : (
-          <ProfileLikedTab profile={profile} page={page} />
-        ))}
 
       {tab === 'reviews' && <ProfileReviewsTab profile={profile} page={page} />}
 

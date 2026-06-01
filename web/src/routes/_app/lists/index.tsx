@@ -15,8 +15,8 @@ import { useAuth } from '@/hooks/use-auth'
 
 import { seo } from '@/lib/seo'
 
-const POPULAR_SIZE = 5
-const TRENDING_SIZE = 12
+const POPULAR_SIZE = 4
+const TRENDING_SIZE = 8
 
 const TRENDING_CRITERIA = { page: 1, sort: 'recent' as const }
 
@@ -162,14 +162,14 @@ function ListsIndexSkeleton() {
         <Skeleton className="h-7 w-16" />
         <Skeleton className="h-9 w-56" />
       </div>
-      {[5, 12].map((count) => (
+      {[4, 8].map((count) => (
         <section key={count} className="my-8">
           <div className="py-2">
             <Skeleton className="h-5 w-32" />
           </div>
           <Separator />
           <div className="grid grid-cols-1 gap-3 py-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {Array.from({ length: count > 6 ? 4 : count }).map((_, i) => (
+            {Array.from({ length: count }).map((_, i) => (
               <Skeleton key={i} className="h-24 w-full rounded-md" />
             ))}
           </div>

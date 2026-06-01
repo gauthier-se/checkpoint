@@ -24,6 +24,7 @@ import com.checkpoint.api.dto.catalog.PagedResponseDto;
 import com.checkpoint.api.dto.catalog.ReviewCardDto;
 import com.checkpoint.api.dto.collection.BacklogResponseDto;
 import com.checkpoint.api.dto.collection.LikedGameResponseDto;
+import com.checkpoint.api.dto.collection.UnifiedGameResponseDto;
 import com.checkpoint.api.dto.collection.UserGameResponseDto;
 import com.checkpoint.api.dto.collection.WishResponseDto;
 import com.checkpoint.api.dto.list.GameListCardDto;
@@ -214,6 +215,36 @@ public class UserController {
         Page<UserGameResponseDto> library = profileService.getUserLibrary(username, viewerEmail, status, pageable);
 
         return ResponseEntity.ok(PagedResponseDto.from(library));
+    }
+
+    /**
+     * Returns a paginated unified feed of all game interactions for the given user,
+     * aggregating library, wishlist, backlog, and liked entries sorted by date added
+     * descending. Each item carries a {@code collectionType} discriminator.
+     *
+     * @param username    the user's display name (pseudo)
+     * @param userDetails the authenticated user, or null if anonymous
+     * @param page        the page number (0-based, default 0)
+     * @param size        the page size (default 20, max 100)
+     * @return paginated list of unified game DTOs
+     */
+    @GetMapping("/{username}/games")
+    public ResponseEntity<PagedResponseDto<UnifiedGameResponseDto>> getUserAllGames(
+            @PathVariable String username,
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(defaultValue = "" + DEFAULT_PAGE) int page,
+            @RequestParam(defaultValue = "" + DEFAULT_SIZE) int size) {
+
+        log.info("GET /api/v1/users/{}/games - page: {}, size: {}", username, page, size);
+
+        String viewerEmail = userDetails != null ? userDetails.getUsername() : null;
+        int validatedSize = Math.min(Math.max(1, size), MAX_SIZE);
+        int validatedPage = Math.max(0, page);
+
+        Pageable pageable = PageRequest.of(validatedPage, validatedSize);
+        Page<UnifiedGameResponseDto> games = profileService.getUserAllGames(username, viewerEmail, pageable);
+
+        return ResponseEntity.ok(PagedResponseDto.from(games));
     }
 
     /**

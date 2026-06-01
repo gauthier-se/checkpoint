@@ -1,13 +1,20 @@
 package com.checkpoint.api.services.impl;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -18,6 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.checkpoint.api.dto.catalog.ReviewCardDto;
 import com.checkpoint.api.dto.collection.BacklogResponseDto;
 import com.checkpoint.api.dto.collection.LikedGameResponseDto;
+import com.checkpoint.api.dto.collection.UnifiedGameResponseDto;
 import com.checkpoint.api.dto.collection.UserGameResponseDto;
 import com.checkpoint.api.dto.collection.WishResponseDto;
 import com.checkpoint.api.dto.list.GameListCardDto;
@@ -31,6 +39,7 @@ import com.checkpoint.api.dto.profile.UserProfileDto;
 import com.checkpoint.api.entities.Backlog;
 import com.checkpoint.api.entities.User;
 import com.checkpoint.api.entities.UserGame;
+import com.checkpoint.api.enums.Priority;
 import com.checkpoint.api.entities.UserGamePlay;
 import com.checkpoint.api.enums.PlayStatus;
 import com.checkpoint.api.exceptions.ProfilePrivateException;
@@ -322,6 +331,120 @@ public class ProfileServiceImpl implements ProfileService {
 
         return userGamePlayRepository.findByUserId(user.getId(), pageable)
                 .map(gamePlayLogMapper::toDto);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Page<UnifiedGameResponseDto> getUserAllGames(String username, String viewerEmail, Pageable pageable) {
+        log.info("Fetching all games for user: {}", username);
+
+        User user = userRepository.findByPseudo(username)
+                .orElseThrow(() -> new UserNotFoundException(username));
+
+        enforcePrivacy(user, viewerEmail);
+
+        // Intermediate flat record: one entry per (game, collectionType) pair
+        record FlatEntry(UUID videoGameId, String title, String coverUrl, LocalDate releaseDate,
+                         String collectionType, java.time.LocalDateTime addedAt,
+                         PlayStatus libraryStatus, Double userRating, Priority priority) {}
+
+        Pageable all = Pageable.unpaged();
+        List<FlatEntry> flat = new ArrayList<>();
+
+        // Library entries (includes rating)
+        userGameRepository.findLibraryProjection(user.getId(), null, all)
+                .getContent().forEach(row -> {
+                    UserGame ug = (UserGame) row[0];
+                    Integer rawScore = (Integer) row[1];
+                    Double rating = rawScore != null ? rawScore / 2.0 : null;
+                    flat.add(new FlatEntry(
+                            ug.getVideoGame().getId(),
+                            ug.getVideoGame().getTitle(),
+                            ug.getVideoGame().getCoverUrl(),
+                            ug.getVideoGame().getReleaseDate(),
+                            "LIBRARY", ug.getCreatedAt(),
+                            ug.getStatus(), rating, null
+                    ));
+                });
+
+        // Wishlist entries
+        wishRepository.findByUserPseudoWithVideoGame(username, all)
+                .getContent().forEach(wish -> flat.add(new FlatEntry(
+                        wish.getVideoGame().getId(),
+                        wish.getVideoGame().getTitle(),
+                        wish.getVideoGame().getCoverUrl(),
+                        wish.getVideoGame().getReleaseDate(),
+                        "WISHLIST", wish.getCreatedAt(),
+                        null, null, wish.getPriority()
+                )));
+
+        // Backlog entries
+        backlogRepository.findByUserIdWithVideoGame(user.getId(), all)
+                .getContent().forEach(backlog -> flat.add(new FlatEntry(
+                        backlog.getVideoGame().getId(),
+                        backlog.getVideoGame().getTitle(),
+                        backlog.getVideoGame().getCoverUrl(),
+                        backlog.getVideoGame().getReleaseDate(),
+                        "BACKLOG", backlog.getCreatedAt(),
+                        null, null, backlog.getPriority()
+                )));
+
+        // Liked entries
+        likeRepository.findGameLikesByUserPseudo(username, all)
+                .getContent().forEach(like -> flat.add(new FlatEntry(
+                        like.getVideoGame().getId(),
+                        like.getVideoGame().getTitle(),
+                        like.getVideoGame().getCoverUrl(),
+                        like.getVideoGame().getReleaseDate(),
+                        "LIKED", like.getCreatedAt(),
+                        null, null, null
+                )));
+
+        // Deduplicate by videoGameId: merge collection types, keep richest metadata
+        Map<UUID, List<FlatEntry>> byGameId = flat.stream()
+                .collect(Collectors.groupingBy(FlatEntry::videoGameId, LinkedHashMap::new, Collectors.toList()));
+
+        List<UnifiedGameResponseDto> deduped = byGameId.values().stream()
+                .map(entries -> {
+                    java.time.LocalDateTime latestAddedAt = entries.stream()
+                            .map(FlatEntry::addedAt)
+                            .max(Comparator.naturalOrder())
+                            .orElseThrow();
+                    List<String> collectionTypes = entries.stream()
+                            .map(FlatEntry::collectionType)
+                            .distinct()
+                            .toList();
+                    FlatEntry base = entries.get(0);
+                    PlayStatus libraryStatus = entries.stream()
+                            .filter(e -> "LIBRARY".equals(e.collectionType()) && e.libraryStatus() != null)
+                            .map(FlatEntry::libraryStatus)
+                            .findFirst().orElse(null);
+                    Double userRating = entries.stream()
+                            .filter(e -> "LIBRARY".equals(e.collectionType()) && e.userRating() != null)
+                            .map(FlatEntry::userRating)
+                            .findFirst().orElse(null);
+                    Priority priority = entries.stream()
+                            .filter(e -> e.priority() != null)
+                            .map(FlatEntry::priority)
+                            .findFirst().orElse(null);
+                    return new UnifiedGameResponseDto(
+                            base.videoGameId(), base.title(), base.coverUrl(),
+                            base.releaseDate(), collectionTypes, latestAddedAt,
+                            libraryStatus, userRating, priority
+                    );
+                })
+                .sorted(Comparator.comparing(UnifiedGameResponseDto::addedAt).reversed())
+                .toList();
+
+        // Apply manual pagination
+        int start = (int) pageable.getOffset();
+        int end = Math.min(start + pageable.getPageSize(), deduped.size());
+        List<UnifiedGameResponseDto> pageContent = start >= deduped.size()
+                ? List.of() : deduped.subList(start, end);
+
+        return new PageImpl<>(pageContent, pageable, deduped.size());
     }
 
     /**

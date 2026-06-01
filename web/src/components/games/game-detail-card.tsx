@@ -43,6 +43,12 @@ interface GameDetailCardProps {
    * {@link GameCardHoverActions} quick buttons, matching the catalog.
    */
   actions?: ReactNode
+  /**
+   * Extra icons rendered at the start of the right-side metadata row (before
+   * play-status, liked, etc.). Used by the unified "All games" tab to show
+   * collection type badges alongside the rating stars.
+   */
+  collectionIcons?: ReactNode
 }
 
 /**
@@ -64,6 +70,7 @@ export function GameDetailCard({
   isLiked,
   isReplay,
   actions,
+  collectionIcons,
 }: GameDetailCardProps) {
   const [isHovered, setIsHovered] = useState(false)
   const StatusIcon = status ? PLAY_STATUS_ICONS[status] : null
@@ -112,7 +119,12 @@ export function GameDetailCard({
         <GameCardHoverActions gameId={link.gameId} isHovered={isHovered} />
       ) : null}
 
-      {(score != null || status || hasReview || isLiked || isReplay) && (
+      {(score != null ||
+        status ||
+        hasReview ||
+        isLiked ||
+        isReplay ||
+        collectionIcons) && (
         <div className="flex min-h-4 items-center justify-between gap-1">
           {score != null ? (
             <ScoreStars score={score} starClassName="h-3 w-3" />
@@ -121,6 +133,7 @@ export function GameDetailCard({
           )}
 
           <div className="flex items-center gap-1">
+            {collectionIcons}
             {StatusIcon && status && (
               <Tooltip>
                 <TooltipTrigger asChild>

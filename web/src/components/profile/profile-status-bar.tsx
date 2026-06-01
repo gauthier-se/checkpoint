@@ -4,6 +4,9 @@ import {
   CheckCircle2,
   Flag,
   Gamepad2,
+  Gift,
+  Heart,
+  Library,
   Pause,
   PlayCircle,
   XCircle,
@@ -34,6 +37,9 @@ export const STATUS_TABS: ReadonlyArray<StatusTabConfig> = [
   { value: 'retired', label: 'Retired', icon: Pause },
   { value: 'shelved', label: 'Shelved', icon: Bookmark },
   { value: 'abandoned', label: 'Abandoned', icon: XCircle },
+  { value: 'wishlist', label: 'Wishlist', icon: Gift },
+  { value: 'backlog', label: 'Backlog', icon: Library },
+  { value: 'liked', label: 'Liked', icon: Heart },
 ]
 
 const tabClass = (active: boolean) =>

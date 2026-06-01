@@ -2,7 +2,6 @@ import { Link } from '@tanstack/react-router'
 import {
   AlignLeft,
   BookOpen,
-  Bookmark,
   Gamepad2,
   List,
   Tag,
@@ -31,7 +30,6 @@ export type ProfileTabKey =
   | 'social'
   | 'followers'
   | 'following'
-  | 'collection'
 
 interface ProfileTabBarProps {
   username: string
@@ -53,14 +51,13 @@ interface TabConfig {
 
 /**
  * Primary navigation. Secondary bars keep the primary list short: the per-status
- * game tabs live under "Games" ({@link ProfileStatusBar}), Wishlist/Backlog/Liked
- * under "Collection" ({@link ProfileCollectionBar}), and Followers/Following under
- * "Social" ({@link ProfileSocialBar}).
+ * game tabs, Wishlist, Backlog, and Liked all live under "Games"
+ * ({@link ProfileStatusBar}), and Followers/Following under "Social"
+ * ({@link ProfileSocialBar}).
  */
 const TABS: ReadonlyArray<TabConfig> = [
   { value: 'profile', label: 'Profile', icon: User },
   { value: 'games', label: 'Games', icon: Gamepad2 },
-  { value: 'collection', label: 'Collection', icon: Bookmark },
   { value: 'journal', label: 'Journal', icon: BookOpen },
   { value: 'tags', label: 'Tags', icon: Tag },
   { value: 'reviews', label: 'Reviews', icon: AlignLeft },
@@ -72,16 +69,13 @@ const TABS: ReadonlyArray<TabConfig> = [
 const PROFILE_INLINE_TABS = new Set<ProfileTabKey>([
   'profile',
   'journal',
-  'wishlist',
-  'backlog',
   'tags',
-  'liked',
   'reviews',
   'followers',
   'following',
 ])
 
-// Status tabs that live on /profile/$username/games via ?tab=... The primary
+// All tabs that live on /profile/$username/games via ?tab=... The primary
 // "Games" tab is considered active whenever any of these is the current tab.
 const GAMES_TABS = new Set<ProfileTabKey>([
   'games',
@@ -91,13 +85,13 @@ const GAMES_TABS = new Set<ProfileTabKey>([
   'retired',
   'shelved',
   'abandoned',
+  'wishlist',
+  'backlog',
+  'liked',
 ])
 
 // Inline tabs grouped under the primary "Social" tab via the secondary bar.
 const SOCIAL_TABS = new Set<ProfileTabKey>(['followers', 'following'])
-
-// Inline tabs grouped under the primary "Collection" tab via the secondary bar.
-const COLLECTION_TABS = new Set<ProfileTabKey>(['wishlist', 'backlog', 'liked'])
 
 const tabClass = (active: boolean, vertical: boolean) =>
   cn(
@@ -138,8 +132,7 @@ export function ProfileTabBar({
         const active =
           value === activeTab ||
           (value === 'games' && GAMES_TABS.has(activeTab)) ||
-          (value === 'social' && SOCIAL_TABS.has(activeTab)) ||
-          (value === 'collection' && COLLECTION_TABS.has(activeTab))
+          (value === 'social' && SOCIAL_TABS.has(activeTab))
         const content = (
           <>
             <Icon />
@@ -192,21 +185,6 @@ export function ProfileTabBar({
           )
         }
 
-        if (value === 'collection') {
-          return (
-            <Link
-              key={value}
-              to="/profile/$username"
-              params={{ username }}
-              search={{ tab: 'wishlist', page: 1 }}
-              className={tabClass(active, vertical)}
-              aria-current={active ? 'page' : undefined}
-            >
-              {content}
-            </Link>
-          )
-        }
-
         // 'lists' — dedicated route
         return (
           <Link
@@ -229,15 +207,12 @@ export function ProfileTabBar({
 export type ProfileInlineTab =
   | 'profile'
   | 'journal'
-  | 'wishlist'
-  | 'backlog'
   | 'tags'
-  | 'liked'
   | 'reviews'
   | 'followers'
   | 'following'
 
-/** Status tabs rendered as ?tab= variants on /profile/$username/games. */
+/** All tabs rendered as ?tab= variants on /profile/$username/games. */
 export type ProfileGamesTabKey =
   | 'games'
   | 'playing'
@@ -246,3 +221,6 @@ export type ProfileGamesTabKey =
   | 'retired'
   | 'shelved'
   | 'abandoned'
+  | 'wishlist'
+  | 'backlog'
+  | 'liked'

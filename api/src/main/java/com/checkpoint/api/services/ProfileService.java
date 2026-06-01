@@ -7,6 +7,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.checkpoint.api.dto.catalog.ReviewCardDto;
 import com.checkpoint.api.dto.collection.BacklogResponseDto;
 import com.checkpoint.api.dto.collection.LikedGameResponseDto;
+import com.checkpoint.api.dto.collection.UnifiedGameResponseDto;
 import com.checkpoint.api.dto.collection.UserGameResponseDto;
 import com.checkpoint.api.dto.collection.WishResponseDto;
 import com.checkpoint.api.enums.PlayStatus;
@@ -81,6 +82,20 @@ public interface ProfileService {
      * @return a page of user-game DTOs
      */
     Page<UserGameResponseDto> getUserLibrary(String username, String viewerEmail, PlayStatus status, Pageable pageable);
+
+    /**
+     * Retrieves a paginated unified feed of all game interactions for the given user,
+     * combining library, wishlist, backlog, and liked entries sorted by date added
+     * descending. Each entry carries a {@code collectionType} discriminator.
+     * Throws {@link com.checkpoint.api.exceptions.ProfilePrivateException} if the profile
+     * is private and the viewer is not the owner.
+     *
+     * @param username    the profile owner's username (pseudo)
+     * @param viewerEmail the authenticated viewer's email, or null if anonymous
+     * @param pageable    pagination parameters
+     * @return a page of unified game DTOs
+     */
+    Page<UnifiedGameResponseDto> getUserAllGames(String username, String viewerEmail, Pageable pageable);
 
     /**
      * Retrieves a paginated list of games in the given user's backlog.

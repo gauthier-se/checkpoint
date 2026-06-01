@@ -6,6 +6,7 @@ import type {
   LikedGameListResponse,
   PlayLogListResponse,
   Priority,
+  UnifiedGameListResponse,
 } from '@/types/collection'
 import type { PaginationMetadata } from '@/types/game'
 import type { PlayStatus } from '@/types/interaction'
@@ -148,6 +149,23 @@ export const userJournalQueryOptions = (
     queryFn: async (): Promise<PlayLogListResponse> => {
       const res = await apiFetch(
         `/api/users/${username}/plays?page=${page}&size=${size}&sort=updatedAt,desc`,
+      )
+      return res.json()
+    },
+    staleTime: 60 * 1000,
+  })
+}
+
+export const userAllGamesQueryOptions = (
+  username: string,
+  page: number = 0,
+  size: number = 20,
+) => {
+  return queryOptions({
+    queryKey: ['users', username, 'games', page, size],
+    queryFn: async (): Promise<UnifiedGameListResponse> => {
+      const res = await apiFetch(
+        `/api/users/${username}/games?page=${page}&size=${size}`,
       )
       return res.json()
     },

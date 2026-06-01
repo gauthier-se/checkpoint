@@ -35,6 +35,7 @@ import {
 } from '@/lib/search-params'
 
 const DISCOVERY_SIZE = 7
+const REVIEWS_SIZE = 8
 
 export type GamesSearchParams = {
   page?: number
@@ -93,10 +94,10 @@ export const Route = createFileRoute('/_app/games/')({
   loader: ({ context }) => {
     void context.queryClient.prefetchQuery(trendingGamesQueryOptions())
     void context.queryClient.prefetchQuery(
-      popularReviewsQueryOptions(DISCOVERY_SIZE),
+      popularReviewsQueryOptions(REVIEWS_SIZE),
     )
     void context.queryClient.prefetchQuery(
-      recentReviewsQueryOptions(DISCOVERY_SIZE),
+      recentReviewsQueryOptions(REVIEWS_SIZE),
     )
     void context.queryClient.prefetchQuery(
       mostBackloggedGamesQueryOptions(DISCOVERY_SIZE),
@@ -129,8 +130,8 @@ function GamesIndexContent() {
   ] = useSuspenseQueries({
     queries: [
       trendingGamesQueryOptions(),
-      popularReviewsQueryOptions(DISCOVERY_SIZE),
-      recentReviewsQueryOptions(DISCOVERY_SIZE),
+      popularReviewsQueryOptions(REVIEWS_SIZE),
+      recentReviewsQueryOptions(REVIEWS_SIZE),
       mostBackloggedGamesQueryOptions(DISCOVERY_SIZE),
       mostWishlistedGamesQueryOptions(DISCOVERY_SIZE),
     ],
@@ -253,7 +254,7 @@ function GameCoversRowSkeleton() {
 function ReviewCardsRowSkeleton() {
   return (
     <div className="grid grid-cols-1 gap-3 py-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {Array.from({ length: 4 }).map((_, i) => (
+      {Array.from({ length: 8 }).map((_, i) => (
         <Skeleton key={i} className="h-32 w-full rounded-md" />
       ))}
     </div>

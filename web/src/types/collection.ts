@@ -86,6 +86,26 @@ export interface LikedGameListResponse {
   metadata: PaginationMetadata
 }
 
+// Unified "All games" feed
+export type CollectionType = 'LIBRARY' | 'WISHLIST' | 'BACKLOG' | 'LIKED'
+
+export interface UnifiedGameItem {
+  videoGameId: string
+  title: string
+  coverUrl: string | null
+  releaseDate: string | null
+  collectionTypes: Array<CollectionType>
+  addedAt: string
+  libraryStatus: string | null
+  userRating: number | null
+  priority: Priority | null
+}
+
+export interface UnifiedGameListResponse {
+  content: Array<UnifiedGameItem>
+  metadata: PaginationMetadata
+}
+
 // Shared
 export type CollectionTab =
   | 'games'
