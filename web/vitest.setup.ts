@@ -10,7 +10,7 @@ if (typeof globalThis.ResizeObserver === 'undefined') {
     observe() {}
     unobserve() {}
     disconnect() {}
-  } as unknown as typeof ResizeObserver
+  }
 }
 
 // jsdom also lacks IntersectionObserver, which framer-motion's `inView` (used by
@@ -27,7 +27,7 @@ if (typeof globalThis.IntersectionObserver === 'undefined') {
     takeRecords() {
       return []
     }
-  } as unknown as typeof IntersectionObserver
+  }
 }
 
 afterEach(() => {

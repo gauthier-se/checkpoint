@@ -172,11 +172,3 @@ docs: add contributing guide, PR template, desktop README, and API http files (T
    automatically — fill in every section.
 5. Link the related issue (e.g. `Closes TE-258`).
 6. Address review feedback, then squash/merge once approved and CI is green.
-
-## Project conventions
-
-Module-specific conventions (architecture, naming, patterns) are documented in
-`CLAUDE.md`. Please stay consistent with the existing code rather than
-introducing new patterns.
-
-Happy hacking! 🎮
