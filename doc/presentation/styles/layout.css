@@ -1,0 +1,42 @@
+/* Custom layout styling for the CheckPoint deck */
+
+.slidev-layout.cover,
+.slidev-layout.section {
+  background:
+    radial-gradient(
+      ellipse 70% 50% at 78% 6%,
+      color-mix(in oklch, var(--cp-primary) 9%, transparent),
+      transparent 60%
+    ),
+    var(--cp-background);
+}
+
+/* Persistent footer */
+.cp-footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 1.4rem;
+  font-size: 0.62rem;
+  color: var(--cp-foreground-muted);
+  z-index: 10;
+  pointer-events: none;
+}
+.cp-footer img {
+  height: 16px;
+  opacity: 0.9;
+}
+
+/* slide number pill */
+.cp-pagenum {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Reusable dim list helper */
+.cp-dim {
+  color: var(--cp-foreground-muted);
+}
