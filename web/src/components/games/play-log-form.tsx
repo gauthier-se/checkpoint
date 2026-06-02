@@ -85,7 +85,7 @@ export function PlayLogForm(props: PlayLogFormProps) {
     defaultValues: {
       platformId: initial?.platformId ?? '',
       status: initial?.status ?? 'COMPLETED',
-      timePlayed: (initial?.timePlayed ?? 0) as number | undefined,
+      timePlayed: initial?.timePlayed ?? 0,
       startDate: initial?.startDate ?? '',
       endDate: initial?.endDate ?? '',
       ownership: initial?.ownership ?? '',

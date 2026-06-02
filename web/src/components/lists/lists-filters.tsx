@@ -107,7 +107,7 @@ export function ListsFilters({ search }: ListsFiltersProps) {
   function removeFilter(key: string) {
     if (key === 'q') setQInput('')
     if (key === 'author') setAuthorInput('')
-    updateFilter({ [key]: undefined } as Partial<GameListsSearchParams>)
+    updateFilter({ [key]: undefined })
   }
 
   return (
