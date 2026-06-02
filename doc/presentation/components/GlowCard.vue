@@ -9,12 +9,14 @@ defineProps<{
 
 <template>
   <div class="cp-glow-card" :style="color ? { '--glow': color } : {}">
-    <div v-if="icon || title" class="cp-glow-card__head">
+    <div class="cp-glow-card__layout">
       <div v-if="icon" class="cp-glow-card__icon" :class="icon" />
-      <span v-if="title" class="cp-glow-card__title">{{ title }}</span>
-    </div>
-    <div class="cp-glow-card__body">
-      <slot />
+      <div class="cp-glow-card__content">
+        <span v-if="title" class="cp-glow-card__title">{{ title }}</span>
+        <div class="cp-glow-card__body">
+          <slot />
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -45,19 +47,28 @@ defineProps<{
   mask-composite: exclude;
   pointer-events: none;
 }
-.cp-glow-card__head {
+.cp-glow-card__layout {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.4rem;
+  align-items: flex-start;
+  gap: 0.6rem;
 }
 .cp-glow-card__icon {
-  font-size: 1.15rem;
+  font-size: 0.95rem;
+  line-height: 1.3;
+  flex-shrink: 0;
+  margin-top: 0.05rem;
   color: var(--glow);
+}
+.cp-glow-card__content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
 }
 .cp-glow-card__title {
   font-weight: 650;
   font-size: 0.98rem;
+  line-height: 1.3;
 }
 .cp-glow-card__body {
   font-size: 0.82rem;

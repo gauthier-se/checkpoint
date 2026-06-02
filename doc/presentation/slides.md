@@ -17,7 +17,7 @@ drawings:
 seoMeta:
   ogTitle: CheckPoint — Soutenance
   ogDescription: Trois clients hétérogènes autour d'une API REST sécurisée et stateless.
-duration: 35min
+duration: 30min
 ---
 
 <!-- ===================== COVER ===================== -->
@@ -28,18 +28,6 @@ duration: 35min
     <h1 class="!text-6xl cp-text-gradient !mb-0 !leading-none font-extrabold">CheckPoint</h1>
     <p class="!mt-2 text-lg cp-dim">Your unified video game library tracker</p>
   </div>
-</div>
-
-<p class="max-w-2xl text-base leading-relaxed opacity-90 mt-6">
-Trois clients hétérogènes — une <strong>application Web</strong>, une <strong>console Desktop</strong> et une <strong>API REST</strong> — orchestrés autour d'une seule plateforme, sécurisée et <strong>stateless</strong>.
-</p>
-
-<div class="flex gap-2 mt-6 flex-wrap max-w-3xl">
-  <TechPill icon="i-carbon-cloud-foundry">Spring Boot 3.5 · Java 21</TechPill>
-  <TechPill icon="i-carbon-logo-react">TanStack Start · React 19</TechPill>
-  <TechPill icon="i-carbon-application">JavaFX · Java 24</TechPill>
-  <TechPill icon="i-carbon-data-base">PostgreSQL</TechPill>
-  <TechPill icon="i-carbon-container-services">Dokploy · Docker Swarm</TechPill>
 </div>
 
 <div class="mt-8 pt-4 border-t border-[var(--cp-border)] text-sm cp-dim max-w-3xl">
@@ -61,18 +49,15 @@ class: cp-agenda
 
 # Sommaire
 
-<div class="grid grid-cols-2 gap-x-8 gap-y-2.5 mt-5">
+<div class="grid grid-cols-2 gap-x-8 gap-y-3 mt-6">
 
 <div class="cp-agenda__item"><span class="cp-agenda__n">01</span><carbon:idea /> Pitch &amp; contexte</div>
-<div class="cp-agenda__item"><span class="cp-agenda__n">02</span><carbon:network-3 /> Architecture du projet</div>
-<div class="cp-agenda__item"><span class="cp-agenda__n">03</span><carbon:checkmark-outline /> Implémentations significatives</div>
-<div class="cp-agenda__item"><span class="cp-agenda__n">04</span><carbon:code /> Parties de code complexes</div>
-<div class="cp-agenda__item"><span class="cp-agenda__n">05</span><carbon:cloud /> Pensé cloud-native : stateless</div>
-<div class="cp-agenda__item"><span class="cp-agenda__n">06</span><carbon:compare /> Specs vs réalisé (écarts)</div>
-<div class="cp-agenda__item"><span class="cp-agenda__n">07</span><carbon:flow /> Organisation : Linear &amp; GitFlow</div>
-<div class="cp-agenda__item"><span class="cp-agenda__n">08</span><carbon:test-tool /> Stratégie qualité</div>
-<div class="cp-agenda__item"><span class="cp-agenda__n">09</span><carbon:roadmap /> Roadmap &amp; évolutions</div>
-<div class="cp-agenda__item"><span class="cp-agenda__n">10</span><carbon:chart-line /> Chiffres clés &amp; démo</div>
+<div class="cp-agenda__item"><span class="cp-agenda__n">02</span><carbon:network-3 /> Architecture &amp; SOLID</div>
+<div class="cp-agenda__item"><span class="cp-agenda__n">03</span><carbon:code /> Implémentations clés (code)</div>
+<div class="cp-agenda__item"><span class="cp-agenda__n">04</span><carbon:play-filled-alt /> Démo</div>
+<div class="cp-agenda__item"><span class="cp-agenda__n">05</span><carbon:cloud /> Cloud-native : stateless &amp; scalabilité</div>
+<div class="cp-agenda__item"><span class="cp-agenda__n">06</span><carbon:flow /> Gestion de projet &amp; organisation</div>
+<div class="cp-agenda__item"><span class="cp-agenda__n">07</span><carbon:chart-line /> Qualité, roadmap &amp; bilan</div>
 
 </div>
 

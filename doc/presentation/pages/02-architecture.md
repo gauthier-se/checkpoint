@@ -1,17 +1,8 @@
 ---
-layout: section
-number: "02"
----
-
-# Architecture du projet
-
-Monorepo, déploiement, et l'intérieur de chaque application.
-
----
 layout: default
 ---
 
-# <span class="cp-accent-bar">Vue d'ensemble — un monorepo</span>
+# <span class="cp-accent-bar">Architecture — vue d'ensemble (monorepo)</span>
 
 <div class="grid grid-cols-2 gap-6 mt-2">
 
@@ -36,7 +27,7 @@ checkpoint/
 
 </div>
 
-<div>
+<div class="mt-14">
 
 ```mermaid {scale: 0.78}
 %%{init: {'theme':'base','themeVariables':{'primaryColor':'#2c2350','primaryTextColor':'#e7e7f2','primaryBorderColor':'#6d54c9','lineColor':'#8b7ad6','fontFamily':'Inter','clusterBkg':'#23283a55','clusterBorder':'#3a4055'}}}%%
@@ -86,9 +77,9 @@ flowchart LR
 ```
 
 <div class="grid grid-cols-3 gap-3 mt-3 text-[0.8rem]">
-  <div class="cp-card !p-3"><carbon:security class="text-lg" style="color:oklch(0.7 0.15 286)"/> <strong>Traefik</strong> — point d'entrée unique, terminaison HTTPS/TLS automatique.</div>
-  <div class="cp-card !p-3"><carbon:container-software class="text-lg" style="color:oklch(0.7 0.15 286)"/> <strong>Dokploy</strong> — PaaS au-dessus de Docker, déploiement Git-driven.</div>
-  <div class="cp-card !p-3"><carbon:data-base class="text-lg" style="color:oklch(0.7 0.15 286)"/> <strong>PostgreSQL</strong> — réseau privé, seule l'API y accède.</div>
+  <div class="cp-card cp-card-ic !p-3"><carbon:security class="text-lg" style="color:oklch(0.7 0.15 286)"/> <strong>Traefik</strong> — point d'entrée unique, terminaison HTTPS/TLS automatique.</div>
+  <div class="cp-card cp-card-ic !p-3"><carbon:container-software class="text-lg" style="color:oklch(0.7 0.15 286)"/> <strong>Dokploy</strong> — PaaS au-dessus de Docker, déploiement Git-driven.</div>
+  <div class="cp-card cp-card-ic !p-3"><carbon:data-base class="text-lg" style="color:oklch(0.7 0.15 286)"/> <strong>PostgreSQL</strong> — réseau privé, seule l'API y accède.</div>
 </div>
 
 ---
@@ -101,14 +92,14 @@ layout: default
 
 <div>
 
-Séparation stricte des responsabilités, visible dans l'arborescence des packages :
+Séparation stricte des responsabilités :
 
-```mermaid {scale: 0.5}
+```mermaid {scale: 0.46}
 %%{init: {'theme':'base','themeVariables':{'primaryColor':'#2c2350','primaryTextColor':'#e7e7f2','primaryBorderColor':'#6d54c9','lineColor':'#8b7ad6','fontFamily':'Inter'}}}%%
 flowchart TB
-  C["controllers/ · 41 contrôleurs REST<br/><small>@PreAuthorize, validation</small>"]
-  S["services/ · interfaces métier"]
-  I["services/impl/ · ~60 implémentations<br/><small>logique, transactions</small>"]
+  C["controllers/ · 41 REST"]
+  S["services/ · interfaces"]
+  I["services/impl/ · ~60 implems"]
   R["repositories/ · Spring Data JPA"]
   E["entities/ · 33 entités JPA"]
   C --> S --> I --> R --> E
@@ -129,7 +120,7 @@ flowchart TB
 
 </div>
 
-> 💡 L'API est codée **par interfaces** (`services/` vs `services/impl/`) → découplage, testabilité (mocks), et **inversion de dépendance** (SOLID) concrète.
+<div class="mt-2 text-[0.8rem] cp-dim"><carbon:idea class="inline" style="color:oklch(0.66 0.18 286)"/> Codée <strong>par interfaces</strong> (<code>services/</code> vs <code>impl/</code>) → découplage, testabilité, <strong>inversion de dépendance</strong> (SOLID).</div>
 
 ---
 layout: two-cols
@@ -143,8 +134,8 @@ JavaFX, architecture **en couches**, principes **SOLID**.
 <div class="flex flex-col gap-2 mt-3 text-[0.82rem]">
   <div class="cp-card !p-2.5"><strong>controller/</strong> — un contrôleur par vue FXML</div>
   <div class="cp-card !p-2.5"><strong>service/</strong> → <strong>service/impl/</strong> — les <code>*ApiClient</code> appellent l'API REST</div>
-  <div class="cp-card !p-2.5"><carbon:plug class="inline"/> <strong>DI maison</strong> — <code>di/DependencyContainer</code> : un mini-conteneur d'injection recodé à la main (pas de Spring).</div>
-  <div class="cp-card !p-2.5"><carbon:password class="inline"/> <strong>TokenManager</strong> — conserve le JWT admin, l'injecte dans chaque appel.</div>
+  <div class="cp-card cp-card-ic !p-2.5"><carbon:plug class="inline"/> <strong>DI maison</strong> — <code>di/DependencyContainer</code> : un mini-conteneur d'injection recodé à la main (pas de Spring).</div>
+  <div class="cp-card cp-card-ic !p-2.5"><carbon:password class="inline"/> <strong>TokenManager</strong> — conserve le JWT admin, l'injecte dans chaque appel.</div>
 </div>
 
 <div class="mt-3 text-[0.78rem] cp-dim">Vues <strong>FXML</strong> + CSS qui imite la charte du web.</div>
@@ -156,7 +147,7 @@ JavaFX, architecture **en couches**, principes **SOLID**.
 **TanStack Start** (méta-framework React) avec **SSR**.
 
 <div class="flex flex-col gap-2 mt-3 text-[0.82rem]">
-  <div class="cp-card !p-2.5"><carbon:tree-view class="inline"/> Routing par fichiers — <code>src/routes/</code></div>
+  <div class="cp-card cp-card-ic !p-2.5"><carbon:tree-view class="inline"/> Routing par fichiers — <code>src/routes/</code></div>
   <div class="cp-card !p-2.5">Segments <code>_auth</code> / <code>_app</code> / <code>_protected</code> → zones publiques / connectées / protégées</div>
   <div class="cp-card !p-2.5"><strong>queries/</strong> (TanStack Query) + <strong>services/</strong> pour les appels API</div>
   <div class="cp-card !p-2.5"><strong>components/</strong> — Shadcn UI / Tailwind</div>

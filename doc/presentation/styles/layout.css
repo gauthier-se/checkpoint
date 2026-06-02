@@ -40,3 +40,15 @@
 .cp-dim {
   color: var(--cp-foreground-muted);
 }
+
+/* Icon-leading cards: hanging indent so wrapped lines stay aligned with the
+   text after the icon, instead of falling back under the icon. Applied via the
+   explicit .cp-card-ic class on cards whose first child is an inline icon. */
+.cp-card.cp-card-ic {
+  padding-left: 1.85rem !important;
+  text-indent: -1.2rem;
+}
+.cp-card.cp-card-ic > svg:first-child,
+.cp-card.cp-card-ic > .inline:first-child {
+  margin-right: 0.38rem;
+}

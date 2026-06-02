@@ -1,190 +1,216 @@
 ---
-layout: section
-number: "03"
+layout: default
 ---
 
-# Implémentations significatives
+# <span class="cp-accent-bar">① JWT à double source — un backend, deux clients</span>
 
-Au-delà du CRUD : sécurité, recherche, import, gamification, social, temps réel.
+<div class="grid grid-cols-[1.15fr_1fr] gap-5 mt-6">
+
+<div>
+
+```java {all|3-6|8-15|17}{lines:true}
+// JwtAuthenticationFilter — un seul filtre, deux transports
+private String extractToken(HttpServletRequest request) {
+    // 1. Desktop → en-tête Authorization: Bearer <token>
+    String header = request.getHeader("Authorization");
+    if (header != null && header.startsWith(BEARER_PREFIX)) {
+        return header.substring(BEARER_PREFIX.length());
+    }
+    // 2. Web → cookie HttpOnly "checkpoint_token" (anti-XSS)
+    Cookie[] cookies = request.getCookies();
+    if (cookies != null) {
+        for (Cookie cookie : cookies) {
+            if (COOKIE_NAME.equals(cookie.getName())) {
+                return cookie.getValue();
+            }
+        }
+    }
+    return null; // pas de token → requête anonyme
+}
+```
+
+</div>
+
+<div class="flex flex-col gap-2 text-[0.8rem]">
+
+<GlowCard v-click icon="i-carbon-two-factor-authentication" title="Header d'abord, cookie en fallback">
+Le backend reste <strong>agnostique</strong> du type de client : le web envoie un cookie, le desktop un header.
+</GlowCard>
+
+<div v-click class="cp-card cp-card-ic !p-2.5"><carbon:cloud class="inline" style="color:oklch(0.7 0.15 286)"/> Deux <code>SecurityFilterChain</code> ordonnées (WebSocket · API), toutes deux en <code>SessionCreationPolicy.<strong>STATELESS</strong></code> → aucune session serveur.</div>
+
+<div v-click class="cp-card cp-card-ic !p-2.5"><carbon:locked class="inline"/> Cookie <strong>HttpOnly + SameSite</strong> : illisible en JS (anti-XSS), pas de localStorage.</div>
+
+<div v-click class="cp-card cp-card-ic !p-2.5"><carbon:user-role class="inline"/> <strong>RBAC</strong> + 2FA (token intermédiaire) · <strong>BCrypt</strong> · OAuth2.</div>
+
+</div>
+
+</div>
+
+<div class="text-[0.78rem] cp-dim mt-4"><carbon:idea class="inline"/> <strong>SOLID en pratique :</strong> le filtre dépend d'abstractions (<code>JwtService</code>, <code>UserDetailsService</code>) — pas d'implémentations concrètes.</div>
+
+<!--
+Premier morceau de code. Le point clé : un seul filtre de 15 lignes sert deux
+clients aux contraintes différentes. Et la ligne STATELESS, c'est ce qui rend
+l'API multi-instances — on y reviendra dans la partie cloud-native.
+-->
 
 ---
 layout: default
 ---
 
-# <span class="cp-accent-bar">Authentification hybride &amp; sécurité</span>
+# <span class="cp-accent-bar">② Import asynchrone résilient (~5000 jeux)</span>
 
-<div class="grid grid-cols-2 gap-6 mt-2">
-
-<div class="flex flex-col gap-2 text-[0.82rem]">
-  <GlowCard icon="i-carbon-two-factor-authentication" title="JWT à double source">
-  Un même filtre lit le token dans l'en-tête <code>Authorization: Bearer</code> (Desktop) <strong>ou</strong> le cookie <strong>HttpOnly</strong> <code>checkpoint_token</code> (Web).
-  </GlowCard>
-  <div class="grid grid-cols-2 gap-2">
-    <div class="cp-card !p-2.5"><carbon:password class="inline"/> <strong>2FA e-mail</strong> — code 6 chiffres + token intermédiaire</div>
-    <div class="cp-card !p-2.5"><carbon:user-role class="inline"/> <strong>RBAC</strong> — <code>@EnableMethodSecurity</code> + règles d'URL</div>
-    <div class="cp-card !p-2.5"><carbon:locked class="inline"/> <strong>BCrypt</strong> — hachage des mots de passe</div>
-    <div class="cp-card !p-2.5"><carbon:logo-discord class="inline"/> <strong>OAuth2 / OIDC</strong> + refresh tokens</div>
-  </div>
-</div>
+<div class="grid grid-cols-[1.25fr_1fr] gap-5 mt-6">
 
 <div>
 
-```mermaid {scale: 0.66}
-%%{init: {'theme':'base','themeVariables':{'primaryColor':'#2c2350','primaryTextColor':'#e7e7f2','primaryBorderColor':'#6d54c9','lineColor':'#8b7ad6','fontFamily':'Inter','clusterBkg':'#23283a66','clusterBorder':'#3a4055'}}}%%
+```java {all|1-2|6|8-11|16-17}{lines:true}
+@Async("importExecutor")           // thread dédié, hors requête HTTP
+public void run(ImportJobStatus job) {
+    job.setState(RUNNING);
+    try {
+        var games = igdb.fetch(job.getType());
+        gameImportService.bulkImport(games, job);   // boucle commit-par-jeu
+    } catch (Exception e) {
+        job.setErrorMessage(e.getMessage());
+        job.setState(FAILED);      // erreur capturée, pas propagée
+    }
+}
+
+// GamePersistenceService — chaque jeu dans SA transaction
+@Transactional(propagation = Propagation.REQUIRES_NEW)
+public VideoGame importOne(IgdbGameDto dto, ...) {
+    var game = repo.findByIgdbId(dto.id())   // upsert idempotent
+        .map(g -> update(g, dto)).orElseGet(() -> create(dto));
+    return repo.save(game);
+}
+```
+
+</div>
+
+<div class="flex flex-col gap-2 text-[0.8rem]">
+
+<GlowCard v-click icon="i-carbon-batch-job" title="Async + thread dédié">
+L'admin reçoit <code>202</code> immédiatement. L'<code>importExecutor</code> est <strong>mono-thread</strong> : il sérialise les imports et ne bloque pas la gamification.
+</GlowCard>
+
+<GlowCard v-click icon="i-carbon-checkmark" title="Commit par jeu (REQUIRES_NEW)" color="oklch(0.67 0.16 137)">
+Un échec réseau IGDB au jeu n°3001 <strong>ne perd pas</strong> les 3000 déjà commités.
+</GlowCard>
+
+<div v-click class="cp-card cp-card-ic !p-2.5"><carbon:repeat class="inline"/> <strong>Idempotent</strong> (upsert par <code>igdbId</code>) → relançable sans doublon.</div>
+
+</div>
+
+</div>
+
+<div class="text-[0.78rem] cp-dim mt-4"><carbon:idea class="inline"/> Spec : Spring Batch. On a choisi un runner async maison → <strong>même résilience, bien moins de complexité</strong>.</div>
+
+<!--
+Le plus dur du projet : passer d'une transaction unique à "un commit par item".
+REQUIRES_NEW, cette annotation-là, c'est notre résilience.
+-->
+
+---
+layout: default
+---
+
+# <span class="cp-accent-bar">③ Gamification événementielle &amp; anti-triche</span>
+
+<div class="grid grid-cols-[1.25fr_1fr] gap-5 mt-6">
+
+<div>
+
+```java {all|1-2|4-6|7|10-14}{lines:true}
+@Async @EventListener     // autre thread → ne ralentit pas l'action
+public void onReviewLiked(ReviewLikedEvent e) {
+    // Niveau 2 — plafond glissant 24h
+    long last24h = xpGrantRepository.countByUserIdAndEventTypeAfter(
+        e.getReviewAuthorId(), REVIEW_LIKED, now().minusHours(24));
+    if (last24h >= REVIEW_LIKED_DAILY_CAP) return;   // max 10 / 24h
+    awardXp(e.getReviewAuthorId(), 5, REVIEW_LIKED, e.getLikeId());
+}
+
+// Niveau 1 — dédup par CONTRAINTE D'UNICITÉ en base
+try {
+    xpGrantRepository.saveAndFlush(new XpGrant(user, type, targetId, xp));
+} catch (DataIntegrityViolationException ex) {
+    return;   // clé (user, type, target) déjà accordée → on saute
+}
+```
+
+</div>
+
+<div class="flex flex-col gap-2 text-[0.8rem]">
+
+```mermaid {scale: 0.5}
+%%{init: {'theme':'base','themeVariables':{'primaryColor':'#2c2350','primaryTextColor':'#e7e7f2','primaryBorderColor':'#6d54c9','lineColor':'#8b7ad6','fontFamily':'Inter'}}}%%
 flowchart TB
-  W["🌐 Web"] -->|cookie HttpOnly| F
-  D["🖥️ Desktop"] -->|Bearer header| F
-  F["JwtAuthenticationFilter<br/><small>double source · stateless</small>"]
-  F --> R{"ROLE ?"}
-  R -->|ROLE_ADMIN| A["/api/v1/admin/**"]
-  R -->|ROLE_USER| U["/api/v1/**"]
+  A["Finit un jeu · like…"] -->|publie| E((Event))
+  E --> L1["Gamification<br/>→ XP / niveau"]
+  E --> L2["Badge<br/>→ easter-eggs"]
 ```
 
-<div class="text-[0.74rem] cp-dim mt-1 text-center">Deux <code>SecurityFilterChain</code> ordonnées : WebSocket (order 0) · API (order 1).</div>
+<GlowCard v-click icon="i-carbon-security" title="Anti-triche à 2 niveaux" color="oklch(0.58 0.18 27)">
+Dédup en <strong>base</strong> (atomique, anti-concurrence) + <strong>plafond glissant</strong> 24h. Resuivre ne re-crédite pas.
+</GlowCard>
 
 </div>
 
 </div>
 
-<div class="mt-2 text-[0.82rem] cp-card !p-2.5"><carbon:game-console class="inline"/> <strong>Connexion Steam</strong> (OpenID) pour importer la bibliothèque Steam du joueur.</div>
+<div class="text-[0.78rem] cp-dim mt-4"><carbon:idea class="inline"/> <strong>Découplage (SOLID/OCP) :</strong> ajouter une réaction = ajouter un listener, sans toucher au code métier.</div>
 
 <!--
-Le point fort : un seul backend, une seule chaîne stateless, mais deux modes
-de transport du JWT pour deux clients aux contraintes différentes.
+Architecture event-driven : le code métier publie un événement, plusieurs listeners
+réagissent. La dédup est en base et pas en Java pour éviter une race condition.
 -->
-
----
-layout: two-cols
-layoutClass: gap-8
----
-
-# <span class="cp-accent-bar">Recherche full-text</span>
-
-**Hibernate Search + Lucene**
-
-<div class="flex flex-col gap-2 mt-3 text-[0.82rem]">
-  <GlowCard icon="i-carbon-search" title="Index Lucene local">
-  Indexation via Hibernate Search, en local.
-  </GlowCard>
-  <div class="cp-card !p-2.5"><code>SearchIndexer</code> (<code>CommandLineRunner</code>) reconstruit l'index complet <strong>au démarrage</strong> → recherche dispo immédiatement.</div>
-  <div class="cp-card !p-2.5"><carbon:character-whole-number class="inline"/> Recherche <strong>floue</strong> (tolérante aux fautes) + filtres multicritères.</div>
-</div>
-
-::right::
-
-# <span class="cp-accent-bar">Recommandation &amp; social</span>
-
-<div class="flex flex-col gap-2 mt-3 text-[0.82rem]">
-  <GlowCard icon="i-carbon-network-4" title="Jeux similaires" color="oklch(0.64 0.15 233)">
-  Algorithme <strong>item-to-item</strong> : recouvrement de tags (genres / plateformes / studios) + bonus note &amp; récence.
-  </GlowCard>
-  <GlowCard icon="i-carbon-collaborate" title="Joueurs compatibles" color="oklch(0.66 0.16 60)">
-  Filtrage collaboratif sur les jeux <strong>terminés en commun</strong>.
-  </GlowCard>
-  <div class="cp-card !p-2.5"><carbon:activity class="inline"/> Feed d'activité, follow/followers, comparaison de profils.</div>
-</div>
 
 ---
 layout: default
 ---
 
-# <span class="cp-accent-bar">Import de catalogue asynchrone (IGDB)</span>
+# <span class="cp-accent-bar">④ Recommandation item-to-item</span>
 
-<div class="flex justify-center mt-1">
-
-```mermaid {scale: 0.52}
-%%{init: {'theme':'base','themeVariables':{'primaryColor':'#2c2350','primaryTextColor':'#e7e7f2','primaryBorderColor':'#6d54c9','lineColor':'#8b7ad6','fontFamily':'Inter'}}}%%
-sequenceDiagram
-  participant Admin as 🖥️ Admin
-  participant API
-  participant Job as ImportJobRunner
-  participant IGDB
-  participant DB
-  Admin->>API: lance l'import (top / récents)
-  API-->>Admin: 202 · job démarré (@Async)
-  loop par jeu (~5000)
-    Job->>IGDB: fetch
-    Job->>DB: commit indépendant
-  end
-  Admin->>API: GET statut (progression)
-```
-
-</div>
-
-<div class="grid grid-cols-4 gap-3 mt-3 text-[0.76rem]">
-  <div class="cp-card !p-2.5"><carbon:batch-job class="inline" style="color:oklch(0.7 0.15 286)"/> <strong>Job async</strong> — <code>@Async</code>, pas d'appelant HTTP qui attend.</div>
-  <div class="cp-card !p-2.5"><carbon:checkmark class="inline" style="color:oklch(0.67 0.16 137)"/> <strong>Commit par jeu</strong> — un échec réseau n'annule pas tout.</div>
-  <div class="cp-card !p-2.5"><carbon:repeat class="inline"/> <strong>Idempotence</strong> — pas de doublons en base.</div>
-  <div class="cp-card !p-2.5"><carbon:progress-bar-round class="inline"/> <strong>Progression</strong> exposée via l'API.</div>
-</div>
-
-> 💡 Le plus dur : passer d'une approche transactionnelle classique à un modèle **« commit par item »** pour ne rien perdre sur une erreur IGDB à mi-parcours.
-
-<!--
-On a choisi un runner async maison plutôt que Spring Batch : même résilience,
-beaucoup moins de complexité.
--->
-
-<style>
-.cp-card code { font-size: 0.72rem; }
-</style>
-
----
-layout: default
----
-
-# <span class="cp-accent-bar">Gamification événementielle</span>
-
-<div class="grid grid-cols-[1fr_1.1fr] gap-6 mt-2">
+<div class="grid grid-cols-[1.2fr_1fr] gap-5 mt-6">
 
 <div>
 
-Architecture **event-driven** — `events/` (17 événements) + `listeners/`.
+```java {all|2-4|5-6}{lines:true}
+// GameTagScorer — score par recouvrement de tags
+double total = genreContribution      // genres × 1.0  (signal fort)
+             + companyContribution    // studios × 0.6
+             + platformContribution   // plateformes × 0.4
+             + rating * 0.2           // départage par la note
+             + recency;               // +0.5 si sorti < 2 ans
 
-```mermaid {scale: 0.66}
-%%{init: {'theme':'base','themeVariables':{'primaryColor':'#2c2350','primaryTextColor':'#e7e7f2','primaryBorderColor':'#6d54c9','lineColor':'#8b7ad6','fontFamily':'Inter'}}}%%
-flowchart LR
-  A["Termine un jeu<br/>Écrit une review<br/>Suit quelqu'un"] -->|publie| E((Event))
-  E --> L1["GamificationListener<br/>→ XP / niveau"]
-  E --> L2["BadgeListener<br/>→ badges + easter-eggs"]
+// Garde-fou : un IN () vide plante certains dialectes Hibernate
+static Collection<UUID> ensureNonEmpty(Set<UUID> ids) {
+    return ids.isEmpty() ? List.of(new UUID(0, 0)) : ids;
+}
 ```
 
 </div>
 
-<div class="flex flex-col gap-2 text-[0.82rem]">
-  <GlowCard icon="i-carbon-trophy" title="XP, niveaux, badges">
-  Un listener <strong>asynchrone</strong> attribue l'XP à chaque événement publié.
-  </GlowCard>
-  <GlowCard icon="i-carbon-security" title="Anti-triche intégré" color="oklch(0.58 0.18 27)">
-  <strong>Déduplication par clé</strong> — resuivre ne re-crédite pas. <strong>Plafonds glissants</strong> : max 10 « review likée » / 24 h.
-  </GlowCard>
-  <div class="cp-card !p-2.5"><carbon:star class="inline" style="color:oklch(0.66 0.16 60)"/> Badges débloqués par événement — y compris des <strong>easter-eggs</strong> cachés.</div>
-</div>
+<div class="flex flex-col gap-2 text-[0.8rem]">
 
-</div>
-
----
-layout: default
----
-
-# <span class="cp-accent-bar">Temps réel &amp; tâches planifiées</span>
-
-<div class="grid grid-cols-3 gap-4 mt-6">
-
-<GlowCard icon="i-carbon-notification" title="WebSockets (STOMP)" color="oklch(0.64 0.15 233)">
-Notifications en <strong>temps réel</strong> poussées au client.
+<GlowCard v-click icon="i-carbon-network-4" title="Pré-filtre SQL puis scoring">
+La base ramène ≤ <strong>50 candidats</strong> partageant un genre/studio ; on les score finement <strong>en mémoire</strong>, on trie, on garde le top 12.
 </GlowCard>
 
-<GlowCard icon="i-carbon-time" title="Tâches @Scheduled" color="oklch(0.66 0.16 60)">
-Import de news (RSS / Steam), refresh des profils Steam, nettoyage des refresh tokens.
-</GlowCard>
+<div v-click class="cp-card cp-card-ic !p-2.5"><carbon:reset class="inline"/> Poids isolés en constantes → <strong>réglables</strong> sans toucher à la logique.</div>
 
-<GlowCard icon="i-carbon-locked" title="ShedLock" color="oklch(0.58 0.21 286)">
-Verrou <strong>distribué</strong> : une tâche planifiée ne s'exécute <strong>qu'une fois</strong>, même avec plusieurs instances.
-</GlowCard>
+<div v-click class="cp-card cp-card-ic !p-2.5"><carbon:share class="inline" style="color:oklch(0.67 0.16 137)"/> <strong>DRY</strong> : le même scorer sert « jeux similaires » <strong>et</strong> recos personnalisées.</div>
 
 </div>
 
-<div class="mt-7 text-center cp-card !p-3 text-[0.88rem]">
-<carbon:idea class="inline" style="color:oklch(0.66 0.18 286)"/> ShedLock est déjà un <strong>choix « multi-instances »</strong> : on prépare le terrain pour le scaling horizontal (voir §05).
 </div>
+
+<div class="text-[0.78rem] cp-dim mt-4"><carbon:idea class="inline"/> Spec : TF-IDF. Notre tag-overlap est plus simple à expliquer/régler et pertinent sur notre volume.</div>
+
+<!--
+Quatrième morceau. C'est du filtrage par contenu, pas du ML. On laisse la base
+pré-filtrer (ce qu'elle fait de mieux) et on score un petit pool en Java.
+Le détail ensureNonEmpty, c'est un vrai bug évité en prod sur données incomplètes.
+-->
