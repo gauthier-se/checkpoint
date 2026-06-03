@@ -1,11 +1,9 @@
-import { TanStackDevtools } from '@tanstack/react-devtools'
 import {
   HeadContent,
   Outlet,
   Scripts,
   createRootRouteWithContext,
 } from '@tanstack/react-router'
-import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 
 import { HotkeysProvider } from '@tanstack/react-hotkeys'
 import { ThemeProvider } from 'next-themes'
@@ -94,17 +92,6 @@ function RootDocument({ children }: { children: React.ReactNode }) {
             <TooltipProvider>
               <ErrorBoundary>{children}</ErrorBoundary>
               <Toaster richColors closeButton position="top-right" />
-              <TanStackDevtools
-                config={{
-                  position: 'bottom-right',
-                }}
-                plugins={[
-                  {
-                    name: 'Tanstack Router',
-                    render: <TanStackRouterDevtoolsPanel />,
-                  },
-                ]}
-              />
               <Scripts />
             </TooltipProvider>
           </ThemeProvider>
