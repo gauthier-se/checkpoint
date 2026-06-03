@@ -6,7 +6,7 @@ import { CollectionPagination } from '@/components/collection/collection-paginat
 import { EmptyState } from '@/components/collection/empty-state'
 import { apiFetch } from '@/services/api'
 
-const PAGE_SIZE = 20
+const PAGE_SIZE = 21
 
 export function likedGamesQuery(page: number) {
   return queryOptions({
@@ -31,7 +31,7 @@ export function LikedTab({ page }: LikedTabProps) {
   if (isLoading) {
     return (
       <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7">
-        {Array.from({ length: 12 }).map((_, i) => (
+        {Array.from({ length: 21 }).map((_, i) => (
           <div key={i} className="flex flex-col gap-1.5">
             <div className="aspect-[3/4] animate-pulse rounded-md bg-muted" />
             <div className="h-3 w-3/4 animate-pulse rounded bg-muted" />
