@@ -3,7 +3,6 @@ import { Library, Lock } from 'lucide-react'
 import type { UserProfile } from '@/types/profile'
 import { userBacklogQueryOptions } from '@/queries/profile'
 import { GameDetailCard } from '@/components/games/game-detail-card'
-import { PriorityBadge } from '@/components/collection/priority-badge'
 import { PaginationNav } from '@/components/shared/pagination-nav'
 
 interface ProfileBacklogTabProps {
@@ -67,11 +66,6 @@ export function ProfileBacklogTab({ profile, page }: ProfileBacklogTabProps) {
             coverUrl={game.coverUrl}
             releaseDate={game.releaseDate}
             link={{ type: 'game', gameId: game.videoGameId }}
-            statusBadge={
-              game.priority ? (
-                <PriorityBadge priority={game.priority} />
-              ) : undefined
-            }
           />
         ))}
       </div>

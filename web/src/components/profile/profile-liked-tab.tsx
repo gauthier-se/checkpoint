@@ -28,7 +28,7 @@ export function ProfileLikedTab({ profile, page }: ProfileLikedTabProps) {
   if (isLoading) {
     return (
       <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7">
-        {Array.from({ length: 12 }).map((_, i) => (
+        {Array.from({ length: 21 }).map((_, i) => (
           <div
             key={i}
             className="bg-muted aspect-[3/4] animate-pulse rounded-md"

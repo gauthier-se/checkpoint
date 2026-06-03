@@ -176,7 +176,7 @@ export const userAllGamesQueryOptions = (
 export const userLikedGamesQueryOptions = (
   username: string,
   page: number = 0,
-  size: number = 20,
+  size: number = 21,
 ) => {
   return queryOptions({
     queryKey: ['users', username, 'likes', page, size],
