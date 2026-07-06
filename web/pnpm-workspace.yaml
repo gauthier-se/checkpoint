@@ -39,3 +39,16 @@ overrides:
   # vitest 3.x pins old vite (server.fs.deny bypass, arbitrary file read,
   # path traversal). Force the patched 7.3.3 across the tree.
   vite: ^7.3.3
+  # @tanstack/react-start → nitro pulls old h3 (middleware bypass, SSE
+  # injection, path traversal, unbounded cookie DoS). No stable 2.0.1 yet.
+  h3: 2.0.1-rc.22
+  # nitro/@tanstack toolchain pulls undici <7.28 (TLS bypass, WS DoS,
+  # cross-origin routing, header injection, cross-user disclosure).
+  undici: ^7.28.0
+  # nitro → esbuild <0.28.1 (arbitrary file read via dev server).
+  esbuild: ^0.28.1
+  # nitro → srvx <0.11.13 (middleware bypass via absolute URL).
+  srvx: ^0.11.21
+  # @tanstack/react-start pins nitro 3.0.0 (proxy scope bypass, open
+  # redirect). Only patched build published is the beta line.
+  nitro: 3.0.260610-beta
