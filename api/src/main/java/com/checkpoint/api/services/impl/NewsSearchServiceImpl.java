@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.hibernate.search.engine.search.predicate.dsl.BooleanPredicateClausesStep;
+import org.hibernate.search.engine.search.predicate.dsl.PredicateFinalStep;
 import org.hibernate.search.engine.search.predicate.dsl.SearchPredicateFactory;
 import org.hibernate.search.engine.search.query.SearchResult;
 import org.hibernate.search.engine.search.sort.dsl.SearchSortFactory;
@@ -80,10 +81,12 @@ public class NewsSearchServiceImpl implements NewsSearchService {
         SearchSession searchSession = Search.session(entityManager);
 
         List<News> hits = searchSession.search(News.class)
-                .where(f -> f.match()
-                        .fields("title", "description")
-                        .matching(q)
-                        .fuzzy(FUZZY_MAX_EDIT_DISTANCE))
+                .where(f -> f.bool()
+                        .must(f.match()
+                                .fields("title", "description")
+                                .matching(q)
+                                .fuzzy(FUZZY_MAX_EDIT_DISTANCE))
+                        .filter(publishedOnly(f)))
                 .fetchHits(clampedLimit);
 
         return hits.stream()
@@ -92,13 +95,26 @@ public class NewsSearchServiceImpl implements NewsSearchService {
     }
 
     /**
-     * Builds the boolean predicate combining the optional fuzzy text query and filters.
+     * Restricts results to published articles. {@code publishedAt} is null on a draft and on an
+     * article that was unpublished, and Lucene does not index null values, so an {@code exists}
+     * clause keeps both out of the public search paths — matching the single-article endpoint,
+     * which loads through {@code findByIdAndPublishedAtIsNotNull}.
+     */
+    private PredicateFinalStep publishedOnly(SearchPredicateFactory f) {
+        return f.exists().field("publishedAt");
+    }
+
+    /**
+     * Builds the boolean predicate combining the mandatory published filter, the optional fuzzy
+     * text query, and the optional filters.
      */
     private BooleanPredicateClausesStep<?> buildPredicate(
             SearchPredicateFactory f,
             NewsSearchCriteria criteria
     ) {
         BooleanPredicateClausesStep<?> bool = f.bool();
+
+        bool.filter(publishedOnly(f));
 
         if (criteria.hasQuery()) {
             bool.must(f.match()
