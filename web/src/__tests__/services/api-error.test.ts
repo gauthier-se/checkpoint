@@ -64,6 +64,35 @@ describe('apiFetch error handling', () => {
     await expect(apiFetch('/api/ok')).resolves.toBe(response)
   })
 
+  it('keeps the parsed error body on details for structured failures', async () => {
+    fetchMock.mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          status: 409,
+          error: 'Conflict',
+          message: 'Game cannot be deleted because it is referenced',
+          blockingReferences: { library: 3 },
+        }),
+        { status: 409 },
+      ),
+    )
+
+    const error = await apiFetch('/api/admin/games/1', {
+      method: 'DELETE',
+    }).catch((e) => e)
+
+    expect(error.status).toBe(409)
+    expect(error.details?.blockingReferences).toEqual({ library: 3 })
+  })
+
+  it('leaves details undefined when the response carries no JSON body', async () => {
+    fetchMock.mockResolvedValueOnce(new Response('not json', { status: 500 }))
+
+    const error = await apiFetch('/api/anything').catch((e) => e)
+
+    expect(error.details).toBeUndefined()
+  })
+
   it('isApiError recognizes plain branded objects (SSR-safe)', () => {
     const branded = { __isApiError: true, status: 401, code: 'X', message: 'y' }
     expect(isApiError(branded)).toBe(true)

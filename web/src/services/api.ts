@@ -11,14 +11,26 @@ import { API_PREFIX } from '@/services/api-config'
 export class ApiError extends Error {
   readonly status: number
   readonly code: string
+  /**
+   * Parsed error body, for endpoints that answer with structured detail beyond
+   * a message — e.g. the `blockingReferences` map returned when a game deletion
+   * is refused. Undefined when the response carried no JSON body.
+   */
+  readonly details?: Record<string, unknown>
   // Brand for cross-realm / cross-SSR-boundary detection.
   readonly __isApiError = true as const
 
-  constructor(status: number, code: string, message: string) {
+  constructor(
+    status: number,
+    code: string,
+    message: string,
+    details?: Record<string, unknown>,
+  ) {
     super(message)
     this.name = 'ApiError'
     this.status = status
     this.code = code
+    this.details = details
   }
 }
 
@@ -36,6 +48,9 @@ interface ServerErrorResponse {
   error?: string
   message?: string
   timestamp?: string
+  // Some endpoints add structured detail alongside the standard fields; it is
+  // preserved on `ApiError.details` rather than dropped.
+  [key: string]: unknown
 }
 
 /**
@@ -99,6 +114,7 @@ export async function apiFetch(
       body?.status ?? res.status,
       body?.error ?? res.statusText,
       body?.message ?? 'An unexpected error occurred.',
+      body ?? undefined,
     )
   }
 

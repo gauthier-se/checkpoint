@@ -1,5 +1,6 @@
 import type { AdminUser, AdminUserStatus } from '@/types/admin'
-import type { PaginationMetadata } from '@/types/game'
+import type { ClientPage } from '@/lib/admin-pagination'
+import { paginateClientSide } from '@/lib/admin-pagination'
 
 /**
  * `banned` is nullable on the API side (accounts predating the column), so
@@ -33,42 +34,13 @@ export function filterAdminUsers(
   })
 }
 
-export interface AdminUserPage {
-  rows: Array<AdminUser>
-  /**
-   * Same shape the paginated admin endpoints return, so `AdminDataTable` and
-   * `PaginationNav` work unchanged against a client-side slice.
-   */
-  metadata: PaginationMetadata
-}
+export type AdminUserPage = ClientPage<AdminUser>
 
-/**
- * Slices the filtered list into a page. `page` is 1-based and clamped into
- * range, so a stale deep link (e.g. page 5 after a filter narrows the results)
- * lands on the last page instead of an empty table.
- */
+/** Client-side paging for the unpaginated `GET /admin/users` listing. */
 export function paginateAdminUsers(
   users: Array<AdminUser>,
   page: number,
   size: number,
 ): AdminUserPage {
-  const totalElements = users.length
-  const totalPages = Math.max(1, Math.ceil(totalElements / size))
-  const requested = Number.isFinite(page) ? Math.floor(page) : 1
-  const current = Math.min(Math.max(1, requested), totalPages)
-  const start = (current - 1) * size
-
-  return {
-    rows: users.slice(start, start + size),
-    metadata: {
-      page: current - 1,
-      size,
-      totalElements,
-      totalPages,
-      first: current === 1,
-      last: current === totalPages,
-      hasNext: current < totalPages,
-      hasPrevious: current > 1,
-    },
-  }
+  return paginateClientSide(users, page, size)
 }
