@@ -23,8 +23,9 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import type { PlayStatus } from '@/types/interaction'
-import type { ReviewSummary } from '@/types/play-log'
+import type { PlayLogDetail, ReviewSummary } from '@/types/play-log'
 import { deletePlayLog, playLogDetailQueryOptions } from '@/queries/plays'
+import { toggleReviewLike } from '@/queries/review'
 import { gameDetailQueryOptions } from '@/queries/catalog'
 import { triggerReviewView } from '@/queries/easter-eggs'
 import { useAuth } from '@/hooks/use-auth'
@@ -32,6 +33,7 @@ import { CommentSection } from '@/components/comments/comment-section'
 import { PlayLogDialog } from '@/components/games/play-log-dialog'
 import { ReportReviewDialog } from '@/components/reviews/report-review-dialog'
 import { ScoreStars } from '@/components/games/score-stars'
+import { LikeButton } from '@/components/shared/like-button'
 import { MentionText } from '@/components/shared/mention-text'
 import {
   AlertDialog,
@@ -49,11 +51,6 @@ import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
 import { resolvePictureUrl } from '@/lib/picture'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
 import { isApiError } from '@/services/api'
 import { seo } from '@/lib/seo'
 
@@ -154,6 +151,45 @@ function PlayLogDetailPage() {
     enabled: !!play.videoGameId && play.isOwner && isEditing,
   })
 
+  // The review is embedded in the play log payload, so a like patches
+  // ['plays', id] optimistically instead of a dedicated review query.
+  const likeMutation = useMutation({
+    meta: { suppressGlobalError: true },
+    mutationFn: (reviewId: string) => toggleReviewLike(reviewId),
+    onMutate: async () => {
+      const { queryKey } = playLogDetailQueryOptions(id)
+      await queryClient.cancelQueries({ queryKey })
+      const previous = queryClient.getQueryData<PlayLogDetail>(queryKey)
+      queryClient.setQueryData<PlayLogDetail>(queryKey, (old) => {
+        if (!old?.review) return old
+        const liked = !old.review.isLikedByViewer
+        return {
+          ...old,
+          review: {
+            ...old.review,
+            isLikedByViewer: liked,
+            likeCount: old.review.likeCount + (liked ? 1 : -1),
+          },
+        }
+      })
+      return { previous }
+    },
+    onError: (_err, _reviewId, context) => {
+      toast.error('Failed to update like')
+      if (context?.previous) {
+        queryClient.setQueryData(
+          playLogDetailQueryOptions(id).queryKey,
+          context.previous,
+        )
+      }
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({
+        queryKey: playLogDetailQueryOptions(id).queryKey,
+      })
+    },
+  })
+
   const deleteMutation = useMutation({
     meta: { suppressGlobalError: true },
     mutationFn: () => deletePlayLog(id),
@@ -197,7 +233,7 @@ function PlayLogDetailPage() {
 
       <div className="grid gap-8 md:grid-cols-[260px_1fr] items-start">
         {/* Left column: cover + game info */}
-        <div className="space-y-4 sticky top-24">
+        <div className="space-y-4 md:sticky md:top-24">
           <Link
             to="/games/$gameId"
             params={{ gameId: play.videoGameId }}
@@ -409,6 +445,9 @@ function PlayLogDetailPage() {
                 isOwner={play.isOwner}
                 showSpoilers={showSpoilers}
                 onRevealSpoilers={() => setShowSpoilers(true)}
+                canLike={!!user}
+                isLikePending={likeMutation.isPending}
+                onToggleLike={() => likeMutation.mutate(play.review!.id)}
                 onReport={
                   user && !play.isOwner
                     ? () => setReportingReviewId(play.review!.id)
@@ -536,6 +575,9 @@ interface ReviewBlockProps {
   isOwner: boolean
   showSpoilers: boolean
   onRevealSpoilers: () => void
+  canLike: boolean
+  isLikePending: boolean
+  onToggleLike: () => void
   onReport?: () => void
 }
 
@@ -544,6 +586,9 @@ function ReviewBlock({
   isOwner,
   showSpoilers,
   onRevealSpoilers,
+  canLike,
+  isLikePending,
+  onToggleLike,
   onReport,
 }: ReviewBlockProps) {
   const isHidden = review.haveSpoilers && !showSpoilers && !isOwner
@@ -567,21 +612,13 @@ function ReviewBlock({
       )}
 
       <div className="flex items-center gap-3 text-sm text-muted-foreground">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <span className="inline-flex items-center gap-1">
-              <Heart
-                className={`size-4 ${review.isLikedByViewer ? 'fill-current text-red-500' : ''}`}
-              />
-              {review.likeCount}
-            </span>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>
-              {review.likeCount} {review.likeCount === 1 ? 'like' : 'likes'}
-            </p>
-          </TooltipContent>
-        </Tooltip>
+        <LikeButton
+          liked={!!review.isLikedByViewer}
+          likesCount={review.likeCount}
+          onToggle={onToggleLike}
+          disabled={!canLike}
+          isPending={isLikePending}
+        />
         <span className="inline-flex items-center gap-1">
           <MessageSquare className="size-4" />
           {review.commentCount}
