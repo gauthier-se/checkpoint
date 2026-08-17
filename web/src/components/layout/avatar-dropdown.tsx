@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useAuth } from '@/hooks/use-auth'
+import { isAdmin } from '@/lib/admin'
 import { resolvePictureUrl } from '@/lib/picture'
 
 export function AvatarDropdown({ user }: { user: User }) {
@@ -65,6 +66,16 @@ export function AvatarDropdown({ user }: { user: User }) {
             <Link to="/settings/profile">Settings</Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>
+        {isAdmin(user) && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuGroup>
+              <DropdownMenuItem asChild>
+                <Link to="/admin">Admin panel</Link>
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+          </>
+        )}
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem variant="destructive" onClick={handleLogout}>
