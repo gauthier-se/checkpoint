@@ -21,8 +21,10 @@ overrides:
   minimatch@>=9.0.0 <9.0.6: ^9.0.6
   # vite/postcss/eslint chains pull old picomatch (ReDoS, method injection).
   picomatch: ^4.0.4
-  # eslint/optionator → brace-expansion (ReDoS / resource exhaustion).
-  brace-expansion: ^2.0.3
+  # eslint/optionator → brace-expansion (ReDoS / resource exhaustion, plus two
+  # incomplete fixes: uncatchable OOM and event-loop stall via unbounded
+  # intermediate arrays).
+  brace-expansion: ^2.1.4
   '@isaacs/brace-expansion': ^5.0.1
   # flatted via eslint cache utils (DoS, prototype pollution).
   flatted: ^3.3.4
