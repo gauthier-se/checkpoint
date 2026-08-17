@@ -236,3 +236,32 @@ export interface AdminNewsSearchParams {
   /** 1-based. */
   page: number
 }
+
+export interface AdminTopGame {
+  id: string
+  title: string
+  reviewCount: number
+}
+
+export interface AdminTopReviewer {
+  id: string
+  username: string
+  reviewCount: number
+}
+
+/**
+ * `GET /admin/analytics` (`AdminAnalyticsDto`). Five running totals plus two
+ * top-five rankings — there is no time series in the payload, so nothing here
+ * is plotted over time.
+ */
+export interface AdminAnalytics {
+  totalUsers: number
+  /** Not banned. `totalUsers - activeUsers` is the banned count. */
+  activeUsers: number
+  totalGames: number
+  totalReviews: number
+  /** Every report on file; the API keeps no dismissed/open distinction. */
+  openReports: number
+  topReviewedGames: Array<AdminTopGame>
+  topReviewers: Array<AdminTopReviewer>
+}

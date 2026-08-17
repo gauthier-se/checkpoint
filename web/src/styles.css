@@ -45,7 +45,9 @@ code {
   --color-3: hsl(263 70% 48%);
   --color-4: hsl(270 95% 75%);
   --color-5: hsl(255 91% 58%);
-  --chart-1: oklch(0.4365 0.2008 286.1087);
+  /* Dark-mode step of the same hue. The light value (L 0.4365) fails on the
+     dark card: contrast 1.86:1 and outside the dark lightness band. */
+  --chart-1: oklch(0.62 0.14 286.1087);
   --chart-2: oklch(0.6714 0.1676 136.926);
   --chart-3: oklch(0.6811 0.1461 59.8125);
   --chart-4: oklch(0.6351 0.1031 233.5013);
