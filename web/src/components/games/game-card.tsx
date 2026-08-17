@@ -34,7 +34,7 @@ export function GameCard({ game, reason }: GameCardProps) {
       <div className="relative pointer-events-none">
         {game.coverUrl ? (
           <img
-            className="rounded-sm w-full"
+            className="aspect-[3/4] w-full rounded-sm object-cover"
             src={game.coverUrl}
             alt={game.title}
           />
