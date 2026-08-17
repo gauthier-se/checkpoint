@@ -38,7 +38,11 @@ export const ADMIN_NAV_ITEMS: ReadonlyArray<AdminNavItem> = [
     icon: ShieldAlert,
     link: { to: '/admin/moderation' },
   },
-  { label: 'News', icon: Newspaper, link: { to: '/admin/news' } },
+  {
+    label: 'News',
+    icon: Newspaper,
+    link: { to: '/admin/news', search: { page: 1 } },
+  },
 ]
 
 const ITEM_CLASS =
