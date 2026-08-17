@@ -53,13 +53,17 @@ import { Route as AppProtectedSettingsAppearanceRouteImport } from './routes/_ap
 import { Route as AppProtectedListsNewRouteImport } from './routes/_app/_protected/lists/new'
 import { Route as AppProtectedGamesPopularWithFriendsRouteImport } from './routes/_app/_protected/games/popular-with-friends'
 import { Route as AppProtectedAdminNewsRouteImport } from './routes/_app/_protected/admin/news'
-import { Route as AppProtectedAdminModerationRouteImport } from './routes/_app/_protected/admin/moderation'
 import { Route as AppProtectedAdminGamesRouteImport } from './routes/_app/_protected/admin/games'
 import { Route as AppProtectedAdminAnalyticsRouteImport } from './routes/_app/_protected/admin/analytics'
+import { Route as AppProtectedAdminModerationRouteRouteImport } from './routes/_app/_protected/admin/moderation/route'
 import { Route as AppProtectedAdminUsersIndexRouteImport } from './routes/_app/_protected/admin/users/index'
+import { Route as AppProtectedAdminModerationIndexRouteImport } from './routes/_app/_protected/admin/moderation/index'
 import { Route as AppProtectedUsernameTagsIndexRouteImport } from './routes/_app/_protected/$username/tags/index'
 import { Route as AppProtectedListsListIdEditRouteImport } from './routes/_app/_protected/lists/$listId/edit'
 import { Route as AppProtectedAdminUsersUserIdRouteImport } from './routes/_app/_protected/admin/users/$userId'
+import { Route as AppProtectedAdminModerationReviewsRouteImport } from './routes/_app/_protected/admin/moderation/reviews'
+import { Route as AppProtectedAdminModerationReportsIndexRouteImport } from './routes/_app/_protected/admin/moderation/reports/index'
+import { Route as AppProtectedAdminModerationReportsReportIdRouteImport } from './routes/_app/_protected/admin/moderation/reports/$reportId'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/_auth',
@@ -289,12 +293,6 @@ const AppProtectedAdminNewsRoute = AppProtectedAdminNewsRouteImport.update({
   path: '/news',
   getParentRoute: () => AppProtectedAdminRouteRoute,
 } as any)
-const AppProtectedAdminModerationRoute =
-  AppProtectedAdminModerationRouteImport.update({
-    id: '/moderation',
-    path: '/moderation',
-    getParentRoute: () => AppProtectedAdminRouteRoute,
-  } as any)
 const AppProtectedAdminGamesRoute = AppProtectedAdminGamesRouteImport.update({
   id: '/games',
   path: '/games',
@@ -306,11 +304,23 @@ const AppProtectedAdminAnalyticsRoute =
     path: '/analytics',
     getParentRoute: () => AppProtectedAdminRouteRoute,
   } as any)
+const AppProtectedAdminModerationRouteRoute =
+  AppProtectedAdminModerationRouteRouteImport.update({
+    id: '/moderation',
+    path: '/moderation',
+    getParentRoute: () => AppProtectedAdminRouteRoute,
+  } as any)
 const AppProtectedAdminUsersIndexRoute =
   AppProtectedAdminUsersIndexRouteImport.update({
     id: '/users/',
     path: '/users/',
     getParentRoute: () => AppProtectedAdminRouteRoute,
+  } as any)
+const AppProtectedAdminModerationIndexRoute =
+  AppProtectedAdminModerationIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AppProtectedAdminModerationRouteRoute,
   } as any)
 const AppProtectedUsernameTagsIndexRoute =
   AppProtectedUsernameTagsIndexRouteImport.update({
@@ -329,6 +339,24 @@ const AppProtectedAdminUsersUserIdRoute =
     id: '/users/$userId',
     path: '/users/$userId',
     getParentRoute: () => AppProtectedAdminRouteRoute,
+  } as any)
+const AppProtectedAdminModerationReviewsRoute =
+  AppProtectedAdminModerationReviewsRouteImport.update({
+    id: '/reviews',
+    path: '/reviews',
+    getParentRoute: () => AppProtectedAdminModerationRouteRoute,
+  } as any)
+const AppProtectedAdminModerationReportsIndexRoute =
+  AppProtectedAdminModerationReportsIndexRouteImport.update({
+    id: '/reports/',
+    path: '/reports/',
+    getParentRoute: () => AppProtectedAdminModerationRouteRoute,
+  } as any)
+const AppProtectedAdminModerationReportsReportIdRoute =
+  AppProtectedAdminModerationReportsReportIdRouteImport.update({
+    id: '/reports/$reportId',
+    path: '/reports/$reportId',
+    getParentRoute: () => AppProtectedAdminModerationRouteRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -357,9 +385,9 @@ export interface FileRoutesByFullPath {
   '/lists/': typeof AppListsIndexRoute
   '/members/': typeof AppMembersIndexRoute
   '/news/': typeof AppNewsIndexRoute
+  '/admin/moderation': typeof AppProtectedAdminModerationRouteRouteWithChildren
   '/admin/analytics': typeof AppProtectedAdminAnalyticsRoute
   '/admin/games': typeof AppProtectedAdminGamesRoute
-  '/admin/moderation': typeof AppProtectedAdminModerationRoute
   '/admin/news': typeof AppProtectedAdminNewsRoute
   '/games/popular-with-friends': typeof AppProtectedGamesPopularWithFriendsRoute
   '/lists/new': typeof AppProtectedListsNewRoute
@@ -376,10 +404,14 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AppProtectedAdminIndexRoute
   '/feed/': typeof AppProtectedFeedIndexRoute
   '/settings/': typeof AppProtectedSettingsIndexRoute
+  '/admin/moderation/reviews': typeof AppProtectedAdminModerationReviewsRoute
   '/admin/users/$userId': typeof AppProtectedAdminUsersUserIdRoute
   '/lists/$listId/edit': typeof AppProtectedListsListIdEditRoute
   '/$username/tags/': typeof AppProtectedUsernameTagsIndexRoute
+  '/admin/moderation/': typeof AppProtectedAdminModerationIndexRoute
   '/admin/users/': typeof AppProtectedAdminUsersIndexRoute
+  '/admin/moderation/reports/$reportId': typeof AppProtectedAdminModerationReportsReportIdRoute
+  '/admin/moderation/reports/': typeof AppProtectedAdminModerationReportsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof AppIndexRoute
@@ -407,7 +439,6 @@ export interface FileRoutesByTo {
   '/news': typeof AppNewsIndexRoute
   '/admin/analytics': typeof AppProtectedAdminAnalyticsRoute
   '/admin/games': typeof AppProtectedAdminGamesRoute
-  '/admin/moderation': typeof AppProtectedAdminModerationRoute
   '/admin/news': typeof AppProtectedAdminNewsRoute
   '/games/popular-with-friends': typeof AppProtectedGamesPopularWithFriendsRoute
   '/lists/new': typeof AppProtectedListsNewRoute
@@ -424,10 +455,14 @@ export interface FileRoutesByTo {
   '/admin': typeof AppProtectedAdminIndexRoute
   '/feed': typeof AppProtectedFeedIndexRoute
   '/settings': typeof AppProtectedSettingsIndexRoute
+  '/admin/moderation/reviews': typeof AppProtectedAdminModerationReviewsRoute
   '/admin/users/$userId': typeof AppProtectedAdminUsersUserIdRoute
   '/lists/$listId/edit': typeof AppProtectedListsListIdEditRoute
   '/$username/tags': typeof AppProtectedUsernameTagsIndexRoute
+  '/admin/moderation': typeof AppProtectedAdminModerationIndexRoute
   '/admin/users': typeof AppProtectedAdminUsersIndexRoute
+  '/admin/moderation/reports/$reportId': typeof AppProtectedAdminModerationReportsReportIdRoute
+  '/admin/moderation/reports': typeof AppProtectedAdminModerationReportsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -459,9 +494,9 @@ export interface FileRoutesById {
   '/_app/lists/': typeof AppListsIndexRoute
   '/_app/members/': typeof AppMembersIndexRoute
   '/_app/news/': typeof AppNewsIndexRoute
+  '/_app/_protected/admin/moderation': typeof AppProtectedAdminModerationRouteRouteWithChildren
   '/_app/_protected/admin/analytics': typeof AppProtectedAdminAnalyticsRoute
   '/_app/_protected/admin/games': typeof AppProtectedAdminGamesRoute
-  '/_app/_protected/admin/moderation': typeof AppProtectedAdminModerationRoute
   '/_app/_protected/admin/news': typeof AppProtectedAdminNewsRoute
   '/_app/_protected/games/popular-with-friends': typeof AppProtectedGamesPopularWithFriendsRoute
   '/_app/_protected/lists/new': typeof AppProtectedListsNewRoute
@@ -478,10 +513,14 @@ export interface FileRoutesById {
   '/_app/_protected/admin/': typeof AppProtectedAdminIndexRoute
   '/_app/_protected/feed/': typeof AppProtectedFeedIndexRoute
   '/_app/_protected/settings/': typeof AppProtectedSettingsIndexRoute
+  '/_app/_protected/admin/moderation/reviews': typeof AppProtectedAdminModerationReviewsRoute
   '/_app/_protected/admin/users/$userId': typeof AppProtectedAdminUsersUserIdRoute
   '/_app/_protected/lists/$listId/edit': typeof AppProtectedListsListIdEditRoute
   '/_app/_protected/$username/tags/': typeof AppProtectedUsernameTagsIndexRoute
+  '/_app/_protected/admin/moderation/': typeof AppProtectedAdminModerationIndexRoute
   '/_app/_protected/admin/users/': typeof AppProtectedAdminUsersIndexRoute
+  '/_app/_protected/admin/moderation/reports/$reportId': typeof AppProtectedAdminModerationReportsReportIdRoute
+  '/_app/_protected/admin/moderation/reports/': typeof AppProtectedAdminModerationReportsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -511,9 +550,9 @@ export interface FileRouteTypes {
     | '/lists/'
     | '/members/'
     | '/news/'
+    | '/admin/moderation'
     | '/admin/analytics'
     | '/admin/games'
-    | '/admin/moderation'
     | '/admin/news'
     | '/games/popular-with-friends'
     | '/lists/new'
@@ -530,10 +569,14 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/feed/'
     | '/settings/'
+    | '/admin/moderation/reviews'
     | '/admin/users/$userId'
     | '/lists/$listId/edit'
     | '/$username/tags/'
+    | '/admin/moderation/'
     | '/admin/users/'
+    | '/admin/moderation/reports/$reportId'
+    | '/admin/moderation/reports/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -561,7 +604,6 @@ export interface FileRouteTypes {
     | '/news'
     | '/admin/analytics'
     | '/admin/games'
-    | '/admin/moderation'
     | '/admin/news'
     | '/games/popular-with-friends'
     | '/lists/new'
@@ -578,10 +620,14 @@ export interface FileRouteTypes {
     | '/admin'
     | '/feed'
     | '/settings'
+    | '/admin/moderation/reviews'
     | '/admin/users/$userId'
     | '/lists/$listId/edit'
     | '/$username/tags'
+    | '/admin/moderation'
     | '/admin/users'
+    | '/admin/moderation/reports/$reportId'
+    | '/admin/moderation/reports'
   id:
     | '__root__'
     | '/_app'
@@ -612,9 +658,9 @@ export interface FileRouteTypes {
     | '/_app/lists/'
     | '/_app/members/'
     | '/_app/news/'
+    | '/_app/_protected/admin/moderation'
     | '/_app/_protected/admin/analytics'
     | '/_app/_protected/admin/games'
-    | '/_app/_protected/admin/moderation'
     | '/_app/_protected/admin/news'
     | '/_app/_protected/games/popular-with-friends'
     | '/_app/_protected/lists/new'
@@ -631,10 +677,14 @@ export interface FileRouteTypes {
     | '/_app/_protected/admin/'
     | '/_app/_protected/feed/'
     | '/_app/_protected/settings/'
+    | '/_app/_protected/admin/moderation/reviews'
     | '/_app/_protected/admin/users/$userId'
     | '/_app/_protected/lists/$listId/edit'
     | '/_app/_protected/$username/tags/'
+    | '/_app/_protected/admin/moderation/'
     | '/_app/_protected/admin/users/'
+    | '/_app/_protected/admin/moderation/reports/$reportId'
+    | '/_app/_protected/admin/moderation/reports/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -952,13 +1002,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProtectedAdminNewsRouteImport
       parentRoute: typeof AppProtectedAdminRouteRoute
     }
-    '/_app/_protected/admin/moderation': {
-      id: '/_app/_protected/admin/moderation'
-      path: '/moderation'
-      fullPath: '/admin/moderation'
-      preLoaderRoute: typeof AppProtectedAdminModerationRouteImport
-      parentRoute: typeof AppProtectedAdminRouteRoute
-    }
     '/_app/_protected/admin/games': {
       id: '/_app/_protected/admin/games'
       path: '/games'
@@ -973,12 +1016,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProtectedAdminAnalyticsRouteImport
       parentRoute: typeof AppProtectedAdminRouteRoute
     }
+    '/_app/_protected/admin/moderation': {
+      id: '/_app/_protected/admin/moderation'
+      path: '/moderation'
+      fullPath: '/admin/moderation'
+      preLoaderRoute: typeof AppProtectedAdminModerationRouteRouteImport
+      parentRoute: typeof AppProtectedAdminRouteRoute
+    }
     '/_app/_protected/admin/users/': {
       id: '/_app/_protected/admin/users/'
       path: '/users'
       fullPath: '/admin/users/'
       preLoaderRoute: typeof AppProtectedAdminUsersIndexRouteImport
       parentRoute: typeof AppProtectedAdminRouteRoute
+    }
+    '/_app/_protected/admin/moderation/': {
+      id: '/_app/_protected/admin/moderation/'
+      path: '/'
+      fullPath: '/admin/moderation/'
+      preLoaderRoute: typeof AppProtectedAdminModerationIndexRouteImport
+      parentRoute: typeof AppProtectedAdminModerationRouteRoute
     }
     '/_app/_protected/$username/tags/': {
       id: '/_app/_protected/$username/tags/'
@@ -1001,13 +1058,58 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProtectedAdminUsersUserIdRouteImport
       parentRoute: typeof AppProtectedAdminRouteRoute
     }
+    '/_app/_protected/admin/moderation/reviews': {
+      id: '/_app/_protected/admin/moderation/reviews'
+      path: '/reviews'
+      fullPath: '/admin/moderation/reviews'
+      preLoaderRoute: typeof AppProtectedAdminModerationReviewsRouteImport
+      parentRoute: typeof AppProtectedAdminModerationRouteRoute
+    }
+    '/_app/_protected/admin/moderation/reports/': {
+      id: '/_app/_protected/admin/moderation/reports/'
+      path: '/reports'
+      fullPath: '/admin/moderation/reports/'
+      preLoaderRoute: typeof AppProtectedAdminModerationReportsIndexRouteImport
+      parentRoute: typeof AppProtectedAdminModerationRouteRoute
+    }
+    '/_app/_protected/admin/moderation/reports/$reportId': {
+      id: '/_app/_protected/admin/moderation/reports/$reportId'
+      path: '/reports/$reportId'
+      fullPath: '/admin/moderation/reports/$reportId'
+      preLoaderRoute: typeof AppProtectedAdminModerationReportsReportIdRouteImport
+      parentRoute: typeof AppProtectedAdminModerationRouteRoute
+    }
   }
 }
 
+interface AppProtectedAdminModerationRouteRouteChildren {
+  AppProtectedAdminModerationReviewsRoute: typeof AppProtectedAdminModerationReviewsRoute
+  AppProtectedAdminModerationIndexRoute: typeof AppProtectedAdminModerationIndexRoute
+  AppProtectedAdminModerationReportsReportIdRoute: typeof AppProtectedAdminModerationReportsReportIdRoute
+  AppProtectedAdminModerationReportsIndexRoute: typeof AppProtectedAdminModerationReportsIndexRoute
+}
+
+const AppProtectedAdminModerationRouteRouteChildren: AppProtectedAdminModerationRouteRouteChildren =
+  {
+    AppProtectedAdminModerationReviewsRoute:
+      AppProtectedAdminModerationReviewsRoute,
+    AppProtectedAdminModerationIndexRoute:
+      AppProtectedAdminModerationIndexRoute,
+    AppProtectedAdminModerationReportsReportIdRoute:
+      AppProtectedAdminModerationReportsReportIdRoute,
+    AppProtectedAdminModerationReportsIndexRoute:
+      AppProtectedAdminModerationReportsIndexRoute,
+  }
+
+const AppProtectedAdminModerationRouteRouteWithChildren =
+  AppProtectedAdminModerationRouteRoute._addFileChildren(
+    AppProtectedAdminModerationRouteRouteChildren,
+  )
+
 interface AppProtectedAdminRouteRouteChildren {
+  AppProtectedAdminModerationRouteRoute: typeof AppProtectedAdminModerationRouteRouteWithChildren
   AppProtectedAdminAnalyticsRoute: typeof AppProtectedAdminAnalyticsRoute
   AppProtectedAdminGamesRoute: typeof AppProtectedAdminGamesRoute
-  AppProtectedAdminModerationRoute: typeof AppProtectedAdminModerationRoute
   AppProtectedAdminNewsRoute: typeof AppProtectedAdminNewsRoute
   AppProtectedAdminIndexRoute: typeof AppProtectedAdminIndexRoute
   AppProtectedAdminUsersUserIdRoute: typeof AppProtectedAdminUsersUserIdRoute
@@ -1016,9 +1118,10 @@ interface AppProtectedAdminRouteRouteChildren {
 
 const AppProtectedAdminRouteRouteChildren: AppProtectedAdminRouteRouteChildren =
   {
+    AppProtectedAdminModerationRouteRoute:
+      AppProtectedAdminModerationRouteRouteWithChildren,
     AppProtectedAdminAnalyticsRoute: AppProtectedAdminAnalyticsRoute,
     AppProtectedAdminGamesRoute: AppProtectedAdminGamesRoute,
-    AppProtectedAdminModerationRoute: AppProtectedAdminModerationRoute,
     AppProtectedAdminNewsRoute: AppProtectedAdminNewsRoute,
     AppProtectedAdminIndexRoute: AppProtectedAdminIndexRoute,
     AppProtectedAdminUsersUserIdRoute: AppProtectedAdminUsersUserIdRoute,
