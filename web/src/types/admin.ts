@@ -139,3 +139,57 @@ export interface AdminReviewsSearchParams {
   /** Switches to the reported-only endpoint, which carries a report count. */
   reported: boolean
 }
+
+/** Result of `GET /admin/external-games/search` (`ExternalGameDto`, IGDB). */
+export interface ExternalGame {
+  externalId: number
+  title: string
+  releaseYear: number | null
+  coverUrl: string | null
+}
+
+export type ImportJobState = 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED'
+
+/** `ImportJobStatusDto` — returned when starting a bulk import and when polling. */
+export interface ImportJobStatus {
+  jobId: string
+  type: string
+  state: ImportJobState
+  requestedLimit: number
+  minRatingCount: number
+  totalFetched: number
+  processed: number
+  imported: number
+  skipped: number
+  failed: number
+  errors: Array<string>
+  errorMessage: string | null
+  startedAt: string
+  finishedAt: string | null
+}
+
+/**
+ * Body of `POST /admin/games` and `PUT /admin/games/{id}`. The create and
+ * update DTOs are field-for-field identical on the API side, so one type covers
+ * both.
+ */
+export interface AdminGamePayload {
+  title: string
+  description?: string | null
+  coverUrl?: string | null
+  artworkUrl?: string | null
+  trailerYoutubeId?: string | null
+  timeToBeatNormally?: number | null
+  timeToBeatHastily?: number | null
+  timeToBeatCompletely?: number | null
+  releaseDate?: string | null
+  genreIds?: Array<string>
+  platformIds?: Array<string>
+  companyIds?: Array<string>
+}
+
+export interface AdminCatalogSearchParams {
+  /** 1-based. */
+  page: number
+  q?: string
+}

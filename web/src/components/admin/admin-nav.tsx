@@ -28,7 +28,11 @@ export const ADMIN_NAV_ITEMS: ReadonlyArray<AdminNavItem> = [
     icon: Users,
     link: { to: '/admin/users', search: { page: 1, status: 'all' } },
   },
-  { label: 'Games', icon: Gamepad2, link: { to: '/admin/games' } },
+  {
+    label: 'Games',
+    icon: Gamepad2,
+    link: { to: '/admin/games', search: { page: 1 } },
+  },
   {
     label: 'Moderation',
     icon: ShieldAlert,

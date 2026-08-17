@@ -27,6 +27,12 @@ interface AdminConfirmButtonProps {
   disabledReason?: string
   mutationFn: () => Promise<unknown>
   onSuccess?: () => void | Promise<void>
+  /**
+   * Replaces the global error toast with bespoke handling — used where a
+   * failure carries detail worth explaining, such as a deletion refused
+   * because the record is still referenced.
+   */
+  onError?: (error: unknown) => void
 }
 
 /**
@@ -34,8 +40,9 @@ interface AdminConfirmButtonProps {
  * that removes or restricts something goes through this, so the wording and the
  * pending behaviour stay consistent across sections.
  *
- * Failures are reported by the global mutation error toast (see `router.tsx`);
- * the dialog stays open so the action can be retried.
+ * Failures are reported by the global mutation error toast (see `router.tsx`)
+ * unless `onError` takes over; either way the dialog stays open so the action
+ * can be retried.
  */
 export function AdminConfirmButton({
   label,
@@ -48,15 +55,19 @@ export function AdminConfirmButton({
   disabledReason,
   mutationFn,
   onSuccess,
+  onError,
 }: AdminConfirmButtonProps) {
   const [open, setOpen] = useState(false)
 
   const mutation = useMutation({
     mutationFn,
+    // A local handler owns the message; do not toast twice.
+    meta: onError ? { suppressGlobalError: true } : undefined,
     onSuccess: async () => {
       setOpen(false)
       await onSuccess?.()
     },
+    onError,
   })
 
   if (disabled) {
