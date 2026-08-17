@@ -1,0 +1,78 @@
+# Dependabot keeps the dependency alerts from piling up: security updates are
+# raised as soon as an advisory lands, and the weekly version updates keep us
+# close enough to the patched releases that the security bumps stay small.
+#
+# Version updates are grouped per module so a quiet week is one PR, not ten.
+# Security updates ignore the groups and always get their own PR.
+#
+# `desktop/` and `doc/presentation/` are intentionally left out for now — see
+# the note at the bottom of this file.
+version: 2
+
+updates:
+  - package-ecosystem: maven
+    directory: /api
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Europe/Paris
+    open-pull-requests-limit: 5
+    labels:
+      - api
+    commit-message:
+      prefix: chore(api)
+    groups:
+      api-minor-and-patch:
+        update-types:
+          - minor
+          - patch
+
+  - package-ecosystem: npm
+    directory: /web
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Europe/Paris
+    open-pull-requests-limit: 5
+    labels:
+      - web
+    commit-message:
+      prefix: chore(web)
+      # "chore(web): bump x" for prod deps, "chore(web)(deps-dev): bump x" for
+      # dev ones — the scope stays parseable either way.
+      include: scope
+    groups:
+      web-minor-and-patch:
+        update-types:
+          - minor
+          - patch
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Europe/Paris
+    open-pull-requests-limit: 3
+    labels:
+      - github
+    commit-message:
+      prefix: chore(ci)
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+
+# Not covered yet, on purpose:
+#
+#   desktop/            — the JavaFX module is not being maintained right now;
+#                         its open jackson-databind advisories are known.
+#   doc/presentation/   — build-time Slidev toolchain for a static deck, with
+#                         no CI job and several advisories that have no patched
+#                         release yet.
+#
+# Both still surface in the Dependabot alert list; add a block here when we
+# want PRs for them too.
