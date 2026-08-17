@@ -125,7 +125,7 @@
 		<dependency>
 			<groupId>org.hibernate.search</groupId>
 			<artifactId>hibernate-search-mapper-orm</artifactId>
-			<version>7.2.3.Final</version>
+			<version>8.4.0.Final</version>
 		</dependency>
 		<dependency>
 			<groupId>org.hibernate.search</groupId>
