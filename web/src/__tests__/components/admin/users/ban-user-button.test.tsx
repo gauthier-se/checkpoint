@@ -3,16 +3,16 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { BanUserButton } from '@/components/admin/users/ban-user-button'
 
-const banMock = vi.fn(() => Promise.resolve())
-const unbanMock = vi.fn(() => Promise.resolve())
+const banMock = vi.fn((_userId: string) => Promise.resolve())
+const unbanMock = vi.fn((_userId: string) => Promise.resolve())
 const toastSuccessMock = vi.fn()
 
 let currentUserId = 'admin-1'
 
 vi.mock('@/queries/admin/users', () => ({
   adminUsersQueryKey: ['admin', 'users'],
-  banAdminUser: (...args: Array<unknown>) => banMock(...args),
-  unbanAdminUser: (...args: Array<unknown>) => unbanMock(...args),
+  banAdminUser: (userId: string) => banMock(userId),
+  unbanAdminUser: (userId: string) => unbanMock(userId),
 }))
 
 vi.mock('@/hooks/use-auth', () => ({
