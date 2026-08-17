@@ -21,7 +21,7 @@ export function RecommendedForYouSection({
         </h2>
       </div>
       <Separator />
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3 py-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3 py-4 max-md:[&>*:nth-child(7)]:hidden">
         {games.map((game) => (
           <div key={game.id}>
             <GameCard game={game} reason={game.reason} />

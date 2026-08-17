@@ -19,7 +19,7 @@ export function SimilarGamesSection({ gameId }: SimilarGamesSectionProps) {
 
   return (
     <DiscoverySection title="You may also like...">
-      <GameGrid games={data} columns={7} />
+      <GameGrid games={data} columns={7} hideLastOnMobile />
     </DiscoverySection>
   )
 }
@@ -32,7 +32,7 @@ export function SimilarGamesSection({ gameId }: SimilarGamesSectionProps) {
 export function SimilarGamesSectionSkeleton() {
   return (
     <DiscoverySection title="You may also like...">
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3 py-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3 py-4 max-md:[&>*:nth-child(7)]:hidden">
         {Array.from({ length: SIMILAR_GAMES_COUNT }).map((_, i) => (
           <Skeleton key={i} className="aspect-[3/4] w-full rounded-sm" />
         ))}

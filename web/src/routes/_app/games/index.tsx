@@ -180,7 +180,7 @@ function GamesIndexContent() {
         }
       >
         {trending.length > 0 ? (
-          <GameGrid games={trending} columns={7} />
+          <GameGrid games={trending} columns={7} hideLastOnMobile />
         ) : (
           <p className="py-8 text-center text-muted-foreground">
             No trending games yet.
@@ -190,7 +190,7 @@ function GamesIndexContent() {
 
       <DiscoverySection title="Most backlogged">
         {mostBacklogged.length > 0 ? (
-          <GameGrid games={mostBacklogged} columns={7} />
+          <GameGrid games={mostBacklogged} columns={7} hideLastOnMobile />
         ) : (
           <p className="py-8 text-center text-muted-foreground">
             No games backlogged yet.
@@ -200,7 +200,7 @@ function GamesIndexContent() {
 
       <DiscoverySection title="Most wishlisted">
         {mostWishlisted.length > 0 ? (
-          <GameGrid games={mostWishlisted} columns={7} />
+          <GameGrid games={mostWishlisted} columns={7} hideLastOnMobile />
         ) : (
           <p className="py-8 text-center text-muted-foreground">
             No games wishlisted yet.

@@ -20,7 +20,7 @@ export function TrendingSection({ games }: { games: Array<Game> }) {
           </Link>
         }
       />
-      <GameGrid games={games} columns={7} />
+      <GameGrid games={games} columns={7} hideLastOnMobile />
     </section>
   )
 }
