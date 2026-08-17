@@ -6,3 +6,11 @@ api/uploads/
 .env.local
 *.env
 !.env.example
+
+# Nix / devenv (devenv.lock is committed on purpose: it pins the toolchain)
+.devenv*
+devenv.local.nix
+devenv.local.yaml
+
+# direnv
+.direnv

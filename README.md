@@ -93,6 +93,7 @@
 ### Infrastructure
 | Technology | Purpose |
 |------------|---------|
+| **Nix + devenv** | Reproducible development environment |
 | **Docker** | Containerization |
 | **Traefik** | Reverse proxy & SSL |
 | **Docker Swarm** | Container orchestration |
@@ -101,7 +102,54 @@
 
 ## Getting Started
 
-### Prerequisites
+Two setups are supported: a **Nix-based** one that pins the whole toolchain for
+you, and a **manual** one where you install the tools yourself. Both use Docker
+for the stateful dev services (PostgreSQL, MailHog).
+
+### Setup with Nix (devenv)
+
+[devenv](https://devenv.sh/) provisions Java, Node, pnpm, Maven and the Doppler
+CLI at the exact versions CI uses, so a green local run means a green pipeline.
+
+```bash
+# One-time: install Nix and devenv
+curl -fsSL https://install.determinate.systems/nix | sh -s -- install
+nix profile install nixpkgs#devenv
+
+# Enter the environment (first run downloads the toolchain)
+devenv shell
+```
+
+With [direnv](https://direnv.net/) installed, `direnv allow` activates the
+environment automatically whenever you `cd` into the repository.
+
+The shell exposes a few commands:
+
+| Command | What it does |
+|---------|--------------|
+| `services-up` / `services-down` | PostgreSQL + MailHog via `api/compose.yaml` |
+| `services-logs` / `services-psql` | tail the service logs / open a `psql` shell |
+| `services-reset` | drop the database volume and start over |
+| `api-dev` / `api-test` | run the API on `:8080` / `./mvnw verify` |
+| `web-dev` / `web-test` / `web-check` | run the web app on `:3000` / tests / lint + format |
+| `desktop-dev` | run the JavaFX admin console |
+| `with-secrets <cmd>` | run `<cmd>` with Doppler if configured, otherwise `.env` |
+| `dev-doctor` | check that the toolchain matches CI |
+| `devenv up` | run the API and the web app together |
+
+`api-dev` starts the Docker services itself, and `with-secrets` is applied
+automatically to the API commands — so a full stack is just:
+
+```bash
+devenv up
+```
+
+> **JavaFX on NixOS** — the desktop module ships unpatched native libraries from
+> Maven Central. `desktop-dev` sets `LD_LIBRARY_PATH` for you; to launch the
+> module from an IDE instead, point its run configuration at
+> `$CHECKPOINT_JAVAFX_LIB_PATH`.
+
+### Prerequisites (manual setup)
 
 - **Java 21** (API) and **Java 24** (Desktop)
 - **Node.js 20+**

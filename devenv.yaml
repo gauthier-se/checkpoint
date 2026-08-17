@@ -1,0 +1,7 @@
+# yaml-language-server: $schema=https://devenv.sh/devenv.schema.json
+#
+# CheckPoint development environment — see devenv.nix and the "Nix + devenv"
+# section of the README.
+inputs:
+  nixpkgs:
+    url: github:cachix/devenv-nixpkgs/rolling

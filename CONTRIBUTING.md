@@ -22,6 +22,14 @@ Found a security issue? **Do not** open a public issue — follow the
 
 ## Prerequisites
 
+The fastest path is [devenv](https://devenv.sh/) (Nix), which pins the whole
+toolchain to the versions CI uses: run `devenv shell` at the repository root and
+you are done. See
+[Setup with Nix (devenv)](README.md#setup-with-nix-devenv) in the README for the
+list of available commands.
+
+To set things up by hand instead, you need:
+
 - **Java 21** (API) and **Java 24** (Desktop)
 - **Node.js 20+** and **pnpm** (Web)
 - **Docker & Docker Compose** (PostgreSQL, MailHog)
