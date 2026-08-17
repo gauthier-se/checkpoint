@@ -193,3 +193,46 @@ export interface AdminCatalogSearchParams {
   page: number
   q?: string
 }
+
+export type AdminNewsSource = 'MANUAL' | 'STEAM' | 'RSS'
+
+/** Sources that can actually be imported — the API rejects MANUAL. */
+export const IMPORTABLE_NEWS_SOURCES = ['STEAM', 'RSS'] as const
+export type ImportableNewsSource = (typeof IMPORTABLE_NEWS_SOURCES)[number]
+
+/**
+ * `NewsResponseDto`. The record is serialised with `@JsonInclude(NON_NULL)`, so
+ * every nullable field is **absent** rather than null — most importantly
+ * `publishedAt`, whose absence is what makes an article a draft.
+ */
+export interface AdminNews {
+  id: string
+  title: string
+  description?: string
+  picture?: string
+  publishedAt?: string
+  createdAt: string
+  updatedAt: string
+  // The nested author DTO is not `NON_NULL`, so its picture really can be null.
+  author?: { id: string; pseudo: string; picture?: string | null }
+  source: AdminNewsSource
+  externalUrl?: string
+  feedName?: string
+  videoGameId?: string
+}
+
+/**
+ * Body of `POST /admin/news` and `PUT /admin/news/{newsId}` (`NewsRequestDto`).
+ * The endpoint takes these three fields and nothing else — there is no way to
+ * set the source, the publication date or a game association from the editor.
+ */
+export interface AdminNewsPayload {
+  title: string
+  description: string | null
+  picture: string | null
+}
+
+export interface AdminNewsSearchParams {
+  /** 1-based. */
+  page: number
+}
