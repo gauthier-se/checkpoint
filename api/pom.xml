@@ -130,7 +130,7 @@
 		<dependency>
 			<groupId>org.hibernate.search</groupId>
 			<artifactId>hibernate-search-backend-lucene</artifactId>
-			<version>7.2.3.Final</version>
+			<version>8.4.0.Final</version>
 		</dependency>
 		<dependency>
 			<groupId>dev.samstevens.totp</groupId>
