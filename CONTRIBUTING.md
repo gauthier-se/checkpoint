@@ -271,11 +271,19 @@ match. `autoDeploy` is deliberately off on both applications, since leaving it o
 would let a push reach production without passing the gate above.
 
 Step 4 matters just as much. Queuing a deployment only acknowledges the request,
-so a build that fails inside Dokploy still answers with a success code. For the API the
-workflow polls `/api/v1/actuator/info` until the reported `build.time` is newer
-than the run, which is what proves the container restarted on a new image. The
-web app has no equivalent stamp, so the workflow waits for the site to answer
+so a build that fails inside Dokploy still answers with a success code, and a task
+Swarm rejects outright never produces a container nor a single log line. For the
+API the workflow polls `/api/v1/actuator/info` until the reported `build.time` is
+newer than the run, which is what proves the container restarted on a new image.
+The web app has no equivalent stamp, so the workflow waits for the site to answer
 and reports whether the bundle hash moved.
+
+The API is probed on its own subdomain, not under the web origin. Each
+application has its own domain in Dokploy, and the browser bundle calls the API
+directly, `VITE_API_URL` being baked in at build time. The `/api/**` proxy in
+`web/vite.config.ts` is a local development convenience: its target is resolved
+at build time from `API_INTERNAL_URL`, which `web/Dockerfile` never declares as a
+build argument, so it does not resolve in a container image.
 
 To redeploy without pushing, run the **CD** workflow manually from the Actions
 tab and pick `api`, `web`, or `both`.

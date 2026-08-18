@@ -38,6 +38,11 @@ permissions:
 
 env:
   SITE_URL: https://checkpoint.seyzeriat.com
+  # The API is served from its own subdomain, and that is also what the browser
+  # bundle calls (VITE_API_URL is baked in at build time). SITE_URL/api/** is a
+  # dev-only Nitro route rule and does not resolve in production, so probing it
+  # would time out on a perfectly healthy deployment.
+  API_URL: https://checkpoint-api.seyzeriat.com
 
 jobs:
   changes:
@@ -147,8 +152,10 @@ jobs:
         # is the one this run asked for.
         run: |
           set -uo pipefail
-          info_url="$SITE_URL/api/v1/actuator/info"
+          info_url="$API_URL/api/v1/actuator/info"
           deadline=$(( $(date -u +%s) + 900 ))
+          attempt=0
+          last_state=""
 
           while [ "$(date -u +%s)" -lt "$deadline" ]; do
             body=$(curl -sS --max-time 15 "$info_url" 2>/dev/null || true)
@@ -160,14 +167,24 @@ jobs:
                 echo "API is live, built at $build_time."
                 exit 0
               fi
-              echo "Still serving the previous build ($build_time), waiting."
+              state="serving the previous build ($build_time)"
             else
-              echo "API not answering yet, waiting."
+              state="not answering"
             fi
+
+            # One line when the state changes, then one every two minutes: a
+            # rollout takes minutes, and sixty identical lines only make the
+            # real failure at the end harder to find.
+            if [ "$state" != "$last_state" ] || [ $(( attempt % 8 )) -eq 0 ]; then
+              echo "API $state, waiting."
+              last_state="$state"
+            fi
+
+            attempt=$(( attempt + 1 ))
             sleep 15
           done
 
-          echo "::error::The API never reported a build newer than this run. Check the API application's build logs in Dokploy: either the image failed to build and the old container is still serving, or the new one failed to start."
+          echo "::error::The API never reported a build newer than this run. The image may have failed to build, or the container may have failed to start. Note that a task Swarm rejects outright, over an invalid mount for instance, never produces a container and never logs anything: 'docker service ps --no-trunc <service>' is what shows that."
           exit 1
 
   deploy-web:
