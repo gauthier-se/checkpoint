@@ -8,6 +8,11 @@
 - Enzo CHABOISSEAU
 - Gauthier SEYZERIAT--MEYER
 
+> **Historical document.** This is the specification as it was written and
+> delivered. It is kept unedited as a record. The JavaFX desktop client it
+> describes has since been archived and its administration features rebuilt in
+> the web app under `/admin` — see [ARCHIVE.md](../../ARCHIVE.md).
+
 ---
 
 ## Table of Contents

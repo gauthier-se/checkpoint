@@ -3,13 +3,12 @@
 Thanks for taking the time to contribute! This guide explains how to set up the
 project locally, the conventions we follow, and how to get your changes merged.
 
-CheckPoint is a monorepo with three modules:
+CheckPoint is a monorepo with two modules:
 
 | Module | Stack | Path |
 |--------|-------|------|
 | **API** | Spring Boot 3.5 · Java 21 · PostgreSQL · Maven | [`api/`](api) |
 | **Web** | TanStack Start · React 19 · Vite · pnpm | [`web/`](web) |
-| **Desktop** | JavaFX admin app · Java 24 · Maven | [`desktop/`](desktop) |
 
 ## Code of conduct
 
@@ -30,7 +29,7 @@ list of available commands.
 
 To set things up by hand instead, you need:
 
-- **Java 21** (API) and **Java 24** (Desktop)
+- **Java 21** (API)
 - **Node.js 20+** and **pnpm** (Web)
 - **Docker & Docker Compose** (PostgreSQL, MailHog)
 - **Doppler CLI** (recommended for secrets) — or a local `.env` file (see below)
@@ -81,16 +80,6 @@ pnpm dev
 
 The web app runs at `http://localhost:3000`.
 
-### Desktop (JavaFX)
-
-```bash
-cd desktop
-mvn clean javafx:run
-```
-
-See [`desktop/README.md`](desktop/README.md) for the view inventory and
-architecture. The desktop app expects the API to be running locally.
-
 ## Testing & quality gates
 
 CI runs these on every pull request — please run them locally first.
@@ -123,19 +112,18 @@ pnpm check       # auto-fix formatting
 
 ## Generating documentation
 
-### API & Desktop Javadoc
+### API Javadoc
 
-Both Java modules ship with Javadoc comments. Generate the HTML docs with:
+The API ships with Javadoc comments. Generate the HTML docs with:
 
 ```bash
 cd api && ./mvnw javadoc:javadoc        # output: api/target/site/apidocs/index.html
-cd desktop && mvn javadoc:javadoc       # output: desktop/target/site/apidocs/index.html
 ```
 
 ### Manual API testing
 
 Ready-to-run REST client requests for the admin endpoints live in
-[`doc/http/`](doc/http/). Open them with the VS Code REST Client or IntelliJ HTTP
+[`docs/http/`](docs/http/). Open them with the VS Code REST Client or IntelliJ HTTP
 client, set the `@token` variable to an admin JWT, and send the requests.
 
 ## Branching & commits
@@ -159,15 +147,15 @@ We follow [Conventional Commits](https://www.conventionalcommits.org/):
 ```
 
 - **type**: `feat`, `fix`, `chore`, `refactor`, `docs`, `test`, `style`, `perf`
-- **scope**: `api`, `web`, or `desktop` (optional, but encouraged)
+- **scope**: `api` or `web` (optional, but encouraged)
 
 Examples (from the project history):
 
 ```
 feat(web): add "Add to list" button on game detail page (TE-343)
 fix(web): add favicon and per-route SEO titles/meta via head() (TE-264)
-refactor(desktop): implement SOLID architecture, UI fixes, and unit tests (TE-262)
-docs: add contributing guide, PR template, desktop README, and API http files (TE-258)
+feat(web): admin analytics dashboard (#548)
+docs: add contributing guide, PR template, and API http files (TE-258)
 ```
 
 ## Pull request process

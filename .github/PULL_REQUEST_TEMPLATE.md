@@ -21,7 +21,6 @@ Closes
 
 - [ ] `api` (Spring Boot)
 - [ ] `web` (TanStack Start)
-- [ ] `desktop` (JavaFX)
 
 ## Checklist
 

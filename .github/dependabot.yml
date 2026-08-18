@@ -5,8 +5,9 @@
 # Version updates are grouped per module so a quiet week is one PR, not ten.
 # Security updates ignore the groups and always get their own PR.
 #
-# `desktop/` and `doc/presentation/` are intentionally left out for now — see
-# the note at the bottom of this file.
+# Every module in the tree is covered. The two that used to be excluded,
+# `desktop/` and `doc/presentation/`, have been archived out of the repository
+# (see ARCHIVE.md).
 version: 2
 
 updates:
@@ -66,13 +67,7 @@ updates:
         patterns:
           - "*"
 
-# Not covered yet, on purpose:
-#
-#   desktop/            — the JavaFX module is not being maintained right now;
-#                         its open jackson-databind advisories are known.
-#   doc/presentation/   — build-time Slidev toolchain for a static deck, with
-#                         no CI job and several advisories that have no patched
-#                         release yet.
-#
-# Both still surface in the Dependabot alert list; add a block here when we
-# want PRs for them too.
+# Nothing is deliberately excluded any more. `desktop/` and `doc/presentation/`
+# were the two uncovered modules and both were archived on 2026-08-18; they are
+# recoverable from the `desktop-final` and `presentation-final` tags. See
+# ARCHIVE.md.

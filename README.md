@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="doc/assets/logo/logo.png" alt="CheckPoint Logo" width="200"/>
+  <img src="docs/assets/logo/logo.png" alt="CheckPoint Logo" width="200"/>
 </p>
 
 <h1 align="center">CheckPoint</h1>
@@ -21,10 +21,9 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Java-21%20%2F%2024-007396?logo=openjdk&logoColor=white" alt="Java"/>
+  <img src="https://img.shields.io/badge/Java-21-007396?logo=openjdk&logoColor=white" alt="Java"/>
   <img src="https://img.shields.io/badge/Spring%20Boot-3.5-6DB33F?logo=springboot&logoColor=white" alt="Spring Boot"/>
   <img src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black" alt="React"/>
-  <img src="https://img.shields.io/badge/JavaFX-Desktop-FF7F00?logo=openjdk&logoColor=white" alt="JavaFX"/>
   <img src="https://img.shields.io/badge/coverage-%E2%89%A570%25-brightgreen?logo=jacoco&logoColor=white" alt="Coverage"/>
   <img src="https://img.shields.io/badge/PRs-welcome-blueviolet" alt="PRs welcome"/>
 </p>
@@ -54,7 +53,7 @@
 - Game recommendations based on preferences
 - Gamification with XP, levels, and badges
 
-### For Administrators (Desktop Application)
+### For Administrators (Web Admin Panel)
 - User management (block, promote, view history)
 - Content moderation (review reports queue)
 - API synchronization with MobyGames/IGDB
@@ -84,11 +83,6 @@
 | **React** | UI library |
 | **Tailwind CSS** | Styling |
 | **Shadcn UI** | Component library |
-
-### Desktop Frontend
-| Technology | Purpose |
-|------------|---------|
-| **JavaFX** | Desktop UI framework |
 
 ### Infrastructure
 | Technology | Purpose |
@@ -132,7 +126,6 @@ The shell exposes a few commands:
 | `services-reset` | drop the database volume and start over |
 | `api-dev` / `api-test` | run the API on `:8080` / `./mvnw verify` |
 | `web-dev` / `web-test` / `web-check` | run the web app on `:3000` / tests / lint + format |
-| `desktop-dev` | run the JavaFX admin console |
 | `with-secrets <cmd>` | run `<cmd>` with Doppler if configured, otherwise `.env` |
 | `dev-doctor` | check that the toolchain matches CI |
 | `devenv up` | run the API and the web app together |
@@ -144,14 +137,9 @@ automatically to the API commands — so a full stack is just:
 devenv up
 ```
 
-> **JavaFX on NixOS** — the desktop module ships unpatched native libraries from
-> Maven Central. `desktop-dev` sets `LD_LIBRARY_PATH` for you; to launch the
-> module from an IDE instead, point its run configuration at
-> `$CHECKPOINT_JAVAFX_LIB_PATH`.
-
 ### Prerequisites (manual setup)
 
-- **Java 21** (API) and **Java 24** (Desktop)
+- **Java 21** (API)
 - **Node.js 20+**
 - **pnpm**
 - **Docker & Docker Compose**
@@ -222,19 +210,6 @@ pnpm dev
 
 The web app will be available at `http://localhost:3000`
 
-### Desktop Application (JavaFX)
-
-The desktop module is the admin console (user moderation, catalog management, news, analytics).
-
-```bash
-cd desktop
-
-# Run the application (requires the API running locally)
-mvn clean javafx:run
-```
-
-See [`desktop/README.md`](desktop/README.md) for the full architecture and view inventory.
-
 ### Production Deployment
 
 The application is deployed on a VPS using **Dokploy**, a self-hosted PaaS that simplifies Docker container management.
@@ -256,15 +231,14 @@ The API ships with interactive **Swagger UI** powered by SpringDoc OpenAPI. With
 | **Swagger UI** | `http://localhost:8080/swagger-ui.html` |
 | **OpenAPI spec** | `http://localhost:8080/v3/api-docs` |
 
-Use the **Authorize** button to authenticate with a JWT via the `Authorization` header (Desktop) or the `checkpoint_token` cookie (Web).
+Use the **Authorize** button to authenticate with a JWT via the `Authorization` header or the `checkpoint_token` cookie.
 
-For quick manual testing, ready-to-run REST client requests for the admin endpoints live in [`doc/http/`](doc/http/) (compatible with the VS Code REST Client and the IntelliJ HTTP client).
+For quick manual testing, ready-to-run REST client requests for the admin endpoints live in [`docs/http/`](docs/http/) (compatible with the VS Code REST Client and the IntelliJ HTTP client).
 
 To generate the Javadoc:
 
 ```bash
 cd api && ./mvnw javadoc:javadoc        # output: api/target/site/apidocs/index.html
-cd desktop && mvn javadoc:javadoc       # output: desktop/target/site/apidocs/index.html
 ```
 
 ---
@@ -285,14 +259,14 @@ Code coverage is measured with [**JaCoCo**](https://www.eclemma.org/jacoco/). Th
 | Document | Description |
 |----------|-------------|
 | [Contributing Guide](CONTRIBUTING.md) | Setup, conventions, and PR workflow |
-| [API HTTP files](doc/http/) | Ready-to-run REST requests for admin endpoints |
-| [Desktop README](desktop/README.md) | JavaFX admin app architecture and views |
-| [Specifications](doc/specifications/requirements.md) | Full project requirements and specifications |
-| [Architecture](doc/architecture/README.md) | System architecture details |
-| [Entities](doc/entities/) | JPA entity documentation |
-| [UML Diagrams](doc/uml/) | MCD and Use Case diagrams |
-| [Design](doc/design/) | Graphic charter and style guide |
-| [Mockups](doc/assets/mockups/) | UI/UX mockups |
+| [API HTTP files](docs/http/) | Ready-to-run REST requests for admin endpoints |
+| [Specifications](docs/specifications/requirements.md) | Full project requirements and specifications |
+| [Architecture](docs/architecture/) | System architecture diagram |
+| [Entities](docs/entities/) | JPA entity documentation |
+| [UML Diagrams](docs/uml/) | MCD and Use Case diagrams |
+| [Design](docs/design/) | Graphic charter and style guide |
+| [Mockups](docs/assets/mockups/) | UI/UX mockups |
+| [Archived modules](ARCHIVE.md) | The retired JavaFX console and Slidev deck |
 
 ---
 

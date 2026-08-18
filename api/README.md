@@ -9,7 +9,7 @@
 ## Overview
 
 The API module is the backend for CheckPoint. It exposes a REST API consumed by
-the [web](../web) (players) and [desktop](../desktop) (admins) clients, handling
+the [web](../web) client, handling
 authentication, the game catalog, libraries, reviews, social features,
 gamification, moderation, and external integrations (IGDB, Steam).
 
@@ -59,10 +59,10 @@ With the API running locally:
 | OpenAPI spec | `http://localhost:8080/v3/api-docs` |
 
 Use the **Authorize** button to send a JWT via the `Authorization` header
-(Desktop) or the `checkpoint_token` cookie (Web). Swagger is enabled by default
+or the `checkpoint_token` cookie (Web). Swagger is enabled by default
 in development and disabled in production by setting `SWAGGER_ENABLED=false`.
 
-For quick manual testing, see the ready-to-run requests in [`../doc/http/`](../doc/http/).
+For quick manual testing, see the ready-to-run requests in [`../docs/http/`](../docs/http/).
 
 ## Testing & coverage
 
@@ -108,4 +108,4 @@ list (IGDB, Steam, JWT, OAuth2, Swagger toggle, …).
 
 - [Root README](../README.md) — project overview and full setup
 - [Contributing guide](../CONTRIBUTING.md) — conventions and workflow
-- [HTTP files](../doc/http/) — ready-to-run admin requests
+- [HTTP files](../docs/http/) — ready-to-run admin requests

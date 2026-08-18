@@ -18,8 +18,8 @@ interface AdminNavItem {
 }
 
 /**
- * Sections of the admin panel, in sidebar order. Each one mirrors a view of the
- * JavaFX desktop console (see `desktop/README.md`).
+ * Sections of the admin panel, in sidebar order. Together they cover everything
+ * the retired JavaFX console used to do (see ARCHIVE.md).
  */
 export const ADMIN_NAV_ITEMS: ReadonlyArray<AdminNavItem> = [
   { label: 'Analytics', icon: ChartColumn, link: { to: '/admin/analytics' } },
