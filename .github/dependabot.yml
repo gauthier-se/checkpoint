@@ -28,6 +28,24 @@ updates:
         update-types:
           - minor
           - patch
+    # These three majors are all gated on the same thing: a Spring Boot 4
+    # upgrade. Boot 3.5.7 manages hibernate-core 6.6.x, while
+    # hibernate-search-mapper-orm 8.x depends on hibernate-core 7.4 and does not
+    # compile against 6.6 (the predicate DSL factories gained a type parameter).
+    # springdoc 3.x pulls spring-boot-tomcat and spring-boot-health, artifacts
+    # that only exist in Boot 4. Until the API moves to Boot 4, Dependabot would
+    # re-raise all three every week and all three would fail CI. Drop these
+    # entries as part of that upgrade.
+    ignore:
+      - dependency-name: org.springdoc:springdoc-openapi-starter-webmvc-ui
+        update-types:
+          - version-update:semver-major
+      - dependency-name: org.hibernate.search:hibernate-search-mapper-orm
+        update-types:
+          - version-update:semver-major
+      - dependency-name: org.hibernate.search:hibernate-search-backend-lucene
+        update-types:
+          - version-update:semver-major
 
   - package-ecosystem: npm
     directory: /web
@@ -49,6 +67,14 @@ updates:
         update-types:
           - minor
           - patch
+    # @vitejs/plugin-react 6 peer-requires vite ^8 and imports "vite/internal",
+    # a subpath vite 7 does not export, so the test run dies at startup with
+    # ERR_PACKAGE_PATH_NOT_EXPORTED. Bumping it means moving the app to vite 8
+    # first. Drop this entry once that happens.
+    ignore:
+      - dependency-name: "@vitejs/plugin-react"
+        update-types:
+          - version-update:semver-major
 
   - package-ecosystem: github-actions
     directory: /
@@ -67,7 +93,10 @@ updates:
         patterns:
           - "*"
 
-# Nothing is deliberately excluded any more. `desktop/` and `doc/presentation/`
-# were the two uncovered modules and both were archived on 2026-08-18; they are
-# recoverable from the `desktop-final` and `presentation-final` tags. See
-# ARCHIVE.md.
+# Every module in the tree is covered. `desktop/` and `doc/presentation/` used
+# to be the two uncovered ones; both were archived on 2026-08-18 and are
+# recoverable from the `desktop-final` and `presentation-final` tags (ARCHIVE.md).
+#
+# The only exclusions left are the four `ignore` entries above, each pinned to
+# majors that cannot build against the current stack. They are temporary and
+# each one names the upgrade that lifts it.
