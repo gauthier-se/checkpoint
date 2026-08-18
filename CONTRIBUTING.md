@@ -242,3 +242,43 @@ sits on top of Docker. Dokploy handles:
 - Reverse proxy configuration (Traefik)
 - Container orchestration
 - Zero-downtime deployments
+
+The API and the web app are two separate Dokploy applications. Only the web app
+is exposed publicly: it serves the front end and proxies `/api/**` to the API
+container, so the API is never reachable directly from the internet.
+
+### How a deployment is triggered
+
+Dokploy's "auto deploy on push" is **off** on both applications. Rollouts go
+through [`cd.yml`](.github/workflows/cd.yml) instead, which runs on every push
+to `main` and:
+
+1. Diffs the push to decide whether the API, the web app, or both changed.
+2. Re-runs `api-ci.yml` and `web-ci.yml` on the merge commit. The pull request
+   runs cover the branch, not the commit that actually lands, and a push to
+   `main` triggers neither workflow on its own.
+3. Calls the Dokploy deploy hook of each changed application, API first. A
+   commit touching both must ship the API ahead of the web app: the front end
+   calls endpoints that have to exist already, and it is also the proxy in
+   front of the API.
+4. Waits for the deployment to be observably live.
+
+That last step matters. A deploy hook only acknowledges the request, so a build
+that fails inside Dokploy still answers with a success code. For the API the
+workflow polls `/api/v1/actuator/info` until the reported `build.time` is newer
+than the run, which is what proves the container restarted on a new image. The
+web app has no equivalent stamp, so the workflow waits for the site to answer
+and reports whether the bundle hash moved.
+
+To redeploy without pushing, run the **CD** workflow manually from the Actions
+tab and pick `api`, `web`, or `both`.
+
+### Required repository secrets
+
+| Secret                    | Purpose                        |
+| ------------------------- | ------------------------------ |
+| `DOKPLOY_API_DEPLOY_HOOK` | Deploy hook URL of the API app |
+| `DOKPLOY_WEB_DEPLOY_HOOK` | Deploy hook URL of the web app |
+
+These URLs are credentials: anyone holding one can trigger a production
+deployment. Regenerate them in Dokploy if they are ever exposed.
