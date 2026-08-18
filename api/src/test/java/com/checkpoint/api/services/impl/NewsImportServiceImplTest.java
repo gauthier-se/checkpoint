@@ -8,6 +8,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -35,6 +36,7 @@ import com.checkpoint.api.entities.NewsSource;
 import com.checkpoint.api.entities.VideoGame;
 import com.checkpoint.api.repositories.NewsRepository;
 import com.checkpoint.api.repositories.VideoGameRepository;
+import com.checkpoint.api.services.NewsImportSettingsService;
 
 /**
  * Unit tests for {@link NewsImportServiceImpl}: covers dedup, per-item / per-source
@@ -48,6 +50,7 @@ class NewsImportServiceImplTest {
     @Mock private IgdbApiClient igdbApiClient;
     @Mock private VideoGameRepository videoGameRepository;
     @Mock private NewsRepository newsRepository;
+    @Mock private NewsImportSettingsService newsImportSettingsService;
 
     private RssFeedsProperties rssFeedsProperties;
     private NewsImportServiceImpl service;
@@ -55,9 +58,12 @@ class NewsImportServiceImplTest {
     @BeforeEach
     void setUp() {
         rssFeedsProperties = new RssFeedsProperties();
+        // Wide open by default: the ceiling has its own tests below.
+        lenient().when(newsImportSettingsService.remainingDailyBudget()).thenReturn(Integer.MAX_VALUE);
+        lenient().when(newsImportSettingsService.steamNewsPerGame()).thenReturn(5);
         service = new NewsImportServiceImpl(
                 steamNewsApiClient, rssFeedClient, igdbApiClient,
-                videoGameRepository, newsRepository, rssFeedsProperties
+                videoGameRepository, newsRepository, rssFeedsProperties, newsImportSettingsService
         );
     }
 
@@ -222,5 +228,96 @@ class NewsImportServiceImplTest {
     void dispatch_rejectsManual() {
         assertThatThrownBy(() -> service.importFromSource(NewsSource.MANUAL))
                 .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    @DisplayName("Steam import: an exhausted daily ceiling pulls nothing at all")
+    void steamImport_ceilingAlreadyReached() {
+        when(newsImportSettingsService.remainingDailyBudget()).thenReturn(0);
+
+        int imported = service.importSteamNews();
+
+        assertThat(imported).isZero();
+        verify(videoGameRepository, never()).findGamesWithAtLeastOneUserLink();
+        verify(steamNewsApiClient, never()).fetchNewsForApp(anyLong(), anyInt());
+    }
+
+    @Test
+    @DisplayName("Steam import asks for the configured per-game count")
+    void steamImport_usesConfiguredPerGameCount() {
+        when(newsImportSettingsService.steamNewsPerGame()).thenReturn(3);
+        VideoGame game = gameWithSteamId(730L, 1L, "CS2");
+        when(videoGameRepository.findGamesWithAtLeastOneUserLink()).thenReturn(List.of(game));
+        when(steamNewsApiClient.fetchNewsForApp(730L, 3)).thenReturn(List.of());
+
+        service.importSteamNews();
+
+        verify(steamNewsApiClient).fetchNewsForApp(730L, 3);
+    }
+
+    @Test
+    @DisplayName("Steam import narrows the per-game request to what the ceiling still allows")
+    void steamImport_narrowsRequestToRemainingBudget() {
+        when(newsImportSettingsService.remainingDailyBudget()).thenReturn(2);
+        VideoGame game = gameWithSteamId(730L, 1L, "CS2");
+        when(videoGameRepository.findGamesWithAtLeastOneUserLink()).thenReturn(List.of(game));
+        when(steamNewsApiClient.fetchNewsForApp(730L, 2)).thenReturn(List.of());
+
+        service.importSteamNews();
+
+        verify(steamNewsApiClient).fetchNewsForApp(730L, 2);
+    }
+
+    @Test
+    @DisplayName("Steam import stops walking the library once the ceiling is hit")
+    void steamImport_stopsAtCeilingAcrossGames() {
+        when(newsImportSettingsService.remainingDailyBudget()).thenReturn(1);
+        VideoGame g1 = gameWithSteamId(730L, 1L, "CS2");
+        VideoGame g2 = gameWithSteamId(570L, 2L, "Dota 2");
+        when(videoGameRepository.findGamesWithAtLeastOneUserLink()).thenReturn(List.of(g1, g2));
+        when(steamNewsApiClient.fetchNewsForApp(730L, 1))
+                .thenReturn(List.of(steamItem("gid-1", "A")));
+        when(newsRepository.existsBySourceAndExternalId(any(), any())).thenReturn(false);
+
+        int imported = service.importSteamNews();
+
+        assertThat(imported).isEqualTo(1);
+        verify(steamNewsApiClient, never()).fetchNewsForApp(eq(570L), anyInt());
+    }
+
+    @Test
+    @DisplayName("RSS import saves only as many entries as the ceiling still allows")
+    void rssImport_stopsAtCeiling() {
+        when(newsImportSettingsService.remainingDailyBudget()).thenReturn(1);
+        RssFeedsProperties.Feed ign = new RssFeedsProperties.Feed();
+        ign.setName("IGN");
+        ign.setUrl("https://example.test/ign");
+        rssFeedsProperties.setFeeds(List.of(ign));
+
+        when(rssFeedClient.fetch("IGN", "https://example.test/ign")).thenReturn(List.of(
+                new RssFeedClient.RssItem("guid-a", "A", "body a", "https://a", null, null),
+                new RssFeedClient.RssItem("guid-b", "B", "body b", "https://b", null, null)
+        ));
+        when(newsRepository.existsBySourceAndExternalId(any(), any())).thenReturn(false);
+
+        int imported = service.importRssFeeds();
+
+        assertThat(imported).isEqualTo(1);
+        verify(newsRepository).save(any(News.class));
+    }
+
+    @Test
+    @DisplayName("RSS import: an exhausted daily ceiling never reaches the feeds")
+    void rssImport_ceilingAlreadyReached() {
+        when(newsImportSettingsService.remainingDailyBudget()).thenReturn(0);
+        RssFeedsProperties.Feed ign = new RssFeedsProperties.Feed();
+        ign.setName("IGN");
+        ign.setUrl("https://example.test/ign");
+        rssFeedsProperties.setFeeds(List.of(ign));
+
+        int imported = service.importRssFeeds();
+
+        assertThat(imported).isZero();
+        verify(rssFeedClient, never()).fetch(any(), any());
     }
 }

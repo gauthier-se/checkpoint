@@ -49,3 +49,36 @@ Authorization: Bearer {{token}}
 ### Trigger a news import from an external source (MANUAL | STEAM | RSS)
 POST {{baseUrl}}/admin/news/import/RSS
 Authorization: Bearer {{token}}
+
+### Read the import settings and today's article counters
+GET {{baseUrl}}/admin/news/import-settings
+Authorization: Bearer {{token}}
+
+### Pause the scheduled Steam pass, leaving everything else untouched
+### (omitted fields keep their stored value)
+PUT {{baseUrl}}/admin/news/import-settings
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "steamEnabled": false
+}
+
+### Cap the daily volume and shrink the per-game Steam count
+PUT {{baseUrl}}/admin/news/import-settings
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "maxArticlesPerDay": 50,
+  "steamNewsPerGame": 3
+}
+
+### Remove the daily ceiling ("unlimited" is the only way: a null is ignored)
+PUT {{baseUrl}}/admin/news/import-settings
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "unlimited": true
+}

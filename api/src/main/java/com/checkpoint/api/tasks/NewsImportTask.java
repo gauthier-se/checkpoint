@@ -5,7 +5,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import com.checkpoint.api.entities.NewsSource;
 import com.checkpoint.api.services.NewsImportService;
+import com.checkpoint.api.services.NewsImportSettingsService;
 
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 
@@ -13,6 +15,12 @@ import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
  * Scheduled passes that pull news from Steam (per-game) and from configured RSS feeds
  * into the local {@code news} table. Both passes are dedup-safe (see
  * {@link com.checkpoint.api.repositories.NewsRepository#existsBySourceAndExternalId}).
+ *
+ * <p>An admin can pause either source from the web panel. The cron expressions stay
+ * fixed and the pass still fires: it just returns before touching the network. The
+ * daily article ceiling is enforced one level down, in
+ * {@link com.checkpoint.api.services.impl.NewsImportServiceImpl}, so that it also
+ * covers the manual Import button.</p>
  */
 @Component
 public class NewsImportTask {
@@ -20,9 +28,12 @@ public class NewsImportTask {
     private static final Logger log = LoggerFactory.getLogger(NewsImportTask.class);
 
     private final NewsImportService newsImportService;
+    private final NewsImportSettingsService newsImportSettingsService;
 
-    public NewsImportTask(NewsImportService newsImportService) {
+    public NewsImportTask(NewsImportService newsImportService,
+                          NewsImportSettingsService newsImportSettingsService) {
         this.newsImportService = newsImportService;
+        this.newsImportSettingsService = newsImportSettingsService;
     }
 
     /**
@@ -32,6 +43,10 @@ public class NewsImportTask {
     @Scheduled(cron = "0 0 */6 * * *")
     @SchedulerLock(name = "newsImportSteam", lockAtLeastFor = "30m", lockAtMostFor = "2h")
     public void runSteamPass() {
+        if (!newsImportSettingsService.isScheduledPassEnabled(NewsSource.STEAM)) {
+            log.info("Scheduled Steam news pass skipped: paused by an admin");
+            return;
+        }
         log.info("Scheduled Steam news pass starting");
         try {
             int imported = newsImportService.importSteamNews();
@@ -48,6 +63,10 @@ public class NewsImportTask {
     @Scheduled(cron = "0 30 * * * *")
     @SchedulerLock(name = "newsImportRss", lockAtLeastFor = "5m", lockAtMostFor = "20m")
     public void runRssPass() {
+        if (!newsImportSettingsService.isScheduledPassEnabled(NewsSource.RSS)) {
+            log.info("Scheduled RSS news pass skipped: paused by an admin");
+            return;
+        }
         log.info("Scheduled RSS news pass starting");
         try {
             int imported = newsImportService.importRssFeeds();

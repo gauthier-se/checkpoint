@@ -265,3 +265,38 @@ export interface AdminAnalytics {
   topReviewedGames: Array<AdminTopGame>
   topReviewers: Array<AdminTopReviewer>
 }
+
+/**
+ * `GET /admin/news/import-settings` (`NewsImportSettingsDto`).
+ *
+ * The two `*Enabled` flags gate the **scheduled** passes only: the panel's
+ * Import buttons are an explicit admin action and run whatever the flags say.
+ * The daily ceiling, on the other hand, binds both paths.
+ */
+export interface AdminNewsImportSettings {
+  steamEnabled: boolean
+  rssEnabled: boolean
+  /** Null means no ceiling at all. */
+  maxArticlesPerDay: number | null
+  steamNewsPerGame: number
+  /** Articles the importers inserted since midnight, server time. */
+  importedToday: number
+  /** Null whenever `maxArticlesPerDay` is null. */
+  remainingToday: number | null
+  /** Absent until an admin first saves the form. */
+  updatedAt?: string
+  updatedBy?: string
+}
+
+/**
+ * Body of `PUT /admin/news/import-settings`. Every field is optional and an
+ * omitted one is left untouched, which is why removing the ceiling needs the
+ * explicit `unlimited` flag rather than a null `maxArticlesPerDay`.
+ */
+export interface AdminNewsImportSettingsPayload {
+  steamEnabled?: boolean
+  rssEnabled?: boolean
+  maxArticlesPerDay?: number
+  steamNewsPerGame?: number
+  unlimited?: boolean
+}
