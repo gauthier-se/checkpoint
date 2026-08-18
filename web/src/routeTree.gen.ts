@@ -9,72 +9,72 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as AppRouteImport } from './routes/_app'
+import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
-import { Route as AuthResetPasswordRouteImport } from './routes/_auth/reset-password'
-import { Route as AuthRegisterRouteImport } from './routes/_auth/register'
-import { Route as AuthLoginRouteImport } from './routes/_auth/login'
-import { Route as AuthForgotPasswordRouteImport } from './routes/_auth/forgot-password'
-import { Route as AppRoadmapRouteImport } from './routes/_app/roadmap'
-import { Route as AppLegalRouteImport } from './routes/_app/legal'
-import { Route as AppLeaderboardRouteImport } from './routes/_app/leaderboard'
-import { Route as AppAboutRouteImport } from './routes/_app/about'
 import { Route as AppProtectedRouteImport } from './routes/_app/_protected'
-import { Route as AppNewsIndexRouteImport } from './routes/_app/news/index'
-import { Route as AppMembersIndexRouteImport } from './routes/_app/members/index'
-import { Route as AppListsIndexRouteImport } from './routes/_app/lists/index'
-import { Route as AppGamesIndexRouteImport } from './routes/_app/games/index'
-import { Route as AppProfileUsernameRouteImport } from './routes/_app/profile/$username'
-import { Route as AppPlaysIdRouteImport } from './routes/_app/plays.$id'
-import { Route as AppNewsNewsIdRouteImport } from './routes/_app/news/$newsId'
-import { Route as AppMembersAllRouteImport } from './routes/_app/members/all'
-import { Route as AppListsBrowseRouteImport } from './routes/_app/lists/browse'
-import { Route as AppListsListIdRouteImport } from './routes/_app/lists/$listId'
-import { Route as AppGamesFilteredRouteImport } from './routes/_app/games/filtered'
-import { Route as AppGamesGameIdRouteImport } from './routes/_app/games/$gameId'
-import { Route as AppProtectedProfileRouteImport } from './routes/_app/_protected/profile'
-import { Route as AppProtectedNotificationsRouteImport } from './routes/_app/_protected/notifications'
-import { Route as AppProtectedSettingsRouteRouteImport } from './routes/_app/_protected/settings/route'
+import { Route as AppAboutRouteImport } from './routes/_app/about'
+import { Route as AppLeaderboardRouteImport } from './routes/_app/leaderboard'
+import { Route as AppLegalRouteImport } from './routes/_app/legal'
+import { Route as AppRoadmapRouteImport } from './routes/_app/roadmap'
+import { Route as AuthForgotPasswordRouteImport } from './routes/_auth/forgot-password'
+import { Route as AuthLoginRouteImport } from './routes/_auth/login'
+import { Route as AuthRegisterRouteImport } from './routes/_auth/register'
+import { Route as AuthResetPasswordRouteImport } from './routes/_auth/reset-password'
 import { Route as AppProtectedAdminRouteRouteImport } from './routes/_app/_protected/admin/route'
-import { Route as AppProtectedSettingsIndexRouteImport } from './routes/_app/_protected/settings/index'
-import { Route as AppProtectedFeedIndexRouteImport } from './routes/_app/_protected/feed/index'
+import { Route as AppProtectedNotificationsRouteImport } from './routes/_app/_protected/notifications'
+import { Route as AppProtectedProfileRouteImport } from './routes/_app/_protected/profile'
+import { Route as AppProtectedSettingsRouteRouteImport } from './routes/_app/_protected/settings/route'
+import { Route as AppGamesIndexRouteImport } from './routes/_app/games/index'
+import { Route as AppGamesGameIdRouteImport } from './routes/_app/games/$gameId'
+import { Route as AppGamesFilteredRouteImport } from './routes/_app/games/filtered'
+import { Route as AppListsIndexRouteImport } from './routes/_app/lists/index'
+import { Route as AppListsListIdRouteImport } from './routes/_app/lists/$listId'
+import { Route as AppListsBrowseRouteImport } from './routes/_app/lists/browse'
+import { Route as AppMembersIndexRouteImport } from './routes/_app/members/index'
+import { Route as AppMembersAllRouteImport } from './routes/_app/members/all'
+import { Route as AppNewsIndexRouteImport } from './routes/_app/news/index'
+import { Route as AppNewsNewsIdRouteImport } from './routes/_app/news/$newsId'
+import { Route as AppPlaysIdRouteImport } from './routes/_app/plays.$id'
+import { Route as AppProfileUsernameRouteImport } from './routes/_app/profile/$username'
 import { Route as AppProtectedAdminIndexRouteImport } from './routes/_app/_protected/admin/index'
-import { Route as AppProfileUsernameListsRouteImport } from './routes/_app/profile_.$username.lists'
-import { Route as AppProfileUsernameGamesRouteImport } from './routes/_app/profile_.$username.games'
-import { Route as AppProfileUsernameCompareRouteImport } from './routes/_app/profile_.$username.compare'
-import { Route as AppProfileUsernameBadgesRouteImport } from './routes/_app/profile_.$username.badges'
-import { Route as AppGamesGameIdListsRouteImport } from './routes/_app/games/$gameId_.lists'
-import { Route as AppProtectedSettingsSecurityRouteImport } from './routes/_app/_protected/settings/security'
-import { Route as AppProtectedSettingsProfileRouteImport } from './routes/_app/_protected/settings/profile'
-import { Route as AppProtectedSettingsNotificationsRouteImport } from './routes/_app/_protected/settings/notifications'
-import { Route as AppProtectedSettingsIntegrationsRouteImport } from './routes/_app/_protected/settings/integrations'
-import { Route as AppProtectedSettingsAppearanceRouteImport } from './routes/_app/_protected/settings/appearance'
-import { Route as AppProtectedListsNewRouteImport } from './routes/_app/_protected/lists/new'
-import { Route as AppProtectedGamesPopularWithFriendsRouteImport } from './routes/_app/_protected/games/popular-with-friends'
-import { Route as AppProtectedAdminNewsRouteImport } from './routes/_app/_protected/admin/news'
 import { Route as AppProtectedAdminAnalyticsRouteImport } from './routes/_app/_protected/admin/analytics'
-import { Route as AppProtectedAdminModerationRouteRouteImport } from './routes/_app/_protected/admin/moderation/route'
 import { Route as AppProtectedAdminGamesRouteRouteImport } from './routes/_app/_protected/admin/games/route'
-import { Route as AppProtectedAdminUsersIndexRouteImport } from './routes/_app/_protected/admin/users/index'
-import { Route as AppProtectedAdminModerationIndexRouteImport } from './routes/_app/_protected/admin/moderation/index'
-import { Route as AppProtectedAdminGamesIndexRouteImport } from './routes/_app/_protected/admin/games/index'
+import { Route as AppProtectedAdminModerationRouteRouteImport } from './routes/_app/_protected/admin/moderation/route'
+import { Route as AppProtectedAdminNewsRouteImport } from './routes/_app/_protected/admin/news'
+import { Route as AppProtectedFeedIndexRouteImport } from './routes/_app/_protected/feed/index'
+import { Route as AppProtectedGamesPopularWithFriendsRouteImport } from './routes/_app/_protected/games/popular-with-friends'
+import { Route as AppProtectedListsNewRouteImport } from './routes/_app/_protected/lists/new'
+import { Route as AppProtectedSettingsIndexRouteImport } from './routes/_app/_protected/settings/index'
+import { Route as AppProtectedSettingsAppearanceRouteImport } from './routes/_app/_protected/settings/appearance'
+import { Route as AppProtectedSettingsIntegrationsRouteImport } from './routes/_app/_protected/settings/integrations'
+import { Route as AppProtectedSettingsNotificationsRouteImport } from './routes/_app/_protected/settings/notifications'
+import { Route as AppProtectedSettingsProfileRouteImport } from './routes/_app/_protected/settings/profile'
+import { Route as AppProtectedSettingsSecurityRouteImport } from './routes/_app/_protected/settings/security'
+import { Route as AppGamesGameIdListsRouteImport } from './routes/_app/games/$gameId_.lists'
+import { Route as AppProfileUsernameBadgesRouteImport } from './routes/_app/profile_.$username.badges'
+import { Route as AppProfileUsernameCompareRouteImport } from './routes/_app/profile_.$username.compare'
+import { Route as AppProfileUsernameGamesRouteImport } from './routes/_app/profile_.$username.games'
+import { Route as AppProfileUsernameListsRouteImport } from './routes/_app/profile_.$username.lists'
 import { Route as AppProtectedUsernameTagsIndexRouteImport } from './routes/_app/_protected/$username/tags/index'
-import { Route as AppProtectedListsListIdEditRouteImport } from './routes/_app/_protected/lists/$listId/edit'
-import { Route as AppProtectedAdminUsersUserIdRouteImport } from './routes/_app/_protected/admin/users/$userId'
-import { Route as AppProtectedAdminModerationReviewsRouteImport } from './routes/_app/_protected/admin/moderation/reviews'
-import { Route as AppProtectedAdminGamesNewRouteImport } from './routes/_app/_protected/admin/games/new'
+import { Route as AppProtectedAdminGamesIndexRouteImport } from './routes/_app/_protected/admin/games/index'
 import { Route as AppProtectedAdminGamesImportRouteImport } from './routes/_app/_protected/admin/games/import'
+import { Route as AppProtectedAdminGamesNewRouteImport } from './routes/_app/_protected/admin/games/new'
+import { Route as AppProtectedAdminModerationIndexRouteImport } from './routes/_app/_protected/admin/moderation/index'
+import { Route as AppProtectedAdminModerationReviewsRouteImport } from './routes/_app/_protected/admin/moderation/reviews'
+import { Route as AppProtectedAdminUsersIndexRouteImport } from './routes/_app/_protected/admin/users/index'
+import { Route as AppProtectedAdminUsersUserIdRouteImport } from './routes/_app/_protected/admin/users/$userId'
+import { Route as AppProtectedListsListIdEditRouteImport } from './routes/_app/_protected/lists/$listId/edit'
+import { Route as AppProtectedAdminGamesGameIdEditRouteImport } from './routes/_app/_protected/admin/games/$gameId.edit'
 import { Route as AppProtectedAdminModerationReportsIndexRouteImport } from './routes/_app/_protected/admin/moderation/reports/index'
 import { Route as AppProtectedAdminModerationReportsReportIdRouteImport } from './routes/_app/_protected/admin/moderation/reports/$reportId'
-import { Route as AppProtectedAdminGamesGameIdEditRouteImport } from './routes/_app/_protected/admin/games/$gameId.edit'
 
-const AuthRoute = AuthRouteImport.update({
-  id: '/_auth',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AppRoute = AppRouteImport.update({
   id: '/_app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/_auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppIndexRoute = AppIndexRouteImport.update({
@@ -82,39 +82,8 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRoute,
 } as any)
-const AuthResetPasswordRoute = AuthResetPasswordRouteImport.update({
-  id: '/reset-password',
-  path: '/reset-password',
-  getParentRoute: () => AuthRoute,
-} as any)
-const AuthRegisterRoute = AuthRegisterRouteImport.update({
-  id: '/register',
-  path: '/register',
-  getParentRoute: () => AuthRoute,
-} as any)
-const AuthLoginRoute = AuthLoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => AuthRoute,
-} as any)
-const AuthForgotPasswordRoute = AuthForgotPasswordRouteImport.update({
-  id: '/forgot-password',
-  path: '/forgot-password',
-  getParentRoute: () => AuthRoute,
-} as any)
-const AppRoadmapRoute = AppRoadmapRouteImport.update({
-  id: '/roadmap',
-  path: '/roadmap',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppLegalRoute = AppLegalRouteImport.update({
-  id: '/legal',
-  path: '/legal',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppLeaderboardRoute = AppLeaderboardRouteImport.update({
-  id: '/leaderboard',
-  path: '/leaderboard',
+const AppProtectedRoute = AppProtectedRouteImport.update({
+  id: '/_protected',
   getParentRoute: () => AppRoute,
 } as any)
 const AppAboutRoute = AppAboutRouteImport.update({
@@ -122,73 +91,44 @@ const AppAboutRoute = AppAboutRouteImport.update({
   path: '/about',
   getParentRoute: () => AppRoute,
 } as any)
-const AppProtectedRoute = AppProtectedRouteImport.update({
-  id: '/_protected',
+const AppLeaderboardRoute = AppLeaderboardRouteImport.update({
+  id: '/leaderboard',
+  path: '/leaderboard',
   getParentRoute: () => AppRoute,
 } as any)
-const AppNewsIndexRoute = AppNewsIndexRouteImport.update({
-  id: '/news/',
-  path: '/news/',
+const AppLegalRoute = AppLegalRouteImport.update({
+  id: '/legal',
+  path: '/legal',
   getParentRoute: () => AppRoute,
 } as any)
-const AppMembersIndexRoute = AppMembersIndexRouteImport.update({
-  id: '/members/',
-  path: '/members/',
+const AppRoadmapRoute = AppRoadmapRouteImport.update({
+  id: '/roadmap',
+  path: '/roadmap',
   getParentRoute: () => AppRoute,
 } as any)
-const AppListsIndexRoute = AppListsIndexRouteImport.update({
-  id: '/lists/',
-  path: '/lists/',
-  getParentRoute: () => AppRoute,
+const AuthForgotPasswordRoute = AuthForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
+  getParentRoute: () => AuthRoute,
 } as any)
-const AppGamesIndexRoute = AppGamesIndexRouteImport.update({
-  id: '/games/',
-  path: '/games/',
-  getParentRoute: () => AppRoute,
+const AuthLoginRoute = AuthLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => AuthRoute,
 } as any)
-const AppProfileUsernameRoute = AppProfileUsernameRouteImport.update({
-  id: '/profile/$username',
-  path: '/profile/$username',
-  getParentRoute: () => AppRoute,
+const AuthRegisterRoute = AuthRegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => AuthRoute,
 } as any)
-const AppPlaysIdRoute = AppPlaysIdRouteImport.update({
-  id: '/plays/$id',
-  path: '/plays/$id',
-  getParentRoute: () => AppRoute,
+const AuthResetPasswordRoute = AuthResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => AuthRoute,
 } as any)
-const AppNewsNewsIdRoute = AppNewsNewsIdRouteImport.update({
-  id: '/news/$newsId',
-  path: '/news/$newsId',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppMembersAllRoute = AppMembersAllRouteImport.update({
-  id: '/members/all',
-  path: '/members/all',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppListsBrowseRoute = AppListsBrowseRouteImport.update({
-  id: '/lists/browse',
-  path: '/lists/browse',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppListsListIdRoute = AppListsListIdRouteImport.update({
-  id: '/lists/$listId',
-  path: '/lists/$listId',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppGamesFilteredRoute = AppGamesFilteredRouteImport.update({
-  id: '/games/filtered',
-  path: '/games/filtered',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppGamesGameIdRoute = AppGamesGameIdRouteImport.update({
-  id: '/games/$gameId',
-  path: '/games/$gameId',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppProtectedProfileRoute = AppProtectedProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
+const AppProtectedAdminRouteRoute = AppProtectedAdminRouteRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => AppProtectedRoute,
 } as any)
 const AppProtectedNotificationsRoute =
@@ -197,104 +137,80 @@ const AppProtectedNotificationsRoute =
     path: '/notifications',
     getParentRoute: () => AppProtectedRoute,
   } as any)
+const AppProtectedProfileRoute = AppProtectedProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AppProtectedRoute,
+} as any)
 const AppProtectedSettingsRouteRoute =
   AppProtectedSettingsRouteRouteImport.update({
     id: '/settings',
     path: '/settings',
     getParentRoute: () => AppProtectedRoute,
   } as any)
-const AppProtectedAdminRouteRoute = AppProtectedAdminRouteRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => AppProtectedRoute,
+const AppGamesIndexRoute = AppGamesIndexRouteImport.update({
+  id: '/games/',
+  path: '/games/',
+  getParentRoute: () => AppRoute,
 } as any)
-const AppProtectedSettingsIndexRoute =
-  AppProtectedSettingsIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => AppProtectedSettingsRouteRoute,
-  } as any)
-const AppProtectedFeedIndexRoute = AppProtectedFeedIndexRouteImport.update({
-  id: '/feed/',
-  path: '/feed/',
-  getParentRoute: () => AppProtectedRoute,
+const AppGamesGameIdRoute = AppGamesGameIdRouteImport.update({
+  id: '/games/$gameId',
+  path: '/games/$gameId',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppGamesFilteredRoute = AppGamesFilteredRouteImport.update({
+  id: '/games/filtered',
+  path: '/games/filtered',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppListsIndexRoute = AppListsIndexRouteImport.update({
+  id: '/lists/',
+  path: '/lists/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppListsListIdRoute = AppListsListIdRouteImport.update({
+  id: '/lists/$listId',
+  path: '/lists/$listId',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppListsBrowseRoute = AppListsBrowseRouteImport.update({
+  id: '/lists/browse',
+  path: '/lists/browse',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMembersIndexRoute = AppMembersIndexRouteImport.update({
+  id: '/members/',
+  path: '/members/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMembersAllRoute = AppMembersAllRouteImport.update({
+  id: '/members/all',
+  path: '/members/all',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppNewsIndexRoute = AppNewsIndexRouteImport.update({
+  id: '/news/',
+  path: '/news/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppNewsNewsIdRoute = AppNewsNewsIdRouteImport.update({
+  id: '/news/$newsId',
+  path: '/news/$newsId',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPlaysIdRoute = AppPlaysIdRouteImport.update({
+  id: '/plays/$id',
+  path: '/plays/$id',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppProfileUsernameRoute = AppProfileUsernameRouteImport.update({
+  id: '/profile/$username',
+  path: '/profile/$username',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppProtectedAdminIndexRoute = AppProtectedAdminIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AppProtectedAdminRouteRoute,
-} as any)
-const AppProfileUsernameListsRoute = AppProfileUsernameListsRouteImport.update({
-  id: '/profile_/$username/lists',
-  path: '/profile/$username/lists',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppProfileUsernameGamesRoute = AppProfileUsernameGamesRouteImport.update({
-  id: '/profile_/$username/games',
-  path: '/profile/$username/games',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppProfileUsernameCompareRoute =
-  AppProfileUsernameCompareRouteImport.update({
-    id: '/profile_/$username/compare',
-    path: '/profile/$username/compare',
-    getParentRoute: () => AppRoute,
-  } as any)
-const AppProfileUsernameBadgesRoute =
-  AppProfileUsernameBadgesRouteImport.update({
-    id: '/profile_/$username/badges',
-    path: '/profile/$username/badges',
-    getParentRoute: () => AppRoute,
-  } as any)
-const AppGamesGameIdListsRoute = AppGamesGameIdListsRouteImport.update({
-  id: '/games/$gameId_/lists',
-  path: '/games/$gameId/lists',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppProtectedSettingsSecurityRoute =
-  AppProtectedSettingsSecurityRouteImport.update({
-    id: '/security',
-    path: '/security',
-    getParentRoute: () => AppProtectedSettingsRouteRoute,
-  } as any)
-const AppProtectedSettingsProfileRoute =
-  AppProtectedSettingsProfileRouteImport.update({
-    id: '/profile',
-    path: '/profile',
-    getParentRoute: () => AppProtectedSettingsRouteRoute,
-  } as any)
-const AppProtectedSettingsNotificationsRoute =
-  AppProtectedSettingsNotificationsRouteImport.update({
-    id: '/notifications',
-    path: '/notifications',
-    getParentRoute: () => AppProtectedSettingsRouteRoute,
-  } as any)
-const AppProtectedSettingsIntegrationsRoute =
-  AppProtectedSettingsIntegrationsRouteImport.update({
-    id: '/integrations',
-    path: '/integrations',
-    getParentRoute: () => AppProtectedSettingsRouteRoute,
-  } as any)
-const AppProtectedSettingsAppearanceRoute =
-  AppProtectedSettingsAppearanceRouteImport.update({
-    id: '/appearance',
-    path: '/appearance',
-    getParentRoute: () => AppProtectedSettingsRouteRoute,
-  } as any)
-const AppProtectedListsNewRoute = AppProtectedListsNewRouteImport.update({
-  id: '/lists/new',
-  path: '/lists/new',
-  getParentRoute: () => AppProtectedRoute,
-} as any)
-const AppProtectedGamesPopularWithFriendsRoute =
-  AppProtectedGamesPopularWithFriendsRouteImport.update({
-    id: '/games/popular-with-friends',
-    path: '/games/popular-with-friends',
-    getParentRoute: () => AppProtectedRoute,
-  } as any)
-const AppProtectedAdminNewsRoute = AppProtectedAdminNewsRouteImport.update({
-  id: '/news',
-  path: '/news',
   getParentRoute: () => AppProtectedAdminRouteRoute,
 } as any)
 const AppProtectedAdminAnalyticsRoute =
@@ -303,29 +219,107 @@ const AppProtectedAdminAnalyticsRoute =
     path: '/analytics',
     getParentRoute: () => AppProtectedAdminRouteRoute,
   } as any)
-const AppProtectedAdminModerationRouteRoute =
-  AppProtectedAdminModerationRouteRouteImport.update({
-    id: '/moderation',
-    path: '/moderation',
-    getParentRoute: () => AppProtectedAdminRouteRoute,
-  } as any)
 const AppProtectedAdminGamesRouteRoute =
   AppProtectedAdminGamesRouteRouteImport.update({
     id: '/games',
     path: '/games',
     getParentRoute: () => AppProtectedAdminRouteRoute,
   } as any)
-const AppProtectedAdminUsersIndexRoute =
-  AppProtectedAdminUsersIndexRouteImport.update({
-    id: '/users/',
-    path: '/users/',
+const AppProtectedAdminModerationRouteRoute =
+  AppProtectedAdminModerationRouteRouteImport.update({
+    id: '/moderation',
+    path: '/moderation',
     getParentRoute: () => AppProtectedAdminRouteRoute,
   } as any)
-const AppProtectedAdminModerationIndexRoute =
-  AppProtectedAdminModerationIndexRouteImport.update({
+const AppProtectedAdminNewsRoute = AppProtectedAdminNewsRouteImport.update({
+  id: '/news',
+  path: '/news',
+  getParentRoute: () => AppProtectedAdminRouteRoute,
+} as any)
+const AppProtectedFeedIndexRoute = AppProtectedFeedIndexRouteImport.update({
+  id: '/feed/',
+  path: '/feed/',
+  getParentRoute: () => AppProtectedRoute,
+} as any)
+const AppProtectedGamesPopularWithFriendsRoute =
+  AppProtectedGamesPopularWithFriendsRouteImport.update({
+    id: '/games/popular-with-friends',
+    path: '/games/popular-with-friends',
+    getParentRoute: () => AppProtectedRoute,
+  } as any)
+const AppProtectedListsNewRoute = AppProtectedListsNewRouteImport.update({
+  id: '/lists/new',
+  path: '/lists/new',
+  getParentRoute: () => AppProtectedRoute,
+} as any)
+const AppProtectedSettingsIndexRoute =
+  AppProtectedSettingsIndexRouteImport.update({
     id: '/',
     path: '/',
-    getParentRoute: () => AppProtectedAdminModerationRouteRoute,
+    getParentRoute: () => AppProtectedSettingsRouteRoute,
+  } as any)
+const AppProtectedSettingsAppearanceRoute =
+  AppProtectedSettingsAppearanceRouteImport.update({
+    id: '/appearance',
+    path: '/appearance',
+    getParentRoute: () => AppProtectedSettingsRouteRoute,
+  } as any)
+const AppProtectedSettingsIntegrationsRoute =
+  AppProtectedSettingsIntegrationsRouteImport.update({
+    id: '/integrations',
+    path: '/integrations',
+    getParentRoute: () => AppProtectedSettingsRouteRoute,
+  } as any)
+const AppProtectedSettingsNotificationsRoute =
+  AppProtectedSettingsNotificationsRouteImport.update({
+    id: '/notifications',
+    path: '/notifications',
+    getParentRoute: () => AppProtectedSettingsRouteRoute,
+  } as any)
+const AppProtectedSettingsProfileRoute =
+  AppProtectedSettingsProfileRouteImport.update({
+    id: '/profile',
+    path: '/profile',
+    getParentRoute: () => AppProtectedSettingsRouteRoute,
+  } as any)
+const AppProtectedSettingsSecurityRoute =
+  AppProtectedSettingsSecurityRouteImport.update({
+    id: '/security',
+    path: '/security',
+    getParentRoute: () => AppProtectedSettingsRouteRoute,
+  } as any)
+const AppGamesGameIdListsRoute = AppGamesGameIdListsRouteImport.update({
+  id: '/games/$gameId_/lists',
+  path: '/games/$gameId/lists',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppProfileUsernameBadgesRoute =
+  AppProfileUsernameBadgesRouteImport.update({
+    id: '/profile_/$username/badges',
+    path: '/profile/$username/badges',
+    getParentRoute: () => AppRoute,
+  } as any)
+const AppProfileUsernameCompareRoute =
+  AppProfileUsernameCompareRouteImport.update({
+    id: '/profile_/$username/compare',
+    path: '/profile/$username/compare',
+    getParentRoute: () => AppRoute,
+  } as any)
+const AppProfileUsernameGamesRoute = AppProfileUsernameGamesRouteImport.update({
+  id: '/profile_/$username/games',
+  path: '/profile/$username/games',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppProfileUsernameListsRoute = AppProfileUsernameListsRouteImport.update({
+  id: '/profile_/$username/lists',
+  path: '/profile/$username/lists',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppProtectedUsernameTagsIndexRoute =
+  AppProtectedUsernameTagsIndexRouteImport.update({
+    id: '/$username/tags/',
+    path: '/$username/tags/',
+    getParentRoute: () => AppProtectedRoute,
   } as any)
 const AppProtectedAdminGamesIndexRoute =
   AppProtectedAdminGamesIndexRouteImport.update({
@@ -333,29 +327,11 @@ const AppProtectedAdminGamesIndexRoute =
     path: '/',
     getParentRoute: () => AppProtectedAdminGamesRouteRoute,
   } as any)
-const AppProtectedUsernameTagsIndexRoute =
-  AppProtectedUsernameTagsIndexRouteImport.update({
-    id: '/$username/tags/',
-    path: '/$username/tags/',
-    getParentRoute: () => AppProtectedRoute,
-  } as any)
-const AppProtectedListsListIdEditRoute =
-  AppProtectedListsListIdEditRouteImport.update({
-    id: '/lists/$listId/edit',
-    path: '/lists/$listId/edit',
-    getParentRoute: () => AppProtectedRoute,
-  } as any)
-const AppProtectedAdminUsersUserIdRoute =
-  AppProtectedAdminUsersUserIdRouteImport.update({
-    id: '/users/$userId',
-    path: '/users/$userId',
-    getParentRoute: () => AppProtectedAdminRouteRoute,
-  } as any)
-const AppProtectedAdminModerationReviewsRoute =
-  AppProtectedAdminModerationReviewsRouteImport.update({
-    id: '/reviews',
-    path: '/reviews',
-    getParentRoute: () => AppProtectedAdminModerationRouteRoute,
+const AppProtectedAdminGamesImportRoute =
+  AppProtectedAdminGamesImportRouteImport.update({
+    id: '/import',
+    path: '/import',
+    getParentRoute: () => AppProtectedAdminGamesRouteRoute,
   } as any)
 const AppProtectedAdminGamesNewRoute =
   AppProtectedAdminGamesNewRouteImport.update({
@@ -363,10 +339,40 @@ const AppProtectedAdminGamesNewRoute =
     path: '/new',
     getParentRoute: () => AppProtectedAdminGamesRouteRoute,
   } as any)
-const AppProtectedAdminGamesImportRoute =
-  AppProtectedAdminGamesImportRouteImport.update({
-    id: '/import',
-    path: '/import',
+const AppProtectedAdminModerationIndexRoute =
+  AppProtectedAdminModerationIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AppProtectedAdminModerationRouteRoute,
+  } as any)
+const AppProtectedAdminModerationReviewsRoute =
+  AppProtectedAdminModerationReviewsRouteImport.update({
+    id: '/reviews',
+    path: '/reviews',
+    getParentRoute: () => AppProtectedAdminModerationRouteRoute,
+  } as any)
+const AppProtectedAdminUsersIndexRoute =
+  AppProtectedAdminUsersIndexRouteImport.update({
+    id: '/users/',
+    path: '/users/',
+    getParentRoute: () => AppProtectedAdminRouteRoute,
+  } as any)
+const AppProtectedAdminUsersUserIdRoute =
+  AppProtectedAdminUsersUserIdRouteImport.update({
+    id: '/users/$userId',
+    path: '/users/$userId',
+    getParentRoute: () => AppProtectedAdminRouteRoute,
+  } as any)
+const AppProtectedListsListIdEditRoute =
+  AppProtectedListsListIdEditRouteImport.update({
+    id: '/lists/$listId/edit',
+    path: '/lists/$listId/edit',
+    getParentRoute: () => AppProtectedRoute,
+  } as any)
+const AppProtectedAdminGamesGameIdEditRoute =
+  AppProtectedAdminGamesGameIdEditRouteImport.update({
+    id: '/$gameId/edit',
+    path: '/$gameId/edit',
     getParentRoute: () => AppProtectedAdminGamesRouteRoute,
   } as any)
 const AppProtectedAdminModerationReportsIndexRoute =
@@ -380,12 +386,6 @@ const AppProtectedAdminModerationReportsReportIdRoute =
     id: '/reports/$reportId',
     path: '/reports/$reportId',
     getParentRoute: () => AppProtectedAdminModerationRouteRoute,
-  } as any)
-const AppProtectedAdminGamesGameIdEditRoute =
-  AppProtectedAdminGamesGameIdEditRouteImport.update({
-    id: '/$gameId/edit',
-    path: '/$gameId/edit',
-    getParentRoute: () => AppProtectedAdminGamesRouteRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -745,18 +745,18 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/_auth': {
-      id: '/_auth'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof AuthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_app': {
       id: '/_app'
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_auth': {
+      id: '/_auth'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_app/': {
@@ -766,53 +766,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_auth/reset-password': {
-      id: '/_auth/reset-password'
-      path: '/reset-password'
-      fullPath: '/reset-password'
-      preLoaderRoute: typeof AuthResetPasswordRouteImport
-      parentRoute: typeof AuthRoute
-    }
-    '/_auth/register': {
-      id: '/_auth/register'
-      path: '/register'
-      fullPath: '/register'
-      preLoaderRoute: typeof AuthRegisterRouteImport
-      parentRoute: typeof AuthRoute
-    }
-    '/_auth/login': {
-      id: '/_auth/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof AuthLoginRouteImport
-      parentRoute: typeof AuthRoute
-    }
-    '/_auth/forgot-password': {
-      id: '/_auth/forgot-password'
-      path: '/forgot-password'
-      fullPath: '/forgot-password'
-      preLoaderRoute: typeof AuthForgotPasswordRouteImport
-      parentRoute: typeof AuthRoute
-    }
-    '/_app/roadmap': {
-      id: '/_app/roadmap'
-      path: '/roadmap'
-      fullPath: '/roadmap'
-      preLoaderRoute: typeof AppRoadmapRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/legal': {
-      id: '/_app/legal'
-      path: '/legal'
-      fullPath: '/legal'
-      preLoaderRoute: typeof AppLegalRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/leaderboard': {
-      id: '/_app/leaderboard'
-      path: '/leaderboard'
-      fullPath: '/leaderboard'
-      preLoaderRoute: typeof AppLeaderboardRouteImport
+    '/_app/_protected': {
+      id: '/_app/_protected'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AppProtectedRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/about': {
@@ -822,102 +780,60 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAboutRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/_protected': {
-      id: '/_app/_protected'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof AppProtectedRouteImport
+    '/_app/leaderboard': {
+      id: '/_app/leaderboard'
+      path: '/leaderboard'
+      fullPath: '/leaderboard'
+      preLoaderRoute: typeof AppLeaderboardRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/news/': {
-      id: '/_app/news/'
-      path: '/news'
-      fullPath: '/news/'
-      preLoaderRoute: typeof AppNewsIndexRouteImport
+    '/_app/legal': {
+      id: '/_app/legal'
+      path: '/legal'
+      fullPath: '/legal'
+      preLoaderRoute: typeof AppLegalRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/members/': {
-      id: '/_app/members/'
-      path: '/members'
-      fullPath: '/members/'
-      preLoaderRoute: typeof AppMembersIndexRouteImport
+    '/_app/roadmap': {
+      id: '/_app/roadmap'
+      path: '/roadmap'
+      fullPath: '/roadmap'
+      preLoaderRoute: typeof AppRoadmapRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/lists/': {
-      id: '/_app/lists/'
-      path: '/lists'
-      fullPath: '/lists/'
-      preLoaderRoute: typeof AppListsIndexRouteImport
-      parentRoute: typeof AppRoute
+    '/_auth/forgot-password': {
+      id: '/_auth/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof AuthForgotPasswordRouteImport
+      parentRoute: typeof AuthRoute
     }
-    '/_app/games/': {
-      id: '/_app/games/'
-      path: '/games'
-      fullPath: '/games/'
-      preLoaderRoute: typeof AppGamesIndexRouteImport
-      parentRoute: typeof AppRoute
+    '/_auth/login': {
+      id: '/_auth/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof AuthLoginRouteImport
+      parentRoute: typeof AuthRoute
     }
-    '/_app/profile/$username': {
-      id: '/_app/profile/$username'
-      path: '/profile/$username'
-      fullPath: '/profile/$username'
-      preLoaderRoute: typeof AppProfileUsernameRouteImport
-      parentRoute: typeof AppRoute
+    '/_auth/register': {
+      id: '/_auth/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof AuthRegisterRouteImport
+      parentRoute: typeof AuthRoute
     }
-    '/_app/plays/$id': {
-      id: '/_app/plays/$id'
-      path: '/plays/$id'
-      fullPath: '/plays/$id'
-      preLoaderRoute: typeof AppPlaysIdRouteImport
-      parentRoute: typeof AppRoute
+    '/_auth/reset-password': {
+      id: '/_auth/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof AuthResetPasswordRouteImport
+      parentRoute: typeof AuthRoute
     }
-    '/_app/news/$newsId': {
-      id: '/_app/news/$newsId'
-      path: '/news/$newsId'
-      fullPath: '/news/$newsId'
-      preLoaderRoute: typeof AppNewsNewsIdRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/members/all': {
-      id: '/_app/members/all'
-      path: '/members/all'
-      fullPath: '/members/all'
-      preLoaderRoute: typeof AppMembersAllRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/lists/browse': {
-      id: '/_app/lists/browse'
-      path: '/lists/browse'
-      fullPath: '/lists/browse'
-      preLoaderRoute: typeof AppListsBrowseRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/lists/$listId': {
-      id: '/_app/lists/$listId'
-      path: '/lists/$listId'
-      fullPath: '/lists/$listId'
-      preLoaderRoute: typeof AppListsListIdRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/games/filtered': {
-      id: '/_app/games/filtered'
-      path: '/games/filtered'
-      fullPath: '/games/filtered'
-      preLoaderRoute: typeof AppGamesFilteredRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/games/$gameId': {
-      id: '/_app/games/$gameId'
-      path: '/games/$gameId'
-      fullPath: '/games/$gameId'
-      preLoaderRoute: typeof AppGamesGameIdRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/_protected/profile': {
-      id: '/_app/_protected/profile'
-      path: '/profile'
-      fullPath: '/profile'
-      preLoaderRoute: typeof AppProtectedProfileRouteImport
+    '/_app/_protected/admin': {
+      id: '/_app/_protected/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AppProtectedAdminRouteRouteImport
       parentRoute: typeof AppProtectedRoute
     }
     '/_app/_protected/notifications': {
@@ -927,6 +843,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProtectedNotificationsRouteImport
       parentRoute: typeof AppProtectedRoute
     }
+    '/_app/_protected/profile': {
+      id: '/_app/_protected/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AppProtectedProfileRouteImport
+      parentRoute: typeof AppProtectedRoute
+    }
     '/_app/_protected/settings': {
       id: '/_app/_protected/settings'
       path: '/settings'
@@ -934,123 +857,95 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProtectedSettingsRouteRouteImport
       parentRoute: typeof AppProtectedRoute
     }
-    '/_app/_protected/admin': {
-      id: '/_app/_protected/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AppProtectedAdminRouteRouteImport
-      parentRoute: typeof AppProtectedRoute
+    '/_app/games/': {
+      id: '/_app/games/'
+      path: '/games'
+      fullPath: '/games/'
+      preLoaderRoute: typeof AppGamesIndexRouteImport
+      parentRoute: typeof AppRoute
     }
-    '/_app/_protected/settings/': {
-      id: '/_app/_protected/settings/'
-      path: '/'
-      fullPath: '/settings/'
-      preLoaderRoute: typeof AppProtectedSettingsIndexRouteImport
-      parentRoute: typeof AppProtectedSettingsRouteRoute
+    '/_app/games/$gameId': {
+      id: '/_app/games/$gameId'
+      path: '/games/$gameId'
+      fullPath: '/games/$gameId'
+      preLoaderRoute: typeof AppGamesGameIdRouteImport
+      parentRoute: typeof AppRoute
     }
-    '/_app/_protected/feed/': {
-      id: '/_app/_protected/feed/'
-      path: '/feed'
-      fullPath: '/feed/'
-      preLoaderRoute: typeof AppProtectedFeedIndexRouteImport
-      parentRoute: typeof AppProtectedRoute
+    '/_app/games/filtered': {
+      id: '/_app/games/filtered'
+      path: '/games/filtered'
+      fullPath: '/games/filtered'
+      preLoaderRoute: typeof AppGamesFilteredRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/lists/': {
+      id: '/_app/lists/'
+      path: '/lists'
+      fullPath: '/lists/'
+      preLoaderRoute: typeof AppListsIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/lists/$listId': {
+      id: '/_app/lists/$listId'
+      path: '/lists/$listId'
+      fullPath: '/lists/$listId'
+      preLoaderRoute: typeof AppListsListIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/lists/browse': {
+      id: '/_app/lists/browse'
+      path: '/lists/browse'
+      fullPath: '/lists/browse'
+      preLoaderRoute: typeof AppListsBrowseRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/members/': {
+      id: '/_app/members/'
+      path: '/members'
+      fullPath: '/members/'
+      preLoaderRoute: typeof AppMembersIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/members/all': {
+      id: '/_app/members/all'
+      path: '/members/all'
+      fullPath: '/members/all'
+      preLoaderRoute: typeof AppMembersAllRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/news/': {
+      id: '/_app/news/'
+      path: '/news'
+      fullPath: '/news/'
+      preLoaderRoute: typeof AppNewsIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/news/$newsId': {
+      id: '/_app/news/$newsId'
+      path: '/news/$newsId'
+      fullPath: '/news/$newsId'
+      preLoaderRoute: typeof AppNewsNewsIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/plays/$id': {
+      id: '/_app/plays/$id'
+      path: '/plays/$id'
+      fullPath: '/plays/$id'
+      preLoaderRoute: typeof AppPlaysIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/profile/$username': {
+      id: '/_app/profile/$username'
+      path: '/profile/$username'
+      fullPath: '/profile/$username'
+      preLoaderRoute: typeof AppProfileUsernameRouteImport
+      parentRoute: typeof AppRoute
     }
     '/_app/_protected/admin/': {
       id: '/_app/_protected/admin/'
       path: '/'
       fullPath: '/admin/'
       preLoaderRoute: typeof AppProtectedAdminIndexRouteImport
-      parentRoute: typeof AppProtectedAdminRouteRoute
-    }
-    '/_app/profile_/$username/lists': {
-      id: '/_app/profile_/$username/lists'
-      path: '/profile/$username/lists'
-      fullPath: '/profile/$username/lists'
-      preLoaderRoute: typeof AppProfileUsernameListsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/profile_/$username/games': {
-      id: '/_app/profile_/$username/games'
-      path: '/profile/$username/games'
-      fullPath: '/profile/$username/games'
-      preLoaderRoute: typeof AppProfileUsernameGamesRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/profile_/$username/compare': {
-      id: '/_app/profile_/$username/compare'
-      path: '/profile/$username/compare'
-      fullPath: '/profile/$username/compare'
-      preLoaderRoute: typeof AppProfileUsernameCompareRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/profile_/$username/badges': {
-      id: '/_app/profile_/$username/badges'
-      path: '/profile/$username/badges'
-      fullPath: '/profile/$username/badges'
-      preLoaderRoute: typeof AppProfileUsernameBadgesRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/games/$gameId_/lists': {
-      id: '/_app/games/$gameId_/lists'
-      path: '/games/$gameId/lists'
-      fullPath: '/games/$gameId/lists'
-      preLoaderRoute: typeof AppGamesGameIdListsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/_protected/settings/security': {
-      id: '/_app/_protected/settings/security'
-      path: '/security'
-      fullPath: '/settings/security'
-      preLoaderRoute: typeof AppProtectedSettingsSecurityRouteImport
-      parentRoute: typeof AppProtectedSettingsRouteRoute
-    }
-    '/_app/_protected/settings/profile': {
-      id: '/_app/_protected/settings/profile'
-      path: '/profile'
-      fullPath: '/settings/profile'
-      preLoaderRoute: typeof AppProtectedSettingsProfileRouteImport
-      parentRoute: typeof AppProtectedSettingsRouteRoute
-    }
-    '/_app/_protected/settings/notifications': {
-      id: '/_app/_protected/settings/notifications'
-      path: '/notifications'
-      fullPath: '/settings/notifications'
-      preLoaderRoute: typeof AppProtectedSettingsNotificationsRouteImport
-      parentRoute: typeof AppProtectedSettingsRouteRoute
-    }
-    '/_app/_protected/settings/integrations': {
-      id: '/_app/_protected/settings/integrations'
-      path: '/integrations'
-      fullPath: '/settings/integrations'
-      preLoaderRoute: typeof AppProtectedSettingsIntegrationsRouteImport
-      parentRoute: typeof AppProtectedSettingsRouteRoute
-    }
-    '/_app/_protected/settings/appearance': {
-      id: '/_app/_protected/settings/appearance'
-      path: '/appearance'
-      fullPath: '/settings/appearance'
-      preLoaderRoute: typeof AppProtectedSettingsAppearanceRouteImport
-      parentRoute: typeof AppProtectedSettingsRouteRoute
-    }
-    '/_app/_protected/lists/new': {
-      id: '/_app/_protected/lists/new'
-      path: '/lists/new'
-      fullPath: '/lists/new'
-      preLoaderRoute: typeof AppProtectedListsNewRouteImport
-      parentRoute: typeof AppProtectedRoute
-    }
-    '/_app/_protected/games/popular-with-friends': {
-      id: '/_app/_protected/games/popular-with-friends'
-      path: '/games/popular-with-friends'
-      fullPath: '/games/popular-with-friends'
-      preLoaderRoute: typeof AppProtectedGamesPopularWithFriendsRouteImport
-      parentRoute: typeof AppProtectedRoute
-    }
-    '/_app/_protected/admin/news': {
-      id: '/_app/_protected/admin/news'
-      path: '/news'
-      fullPath: '/admin/news'
-      preLoaderRoute: typeof AppProtectedAdminNewsRouteImport
       parentRoute: typeof AppProtectedAdminRouteRoute
     }
     '/_app/_protected/admin/analytics': {
@@ -1060,13 +955,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProtectedAdminAnalyticsRouteImport
       parentRoute: typeof AppProtectedAdminRouteRoute
     }
-    '/_app/_protected/admin/moderation': {
-      id: '/_app/_protected/admin/moderation'
-      path: '/moderation'
-      fullPath: '/admin/moderation'
-      preLoaderRoute: typeof AppProtectedAdminModerationRouteRouteImport
-      parentRoute: typeof AppProtectedAdminRouteRoute
-    }
     '/_app/_protected/admin/games': {
       id: '/_app/_protected/admin/games'
       path: '/games'
@@ -1074,26 +962,117 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProtectedAdminGamesRouteRouteImport
       parentRoute: typeof AppProtectedAdminRouteRoute
     }
-    '/_app/_protected/admin/users/': {
-      id: '/_app/_protected/admin/users/'
-      path: '/users'
-      fullPath: '/admin/users/'
-      preLoaderRoute: typeof AppProtectedAdminUsersIndexRouteImport
+    '/_app/_protected/admin/moderation': {
+      id: '/_app/_protected/admin/moderation'
+      path: '/moderation'
+      fullPath: '/admin/moderation'
+      preLoaderRoute: typeof AppProtectedAdminModerationRouteRouteImport
       parentRoute: typeof AppProtectedAdminRouteRoute
     }
-    '/_app/_protected/admin/moderation/': {
-      id: '/_app/_protected/admin/moderation/'
-      path: '/'
-      fullPath: '/admin/moderation/'
-      preLoaderRoute: typeof AppProtectedAdminModerationIndexRouteImport
-      parentRoute: typeof AppProtectedAdminModerationRouteRoute
+    '/_app/_protected/admin/news': {
+      id: '/_app/_protected/admin/news'
+      path: '/news'
+      fullPath: '/admin/news'
+      preLoaderRoute: typeof AppProtectedAdminNewsRouteImport
+      parentRoute: typeof AppProtectedAdminRouteRoute
     }
-    '/_app/_protected/admin/games/': {
-      id: '/_app/_protected/admin/games/'
+    '/_app/_protected/feed/': {
+      id: '/_app/_protected/feed/'
+      path: '/feed'
+      fullPath: '/feed/'
+      preLoaderRoute: typeof AppProtectedFeedIndexRouteImport
+      parentRoute: typeof AppProtectedRoute
+    }
+    '/_app/_protected/games/popular-with-friends': {
+      id: '/_app/_protected/games/popular-with-friends'
+      path: '/games/popular-with-friends'
+      fullPath: '/games/popular-with-friends'
+      preLoaderRoute: typeof AppProtectedGamesPopularWithFriendsRouteImport
+      parentRoute: typeof AppProtectedRoute
+    }
+    '/_app/_protected/lists/new': {
+      id: '/_app/_protected/lists/new'
+      path: '/lists/new'
+      fullPath: '/lists/new'
+      preLoaderRoute: typeof AppProtectedListsNewRouteImport
+      parentRoute: typeof AppProtectedRoute
+    }
+    '/_app/_protected/settings/': {
+      id: '/_app/_protected/settings/'
       path: '/'
-      fullPath: '/admin/games/'
-      preLoaderRoute: typeof AppProtectedAdminGamesIndexRouteImport
-      parentRoute: typeof AppProtectedAdminGamesRouteRoute
+      fullPath: '/settings/'
+      preLoaderRoute: typeof AppProtectedSettingsIndexRouteImport
+      parentRoute: typeof AppProtectedSettingsRouteRoute
+    }
+    '/_app/_protected/settings/appearance': {
+      id: '/_app/_protected/settings/appearance'
+      path: '/appearance'
+      fullPath: '/settings/appearance'
+      preLoaderRoute: typeof AppProtectedSettingsAppearanceRouteImport
+      parentRoute: typeof AppProtectedSettingsRouteRoute
+    }
+    '/_app/_protected/settings/integrations': {
+      id: '/_app/_protected/settings/integrations'
+      path: '/integrations'
+      fullPath: '/settings/integrations'
+      preLoaderRoute: typeof AppProtectedSettingsIntegrationsRouteImport
+      parentRoute: typeof AppProtectedSettingsRouteRoute
+    }
+    '/_app/_protected/settings/notifications': {
+      id: '/_app/_protected/settings/notifications'
+      path: '/notifications'
+      fullPath: '/settings/notifications'
+      preLoaderRoute: typeof AppProtectedSettingsNotificationsRouteImport
+      parentRoute: typeof AppProtectedSettingsRouteRoute
+    }
+    '/_app/_protected/settings/profile': {
+      id: '/_app/_protected/settings/profile'
+      path: '/profile'
+      fullPath: '/settings/profile'
+      preLoaderRoute: typeof AppProtectedSettingsProfileRouteImport
+      parentRoute: typeof AppProtectedSettingsRouteRoute
+    }
+    '/_app/_protected/settings/security': {
+      id: '/_app/_protected/settings/security'
+      path: '/security'
+      fullPath: '/settings/security'
+      preLoaderRoute: typeof AppProtectedSettingsSecurityRouteImport
+      parentRoute: typeof AppProtectedSettingsRouteRoute
+    }
+    '/_app/games/$gameId_/lists': {
+      id: '/_app/games/$gameId_/lists'
+      path: '/games/$gameId/lists'
+      fullPath: '/games/$gameId/lists'
+      preLoaderRoute: typeof AppGamesGameIdListsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/profile_/$username/badges': {
+      id: '/_app/profile_/$username/badges'
+      path: '/profile/$username/badges'
+      fullPath: '/profile/$username/badges'
+      preLoaderRoute: typeof AppProfileUsernameBadgesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/profile_/$username/compare': {
+      id: '/_app/profile_/$username/compare'
+      path: '/profile/$username/compare'
+      fullPath: '/profile/$username/compare'
+      preLoaderRoute: typeof AppProfileUsernameCompareRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/profile_/$username/games': {
+      id: '/_app/profile_/$username/games'
+      path: '/profile/$username/games'
+      fullPath: '/profile/$username/games'
+      preLoaderRoute: typeof AppProfileUsernameGamesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/profile_/$username/lists': {
+      id: '/_app/profile_/$username/lists'
+      path: '/profile/$username/lists'
+      fullPath: '/profile/$username/lists'
+      preLoaderRoute: typeof AppProfileUsernameListsRouteImport
+      parentRoute: typeof AppRoute
     }
     '/_app/_protected/$username/tags/': {
       id: '/_app/_protected/$username/tags/'
@@ -1102,26 +1081,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProtectedUsernameTagsIndexRouteImport
       parentRoute: typeof AppProtectedRoute
     }
-    '/_app/_protected/lists/$listId/edit': {
-      id: '/_app/_protected/lists/$listId/edit'
-      path: '/lists/$listId/edit'
-      fullPath: '/lists/$listId/edit'
-      preLoaderRoute: typeof AppProtectedListsListIdEditRouteImport
-      parentRoute: typeof AppProtectedRoute
+    '/_app/_protected/admin/games/': {
+      id: '/_app/_protected/admin/games/'
+      path: '/'
+      fullPath: '/admin/games/'
+      preLoaderRoute: typeof AppProtectedAdminGamesIndexRouteImport
+      parentRoute: typeof AppProtectedAdminGamesRouteRoute
     }
-    '/_app/_protected/admin/users/$userId': {
-      id: '/_app/_protected/admin/users/$userId'
-      path: '/users/$userId'
-      fullPath: '/admin/users/$userId'
-      preLoaderRoute: typeof AppProtectedAdminUsersUserIdRouteImport
-      parentRoute: typeof AppProtectedAdminRouteRoute
-    }
-    '/_app/_protected/admin/moderation/reviews': {
-      id: '/_app/_protected/admin/moderation/reviews'
-      path: '/reviews'
-      fullPath: '/admin/moderation/reviews'
-      preLoaderRoute: typeof AppProtectedAdminModerationReviewsRouteImport
-      parentRoute: typeof AppProtectedAdminModerationRouteRoute
+    '/_app/_protected/admin/games/import': {
+      id: '/_app/_protected/admin/games/import'
+      path: '/import'
+      fullPath: '/admin/games/import'
+      preLoaderRoute: typeof AppProtectedAdminGamesImportRouteImport
+      parentRoute: typeof AppProtectedAdminGamesRouteRoute
     }
     '/_app/_protected/admin/games/new': {
       id: '/_app/_protected/admin/games/new'
@@ -1130,11 +1102,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProtectedAdminGamesNewRouteImport
       parentRoute: typeof AppProtectedAdminGamesRouteRoute
     }
-    '/_app/_protected/admin/games/import': {
-      id: '/_app/_protected/admin/games/import'
-      path: '/import'
-      fullPath: '/admin/games/import'
-      preLoaderRoute: typeof AppProtectedAdminGamesImportRouteImport
+    '/_app/_protected/admin/moderation/': {
+      id: '/_app/_protected/admin/moderation/'
+      path: '/'
+      fullPath: '/admin/moderation/'
+      preLoaderRoute: typeof AppProtectedAdminModerationIndexRouteImport
+      parentRoute: typeof AppProtectedAdminModerationRouteRoute
+    }
+    '/_app/_protected/admin/moderation/reviews': {
+      id: '/_app/_protected/admin/moderation/reviews'
+      path: '/reviews'
+      fullPath: '/admin/moderation/reviews'
+      preLoaderRoute: typeof AppProtectedAdminModerationReviewsRouteImport
+      parentRoute: typeof AppProtectedAdminModerationRouteRoute
+    }
+    '/_app/_protected/admin/users/': {
+      id: '/_app/_protected/admin/users/'
+      path: '/users'
+      fullPath: '/admin/users/'
+      preLoaderRoute: typeof AppProtectedAdminUsersIndexRouteImport
+      parentRoute: typeof AppProtectedAdminRouteRoute
+    }
+    '/_app/_protected/admin/users/$userId': {
+      id: '/_app/_protected/admin/users/$userId'
+      path: '/users/$userId'
+      fullPath: '/admin/users/$userId'
+      preLoaderRoute: typeof AppProtectedAdminUsersUserIdRouteImport
+      parentRoute: typeof AppProtectedAdminRouteRoute
+    }
+    '/_app/_protected/lists/$listId/edit': {
+      id: '/_app/_protected/lists/$listId/edit'
+      path: '/lists/$listId/edit'
+      fullPath: '/lists/$listId/edit'
+      preLoaderRoute: typeof AppProtectedListsListIdEditRouteImport
+      parentRoute: typeof AppProtectedRoute
+    }
+    '/_app/_protected/admin/games/$gameId/edit': {
+      id: '/_app/_protected/admin/games/$gameId/edit'
+      path: '/$gameId/edit'
+      fullPath: '/admin/games/$gameId/edit'
+      preLoaderRoute: typeof AppProtectedAdminGamesGameIdEditRouteImport
       parentRoute: typeof AppProtectedAdminGamesRouteRoute
     }
     '/_app/_protected/admin/moderation/reports/': {
@@ -1150,13 +1157,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/moderation/reports/$reportId'
       preLoaderRoute: typeof AppProtectedAdminModerationReportsReportIdRouteImport
       parentRoute: typeof AppProtectedAdminModerationRouteRoute
-    }
-    '/_app/_protected/admin/games/$gameId/edit': {
-      id: '/_app/_protected/admin/games/$gameId/edit'
-      path: '/$gameId/edit'
-      fullPath: '/admin/games/$gameId/edit'
-      preLoaderRoute: typeof AppProtectedAdminGamesGameIdEditRouteImport
-      parentRoute: typeof AppProtectedAdminGamesRouteRoute
     }
   }
 }

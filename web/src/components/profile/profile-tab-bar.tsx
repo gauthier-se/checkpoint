@@ -205,12 +205,7 @@ export function ProfileTabBar({
 
 /** Inline tabs rendered as ?tab= variants on /profile/$username. */
 export type ProfileInlineTab =
-  | 'profile'
-  | 'journal'
-  | 'tags'
-  | 'reviews'
-  | 'followers'
-  | 'following'
+  'profile' | 'journal' | 'tags' | 'reviews' | 'followers' | 'following'
 
 /** All tabs rendered as ?tab= variants on /profile/$username/games. */
 export type ProfileGamesTabKey =

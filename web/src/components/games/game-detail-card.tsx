@@ -19,8 +19,7 @@ import {
 
 /** Where the card links: a game detail page or a single play log. */
 type GameDetailLink =
-  | { type: 'game'; gameId: string }
-  | { type: 'play'; playId: string }
+  { type: 'game'; gameId: string } | { type: 'play'; playId: string }
 
 interface GameDetailCardProps {
   title: string
