@@ -19,7 +19,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.checkpoint.api.entities.Backlog;
-import com.checkpoint.api.entities.Badge;
 import com.checkpoint.api.entities.Comment;
 import com.checkpoint.api.entities.Favorite;
 import com.checkpoint.api.entities.GameList;
@@ -35,9 +34,7 @@ import com.checkpoint.api.entities.UserGame;
 import com.checkpoint.api.entities.UserGamePlay;
 import com.checkpoint.api.entities.VideoGame;
 import com.checkpoint.api.entities.Wish;
-import com.checkpoint.api.enums.BadgeCode;
 import com.checkpoint.api.enums.PlayStatus;
-import com.checkpoint.api.repositories.BadgeRepository;
 import com.checkpoint.api.repositories.PlatformRepository;
 import com.checkpoint.api.repositories.RoleRepository;
 import com.checkpoint.api.repositories.VideoGameRepository;
@@ -84,20 +81,17 @@ public class DatabaseSeeder implements ApplicationRunner {
     private final RoleRepository roleRepository;
     private final VideoGameRepository videoGameRepository;
     private final PlatformRepository platformRepository;
-    private final BadgeRepository badgeRepository;
     private final PasswordEncoder passwordEncoder;
     private final EntityManager entityManager;
 
     public DatabaseSeeder(RoleRepository roleRepository,
                           VideoGameRepository videoGameRepository,
                           PlatformRepository platformRepository,
-                          BadgeRepository badgeRepository,
                           PasswordEncoder passwordEncoder,
                           EntityManager entityManager) {
         this.roleRepository = roleRepository;
         this.videoGameRepository = videoGameRepository;
         this.platformRepository = platformRepository;
-        this.badgeRepository = badgeRepository;
         this.passwordEncoder = passwordEncoder;
         this.entityManager = entityManager;
     }
@@ -114,7 +108,6 @@ public class DatabaseSeeder implements ApplicationRunner {
         Role adminRole = ensureRole("ADMIN");
 
         ensureAdminUser(adminRole);
-        seedBadges();
 
         List<VideoGame> games = videoGameRepository.findAll();
         if (games.isEmpty()) {
@@ -171,49 +164,6 @@ public class DatabaseSeeder implements ApplicationRunner {
     private Role ensureRole(String name) {
         return roleRepository.findByName(name)
                 .orElseGet(() -> roleRepository.save(new Role(name)));
-    }
-
-    /**
-     * Inserts a {@code badges} row for every {@link BadgeCode} that does not yet
-     * exist, and re-syncs each existing row's name/description/hidden so changes
-     * to the enum (e.g. the {@link BadgeCode#LIFER} display rename in TE-306)
-     * propagate without manual SQL. Idempotent.
-     */
-    private void seedBadges() {
-        int created = 0;
-        int updated = 0;
-        for (BadgeCode code : BadgeCode.values()) {
-            Badge existing = badgeRepository.findByCode(code.name()).orElse(null);
-            if (existing == null) {
-                badgeRepository.save(new Badge(
-                        code.name(),
-                        code.getDefaultName(),
-                        code.getDefaultDescription(),
-                        null,
-                        code.isHidden()));
-                created++;
-                continue;
-            }
-            boolean changed = false;
-            if (!code.getDefaultName().equals(existing.getName())) {
-                existing.setName(code.getDefaultName());
-                changed = true;
-            }
-            if (!code.getDefaultDescription().equals(existing.getDescription())) {
-                existing.setDescription(code.getDefaultDescription());
-                changed = true;
-            }
-            if (existing.isHidden() != code.isHidden()) {
-                existing.setHidden(code.isHidden());
-                changed = true;
-            }
-            if (changed) {
-                badgeRepository.save(existing);
-                updated++;
-            }
-        }
-        log.info("Badge catalog: {} new badge(s) inserted, {} re-synced ({} total in catalog).",
-                created, updated, BadgeCode.values().length);
     }
 
     /**
