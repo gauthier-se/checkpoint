@@ -109,6 +109,11 @@ public class SecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // Deploy probes: the CD workflow has no credentials, and both
+                        // endpoints are configured to answer with a status and a build
+                        // timestamp only (see management.* in application.properties).
+                        .requestMatchers(HttpMethod.GET, "/api/v1/actuator/health").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/actuator/info").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/auth/me").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/v1/auth/ws-token").authenticated()
                         .requestMatchers("/api/v1/auth/**").permitAll()

@@ -1,0 +1,228 @@
+name: CD
+
+# Deployment is driven from here rather than from Dokploy's "auto deploy on push"
+# setting. Dokploy watches the repository silently: when one of its applications
+# fails to pick a commit up, nothing surfaces anywhere, which is how the API once
+# stayed several versions behind the web app while both looked deployed. Going
+# through the deploy hooks puts a green or red check per application on every
+# commit of main, gates the rollout on the test suite, and orders the API ahead
+# of the web app.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Which application to redeploy"
+        type: choice
+        options: [both, api, web]
+        default: both
+
+# One deployment at a time, and never cancel one midway: a half-applied rollout
+# is worse than a queued one.
+concurrency:
+  group: cd
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  SITE_URL: https://checkpoint.seyzeriat.com
+
+jobs:
+  changes:
+    name: Detect changed applications
+    runs-on: ubuntu-latest
+    outputs:
+      api: ${{ steps.filter.outputs.api }}
+      web: ${{ steps.filter.outputs.web }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Decide what to deploy
+        id: filter
+        env:
+          EVENT: ${{ github.event_name }}
+          TARGET: ${{ github.event.inputs.target }}
+          BEFORE: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+
+          if [ "$EVENT" = "workflow_dispatch" ]; then
+            case "$TARGET" in
+              api) api=true;  web=false ;;
+              web) api=false; web=true  ;;
+              *)   api=true;  web=true  ;;
+            esac
+          elif ! git cat-file -e "${BEFORE}^{commit}" 2>/dev/null; then
+            # First push on the branch, or history rewritten: the diff base is
+            # gone, so deploy both rather than silently skipping one.
+            echo "No usable diff base ($BEFORE), deploying both applications."
+            api=true
+            web=true
+          else
+            changed=$(git diff --name-only "$BEFORE" "$GITHUB_SHA")
+            echo "Changed files:"
+            echo "$changed" | awk '{ print "  " $0 }'
+            if echo "$changed" | grep -q '^api/'; then api=true; else api=false; fi
+            if echo "$changed" | grep -q '^web/'; then web=true; else web=false; fi
+          fi
+
+          echo "api=$api" >> "$GITHUB_OUTPUT"
+          echo "web=$web" >> "$GITHUB_OUTPUT"
+          echo "Deploy API: $api, deploy web: $web"
+
+  test-api:
+    name: API
+    needs: changes
+    if: needs.changes.outputs.api == 'true'
+    uses: ./.github/workflows/api-ci.yml
+    secrets: inherit
+
+  test-web:
+    name: Web
+    needs: changes
+    if: needs.changes.outputs.web == 'true'
+    uses: ./.github/workflows/web-ci.yml
+    secrets: inherit
+
+  deploy-api:
+    name: Deploy API
+    needs: [changes, test-api]
+    if: ${{ !cancelled() && !failure() && needs.changes.outputs.api == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Record the trigger time
+        id: start
+        # Two minutes of slack absorbs clock skew between this runner and the
+        # VPS, so a correct deployment is never rejected for being a moment
+        # "older" than the trigger.
+        run: echo "at=$(( $(date -u +%s) - 120 ))" >> "$GITHUB_OUTPUT"
+
+      - name: Trigger the Dokploy deployment
+        env:
+          HOOK: ${{ secrets.DOKPLOY_API_DEPLOY_HOOK }}
+        run: |
+          set -euo pipefail
+          if [ -z "$HOOK" ]; then
+            echo "::error::DOKPLOY_API_DEPLOY_HOOK is not set in the repository secrets."
+            exit 1
+          fi
+          status=$(curl -sS -X POST -o /dev/null -w '%{http_code}' --max-time 30 "$HOOK")
+          echo "Dokploy answered HTTP $status"
+          case "$status" in
+            2*) ;;
+            *) echo "::error::Dokploy refused the deploy request (HTTP $status)."; exit 1 ;;
+          esac
+
+      - name: Wait for the new build to serve traffic
+        env:
+          STARTED_AT: ${{ steps.start.outputs.at }}
+        # The hook only acknowledges the request: it says nothing about whether
+        # the image built or the container came back up. The build timestamp
+        # baked into the jar is the only thing that proves the running process
+        # is the one this run asked for.
+        run: |
+          set -uo pipefail
+          info_url="$SITE_URL/api/v1/actuator/info"
+          deadline=$(( $(date -u +%s) + 900 ))
+
+          while [ "$(date -u +%s)" -lt "$deadline" ]; do
+            body=$(curl -sS --max-time 15 "$info_url" 2>/dev/null || true)
+            build_time=$(printf '%s' "$body" | jq -r '.build.time // empty' 2>/dev/null || true)
+
+            if [ -n "$build_time" ]; then
+              built_at=$(date -u -d "$build_time" +%s 2>/dev/null || echo 0)
+              if [ "$built_at" -ge "$STARTED_AT" ]; then
+                echo "API is live, built at $build_time."
+                exit 0
+              fi
+              echo "Still serving the previous build ($build_time), waiting."
+            else
+              echo "API not answering yet, waiting."
+            fi
+            sleep 15
+          done
+
+          echo "::error::The API never reported a build newer than this run. Check the API application's build logs in Dokploy: either the image failed to build and the old container is still serving, or the new one failed to start."
+          exit 1
+
+  deploy-web:
+    name: Deploy web
+    # Depends on deploy-api so that a commit touching both ships the API first.
+    # The web app calls endpoints that must already exist, and it also proxies
+    # /api/** to the API, so the reverse order leaves a window where the front
+    # end is live against a backend that does not know its routes yet.
+    needs: [changes, test-web, deploy-api]
+    if: ${{ !cancelled() && !failure() && needs.changes.outputs.web == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Note the currently served bundle
+        id: before
+        run: |
+          set -uo pipefail
+          hash=$(curl -sS --max-time 20 "$SITE_URL/" 2>/dev/null \
+            | grep -o '/assets/index-[A-Za-z0-9_-]*\.js' | head -1 || true)
+          echo "hash=$hash" >> "$GITHUB_OUTPUT"
+          echo "Currently served bundle: ${hash:-unknown}"
+
+      - name: Trigger the Dokploy deployment
+        env:
+          HOOK: ${{ secrets.DOKPLOY_WEB_DEPLOY_HOOK }}
+        run: |
+          set -euo pipefail
+          if [ -z "$HOOK" ]; then
+            echo "::error::DOKPLOY_WEB_DEPLOY_HOOK is not set in the repository secrets."
+            exit 1
+          fi
+          status=$(curl -sS -X POST -o /dev/null -w '%{http_code}' --max-time 30 "$HOOK")
+          echo "Dokploy answered HTTP $status"
+          case "$status" in
+            2*) ;;
+            *) echo "::error::Dokploy refused the deploy request (HTTP $status)."; exit 1 ;;
+          esac
+
+      - name: Wait for the site to serve traffic again
+        env:
+          BEFORE_HASH: ${{ steps.before.outputs.hash }}
+        # There is no build stamp on the web side, so this proves the container
+        # is back up rather than that it runs new code. The bundle hash is
+        # content-derived, so a changed hash confirms new code shipped: it is
+        # only reported, not enforced, because a deploy that touches the
+        # lockfile or the Dockerfile alone can legitimately rebuild to the same
+        # bundle.
+        run: |
+          set -uo pipefail
+          deadline=$(( $(date -u +%s) + 900 ))
+          settled_since=""
+
+          while [ "$(date -u +%s)" -lt "$deadline" ]; do
+            html=$(curl -sS --max-time 15 "$SITE_URL/" 2>/dev/null || true)
+            if printf '%s' "$html" | grep -q '<!DOCTYPE html>'; then
+              # Give the rollout a moment to finish swapping containers before
+              # reading the hash, so the old one is not caught on its way out.
+              if [ -z "$settled_since" ]; then
+                settled_since=$(date -u +%s)
+              elif [ $(( $(date -u +%s) - settled_since )) -ge 30 ]; then
+                hash=$(printf '%s' "$html" \
+                  | grep -o '/assets/index-[A-Za-z0-9_-]*\.js' | head -1 || true)
+                echo "Web is live, serving ${hash:-unknown}."
+                if [ -n "$BEFORE_HASH" ] && [ "$hash" = "$BEFORE_HASH" ]; then
+                  echo "::warning::The bundle hash did not change. If this commit touched application code, the web container may still be on the previous image."
+                fi
+                exit 0
+              fi
+            else
+              settled_since=""
+              echo "Site not answering yet, waiting."
+            fi
+            sleep 15
+          done
+
+          echo "::error::The site never came back up. Check the web application's build logs in Dokploy."
+          exit 1
