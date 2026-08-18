@@ -15,7 +15,6 @@ body:
       options:
         - api (Spring Boot)
         - web (TanStack Start)
-        - desktop (JavaFX)
         - other / not sure
     validations:
       required: true

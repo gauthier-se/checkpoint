@@ -28,7 +28,7 @@ Instead, report them privately using one of the following:
 Please include as much detail as possible:
 
 - The type of issue (e.g. injection, authentication bypass, information leak)
-- The affected module (`api`, `web`, or `desktop`) and component
+- The affected module (`api` or `web`) and component
 - Steps to reproduce or a proof of concept
 - The potential impact
 

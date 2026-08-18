@@ -1,36 +1,11 @@
-{ pkgs, lib, ... }:
+{ pkgs, ... }:
 
-let
-  # JavaFX pulls pre-built native libraries from Maven Central. They are plain
-  # shared objects (no ELF interpreter to patch), so exposing their dependencies
-  # through LD_LIBRARY_PATH is enough to make the desktop module run on NixOS.
-  # Scoped to `desktop-dev` on purpose: a global LD_LIBRARY_PATH breaks
-  # unrelated dynamically linked binaries.
-  javafxLibs = lib.makeLibraryPath (with pkgs; [
-    alsa-lib
-    at-spi2-atk
-    at-spi2-core
-    atk
-    cairo
-    fontconfig
-    freetype
-    gdk-pixbuf
-    glib
-    gtk3
-    libGL
-    libxkbcommon
-    pango
-    xorg.libX11
-    xorg.libXtst
-    xorg.libXxf86vm
-  ]);
-in
 {
   # ---------------------------------------------------------------------------
   # Toolchain — versions mirror the CI workflows so that "works on my machine"
   # and "passes CI" mean the same thing.
   #
-  #   api      targets Java 21, desktop targets Java 24, both CI jobs run JDK 25
+  #   api      targets Java 21, its CI job runs JDK 25
   #   web      Node.js 22 + pnpm 11 (.github/workflows/web-ci.yml)
   # ---------------------------------------------------------------------------
   languages.java = {
@@ -45,10 +20,6 @@ in
     pnpm.enable = true;
     pnpm.package = pkgs.pnpm;
   };
-
-  # Exposed so the desktop module can also be launched from an IDE on NixOS:
-  # set LD_LIBRARY_PATH=$CHECKPOINT_JAVAFX_LIB_PATH in the run configuration.
-  env.CHECKPOINT_JAVAFX_LIB_PATH = javafxLibs;
 
   packages = with pkgs; [
     docker-compose # fallback when the docker CLI ships without the compose plugin
@@ -153,13 +124,6 @@ in
     exec pnpm check:ci "$@"
   '';
 
-  scripts.desktop-dev.exec = ''
-    set -euo pipefail
-    cd "$DEVENV_ROOT/desktop"
-    export LD_LIBRARY_PATH="${javafxLibs}''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
-    exec ./mvnw clean javafx:run "$@"
-  '';
-
   # Sanity check that the toolchain matches what CI runs.
   scripts.dev-doctor.exec = ''
     set -euo pipefail
@@ -181,7 +145,6 @@ in
 
       api-dev / api-test                            Spring Boot API (:8080)
       web-dev / web-test / web-check                TanStack Start web app (:3000)
-      desktop-dev                                   JavaFX admin console
 
       with-secrets <cmd>                            run <cmd> with Doppler or .env
       dev-doctor                                    check the toolchain versions
