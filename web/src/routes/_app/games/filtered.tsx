@@ -94,8 +94,8 @@ export const Route = createFileRoute('/_app/games/filtered')({
   loaderDeps: ({ search }) => search,
   loader: async ({ deps, context }): Promise<{ catalog: GamesResponse }> => {
     const [catalog] = await Promise.all([
-      apiFetch(buildCatalogUrl(deps)).then(
-        (res): Promise<GamesResponse> => res.json(),
+      apiFetch(buildCatalogUrl(deps)).then((res): Promise<GamesResponse> =>
+        res.json(),
       ),
       context.queryClient.ensureQueryData(genresQueryOptions()),
       context.queryClient.ensureQueryData(platformsQueryOptions()),

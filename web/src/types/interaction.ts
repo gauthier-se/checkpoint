@@ -17,12 +17,7 @@ export interface GameInteractionStatusDto {
 }
 
 export type PlayStatus =
-  | 'ARE_PLAYING'
-  | 'PLAYED'
-  | 'COMPLETED'
-  | 'RETIRED'
-  | 'SHELVED'
-  | 'ABANDONED'
+  'ARE_PLAYING' | 'PLAYED' | 'COMPLETED' | 'RETIRED' | 'SHELVED' | 'ABANDONED'
 
 export interface GamePlayLogRequestDto {
   videoGameId: string

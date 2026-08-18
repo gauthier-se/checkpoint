@@ -37,12 +37,7 @@ export interface BacklogListResponse {
 
 // Play Log
 export type PlayStatus =
-  | 'ARE_PLAYING'
-  | 'PLAYED'
-  | 'COMPLETED'
-  | 'RETIRED'
-  | 'SHELVED'
-  | 'ABANDONED'
+  'ARE_PLAYING' | 'PLAYED' | 'COMPLETED' | 'RETIRED' | 'SHELVED' | 'ABANDONED'
 
 export interface PlayLogResponse {
   id: string
