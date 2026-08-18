@@ -273,8 +273,18 @@ would let a push reach production without passing the gate above.
 Step 4 matters just as much. Queuing a deployment only acknowledges the request,
 so a build that fails inside Dokploy still answers with a success code, and a task
 Swarm rejects outright never produces a container nor a single log line. For the
-API the workflow polls `/api/v1/actuator/info` until the reported `build.time` is
-newer than the run, which is what proves the container restarted on a new image.
+API the workflow polls `/api/v1/actuator/info` until the reported `process.start`,
+the JVM start instant, is newer than the run. That is what proves the rollout was
+applied, since it moves on every container start.
+
+`build.time` is reported alongside but is deliberately not the gate. The image
+layers are cached on the source tree, so redeploying a commit that left `api/`
+untouched rebuilds to a byte-identical image carrying the same `build.time`:
+the deployment is genuine, the container is new, and gating on the build stamp
+would hang waiting for a timestamp that will never move. The two say different
+things, `process.start` that the rollout happened, `build.time` which image it
+applied.
+
 The web app has no equivalent stamp, so the workflow waits for the site to answer
 and reports whether the bundle hash moved.
 

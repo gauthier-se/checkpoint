@@ -42,6 +42,9 @@ import org.springframework.test.web.servlet.MockMvc;
 })
 class DeployProbeIntegrationTest {
 
+    /** Both timestamps are parsed by {@code date -d} in the workflow. */
+    private static final String ISO_INSTANT = "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z";
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -67,10 +70,24 @@ class DeployProbeIntegrationTest {
                 // build-info goal: running the tests outside the Maven lifecycle
                 // leaves it absent and fails here, which is intended.
                 .andExpect(jsonPath("$.build.time")
-                        .value(matchesPattern("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z")))
-                // Nothing beyond the build block: no environment, no JVM, no OS.
+                        .value(matchesPattern(ISO_INSTANT)))
+                // Nothing beyond the build and process blocks: no environment, no
+                // JVM details, no OS.
                 .andExpect(jsonPath("$.java").doesNotExist())
                 .andExpect(jsonPath("$.os").doesNotExist());
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/actuator/info exposes the JVM start instant")
+    void infoCarriesTheProcessStartInstant() throws Exception {
+        // This, not build.time, is what tells the pipeline a deployment was applied.
+        // The image layers are cached on the source tree, so redeploying a commit
+        // that left api/ untouched produces a byte-identical image whose build.time
+        // never moves, while the process restarts all the same.
+        mockMvc.perform(get("/api/v1/actuator/info"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.process.start").value(matchesPattern(ISO_INSTANT)))
+                .andExpect(jsonPath("$.process.uptimeMs").isNumber());
     }
 
     @Test

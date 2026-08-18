@@ -146,10 +146,14 @@ jobs:
       - name: Wait for the new build to serve traffic
         env:
           STARTED_AT: ${{ steps.start.outputs.at }}
-        # The API only queues the deployment: it says nothing about whether
-        # the image built or the container came back up. The build timestamp
-        # baked into the jar is the only thing that proves the running process
-        # is the one this run asked for.
+        # The API only queues the deployment: it says nothing about whether the
+        # image built or the container came back up. The JVM start instant is
+        # what proves the rollout was applied, since it moves on every container
+        # start. build.time cannot carry that on its own: the image layers are
+        # cached on the source tree, so redeploying a commit that left api/
+        # untouched rebuilds to a byte-identical image with an unchanged
+        # build.time, and waiting on it would hang on a healthy deployment. It is
+        # still reported, because it says which image is now serving.
         run: |
           set -uo pipefail
           info_url="$API_URL/api/v1/actuator/info"
@@ -159,15 +163,16 @@ jobs:
 
           while [ "$(date -u +%s)" -lt "$deadline" ]; do
             body=$(curl -sS --max-time 15 "$info_url" 2>/dev/null || true)
+            started=$(printf '%s' "$body" | jq -r '.process.start // empty' 2>/dev/null || true)
             build_time=$(printf '%s' "$body" | jq -r '.build.time // empty' 2>/dev/null || true)
 
-            if [ -n "$build_time" ]; then
-              built_at=$(date -u -d "$build_time" +%s 2>/dev/null || echo 0)
-              if [ "$built_at" -ge "$STARTED_AT" ]; then
-                echo "API is live, built at $build_time."
+            if [ -n "$started" ]; then
+              started_at=$(date -u -d "$started" +%s 2>/dev/null || echo 0)
+              if [ "$started_at" -ge "$STARTED_AT" ]; then
+                echo "API is live: process started at $started, image built at ${build_time:-unknown}."
                 exit 0
               fi
-              state="serving the previous build ($build_time)"
+              state="still running the process started at $started"
             else
               state="not answering"
             fi
@@ -184,7 +189,7 @@ jobs:
             sleep 15
           done
 
-          echo "::error::The API never reported a build newer than this run. The image may have failed to build, or the container may have failed to start. Note that a task Swarm rejects outright, over an invalid mount for instance, never produces a container and never logs anything: 'docker service ps --no-trunc <service>' is what shows that."
+          echo "::error::The API never reported a process started after this run, so the rollout was never applied. The image may have failed to build, or the container may have failed to start. Note that a task Swarm rejects outright, over an invalid mount for instance, never produces a container and never logs anything: 'docker service ps --no-trunc <service>' is what shows that."
           exit 1
 
   deploy-web:
