@@ -30,6 +30,11 @@ const config = defineConfig(({ mode }) => {
     nitro: {
       serverDir: './',
       routeRules: {
+        // Development only. `apiInternalUrl` is resolved when this config runs,
+        // so the target is baked into the build, and `web/Dockerfile` does not
+        // declare API_INTERNAL_URL as a build argument: in a container image
+        // this rule points at localhost. Production has no need of it, the
+        // browser calling the API's own domain through VITE_API_URL.
         '/api/**': { proxy: `${apiInternalUrl}/api/**` },
       },
     },
