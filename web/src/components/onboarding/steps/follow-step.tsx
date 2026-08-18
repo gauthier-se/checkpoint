@@ -91,7 +91,7 @@ export function FollowStep({ onNext }: FollowStepProps) {
         <p className="text-muted-foreground text-sm">
           {isSearching
             ? `No one found for "${deferredQuery}".`
-            : 'No suggestions yet — search above to find people to follow.'}
+            : 'No suggestions yet: search above to find people to follow.'}
         </p>
       ) : (
         <div

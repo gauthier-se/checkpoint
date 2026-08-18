@@ -25,11 +25,11 @@ interface GameDetailCardProps {
   title: string
   coverUrl: string | null
   link: GameDetailLink
-  /** Release date — its year is shown in the hover overlay, like the catalog. */
+  /** Release date: its year is shown in the hover overlay, like the catalog. */
   releaseDate?: string | null
   /** Half-star rating on the 1–10 scale (e.g. 7 = 3.5 stars). */
   score?: number | null
-  /** Play status — rendered as a coloured icon next to the rating. */
+  /** Play status: rendered as a coloured icon next to the rating. */
   status?: PlayStatus
   /** Extra badge rendered below the cover (e.g. wishlist priority). */
   statusBadge?: ReactNode

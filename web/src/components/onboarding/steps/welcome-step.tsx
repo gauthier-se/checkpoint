@@ -14,7 +14,7 @@ export function WelcomeStep({ onNext }: WelcomeStepProps) {
 
   const handleStart = () => {
     onNext()
-    // Record the click in the background — don't block the UI on it.
+    // Record the click in the background: don't block the UI on it.
     updateOnboardingStep('welcome', true)
       .catch(() => {
         // Auto-mark / next steps can still complete the flow.

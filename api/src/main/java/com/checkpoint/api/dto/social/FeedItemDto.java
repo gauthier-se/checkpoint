@@ -16,7 +16,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
  * @param user          who performed the activity
  * @param game          which game is involved (null for LIST type)
  * @param playStatus    play session status (PLAY type only)
- * @param score         rating score 1-10 — half-star steps, display = score / 2 (RATING type only)
+ * @param score         rating score 1-10: half-star steps, display = score / 2 (RATING type only)
  * @param reviewContent truncated review text (REVIEW type only)
  * @param haveSpoilers  whether the review contains spoilers (REVIEW type only)
  * @param listTitle     the list title (LIST type only)

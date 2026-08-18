@@ -13,8 +13,8 @@ export interface ClientPage<T> {
  * Slices an in-memory list into a page, for the admin endpoints that answer
  * with everything at once (`GET /admin/users`, `GET /games/search`).
  *
- * `page` is 1-based and clamped into range, so a stale deep link — page 5 after
- * a filter narrowed the results to two pages — lands on the last page instead
+ * `page` is 1-based and clamped into range, so a stale deep link, page 5 after
+ * a filter narrowed the results to two pages, lands on the last page instead
  * of an empty table.
  */
 export function paginateClientSide<T>(

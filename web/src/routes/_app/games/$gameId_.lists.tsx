@@ -38,8 +38,8 @@ export const Route = createFileRoute('/_app/games/$gameId_/lists')({
   head: ({ loaderData }) => ({
     meta: seo({
       title: loaderData
-        ? `Lists containing ${loaderData.game.title} — Checkpoint`
-        : 'Lists — Checkpoint',
+        ? `Lists containing ${loaderData.game.title} - Checkpoint`
+        : 'Lists - Checkpoint',
     }),
   }),
 })

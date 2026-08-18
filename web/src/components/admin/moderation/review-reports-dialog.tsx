@@ -72,7 +72,7 @@ export function ReviewReportsDialog({
               {data.content.map((report) => (
                 <li key={report.id} className="rounded-lg border p-3 text-sm">
                   <p className="text-xs text-muted-foreground">
-                    {report.reporterUsername ?? 'A deleted account'} —{' '}
+                    {report.reporterUsername ?? 'A deleted account'} -{' '}
                     {formatAdminDateTime(report.createdAt)}
                   </p>
                   <p className="mt-1 whitespace-pre-wrap">

@@ -47,7 +47,7 @@ public interface GameImportService {
     /**
      * Imports a pre-fetched list of games in bulk, skipping any game whose
      * {@code igdbId} already exists in the database. Failures on individual
-     * games are caught and reported in the returned stats — the operation
+     * games are caught and reported in the returned stats: the operation
      * does not abort.
      *
      * @param games the IGDB game DTOs to import

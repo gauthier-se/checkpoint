@@ -94,7 +94,7 @@ class GameSimilarityServiceImplTest {
         when(videoGameRepository.findAllByIdInWithRelationships(candidateIds))
                 .thenReturn(List.of(strong, weak));
 
-        // Returned in arbitrary order — the service must restore the ranked order.
+        // Returned in arbitrary order: the service must restore the ranked order.
         when(videoGameRepository.findGameCardsByIdIn(List.of(strong.getId(), weak.getId())))
                 .thenReturn(List.of(card(weak), card(strong)));
 

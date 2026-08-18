@@ -56,7 +56,7 @@ function filterToQueryParams(filter: NotificationFilter): {
 
 export const Route = createFileRoute('/_app/_protected/notifications')({
   head: () => ({
-    meta: seo({ title: 'Notifications — Checkpoint' }),
+    meta: seo({ title: 'Notifications - Checkpoint' }),
   }),
   validateSearch: (search: Record<string, unknown>): NotificationsSearch => ({
     page: Math.max(1, Math.floor(Number(search.page ?? 1)) || 1),

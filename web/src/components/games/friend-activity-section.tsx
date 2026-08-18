@@ -75,7 +75,7 @@ export function FriendActivitySection({ gameId }: FriendActivitySectionProps) {
                 href={f.latestPlayId ? `/plays/${f.latestPlayId}` : null}
                 tooltip={
                   f.primaryPlayStatus
-                    ? `${f.pseudo} — ${PLAY_STATUS_LABELS[f.primaryPlayStatus]}`
+                    ? `${f.pseudo} - ${PLAY_STATUS_LABELS[f.primaryPlayStatus]}`
                     : f.pseudo
                 }
               />

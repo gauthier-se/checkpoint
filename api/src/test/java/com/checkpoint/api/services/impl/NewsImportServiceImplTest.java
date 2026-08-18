@@ -37,7 +37,7 @@ import com.checkpoint.api.repositories.NewsRepository;
 import com.checkpoint.api.repositories.VideoGameRepository;
 
 /**
- * Unit tests for {@link NewsImportServiceImpl} — covers dedup, per-item / per-source
+ * Unit tests for {@link NewsImportServiceImpl}: covers dedup, per-item / per-source
  * error isolation, lazy Steam appId backfill, and dispatch.
  */
 @ExtendWith(MockitoExtension.class)

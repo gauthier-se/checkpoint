@@ -91,7 +91,7 @@ class OnboardingServiceImplTest {
         }
 
         @Test
-        @DisplayName("is idempotent — no save when the step is already true")
+        @DisplayName("is idempotent: no save when the step is already true")
         void shouldBeIdempotent() {
             user.getOnboardingSteps().put(OnboardingSteps.PICTURE, true);
             when(userRepository.findByEmail("alice@test.com")).thenReturn(Optional.of(user));

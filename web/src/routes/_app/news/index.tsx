@@ -44,7 +44,7 @@ function parseSort(value: unknown): NewsSortOption | undefined {
 
 export const Route = createFileRoute('/_app/news/')({
   head: () => ({
-    meta: seo({ title: 'News — Checkpoint' }),
+    meta: seo({ title: 'News - Checkpoint' }),
   }),
   component: RouteComponent,
   pendingComponent: NewsIndexSkeleton,

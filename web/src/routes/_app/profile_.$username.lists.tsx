@@ -14,7 +14,7 @@ type ProfileListsSearch = {
 export const Route = createFileRoute('/_app/profile_/$username/lists')({
   component: ProfileListsPage,
   head: ({ params }) => ({
-    meta: seo({ title: `${params.username}'s lists — Checkpoint` }),
+    meta: seo({ title: `${params.username}'s lists - Checkpoint` }),
   }),
   validateSearch: (search: Record<string, unknown>): ProfileListsSearch => ({
     page: Math.max(1, Math.floor(Number(search.page ?? 1)) || 1),
@@ -24,7 +24,7 @@ export const Route = createFileRoute('/_app/profile_/$username/lists')({
     const profile = await context.queryClient.ensureQueryData(
       userProfileQueryOptions(username),
     )
-    // Use auth (not profile.isOwner) to pick the prefetch — profile.isOwner is
+    // Use auth (not profile.isOwner) to pick the prefetch: profile.isOwner is
     // stale during SSR when the cookie is unreachable. See TE-335.
     const user = await context.queryClient
       .ensureQueryData(authQueryOptions)

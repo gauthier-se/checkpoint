@@ -121,7 +121,7 @@ class JwtServiceImplTest {
         @Test
         @DisplayName("Should reject expired token")
         void shouldRejectExpiredToken() {
-            // Given — create a service with 0ms expiration
+            // Given: create a service with 0ms expiration
             JwtServiceImpl expiredJwtService = new JwtServiceImpl(SECRET_KEY, 0L);
             String token = expiredJwtService.generateToken(userDetails);
 
@@ -133,7 +133,7 @@ class JwtServiceImplTest {
         @Test
         @DisplayName("Should reject token with invalid signature")
         void shouldRejectTokenWithInvalidSignature() {
-            // Given — generate token with a different key
+            // Given: generate token with a different key
             String otherKey = Base64.getEncoder().encodeToString(
                     "another-secret-key-that-is-long-enough-for-hmac-sha-256-bits".getBytes());
             SecretKey key = Keys.hmacShaKeyFor(java.util.Base64.getDecoder().decode(otherKey));

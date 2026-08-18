@@ -50,7 +50,7 @@ export interface AdminUserDetail {
 
 /**
  * Body of `PUT /admin/users/{id}` (`AdminUserEditDto`). The endpoint only
- * supports clearing moderatable profile fields and forcing an account private —
+ * supports clearing moderatable profile fields and forcing an account private:
  * it cannot change a username, an email or a role.
  */
 export interface AdminUserEdit {
@@ -89,7 +89,7 @@ export interface AdminReportDetail {
   reporterUsername: string | null
   reason: string | null
   type: AdminReportType
-  /** Id of the reported review or comment — the handle for removing it. */
+  /** Id of the reported review or comment: the handle for removing it. */
   targetId: string | null
   targetAuthorUsername: string | null
   targetFullContent: string | null
@@ -150,7 +150,7 @@ export interface ExternalGame {
 
 export type ImportJobState = 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED'
 
-/** `ImportJobStatusDto` — returned when starting a bulk import and when polling. */
+/** `ImportJobStatusDto`: returned when starting a bulk import and when polling. */
 export interface ImportJobStatus {
   jobId: string
   type: string
@@ -196,13 +196,13 @@ export interface AdminCatalogSearchParams {
 
 export type AdminNewsSource = 'MANUAL' | 'STEAM' | 'RSS'
 
-/** Sources that can actually be imported — the API rejects MANUAL. */
+/** Sources that can actually be imported: the API rejects MANUAL. */
 export const IMPORTABLE_NEWS_SOURCES = ['STEAM', 'RSS'] as const
 export type ImportableNewsSource = (typeof IMPORTABLE_NEWS_SOURCES)[number]
 
 /**
  * `NewsResponseDto`. The record is serialised with `@JsonInclude(NON_NULL)`, so
- * every nullable field is **absent** rather than null — most importantly
+ * every nullable field is **absent** rather than null: most importantly
  * `publishedAt`, whose absence is what makes an article a draft.
  */
 export interface AdminNews {
@@ -223,7 +223,7 @@ export interface AdminNews {
 
 /**
  * Body of `POST /admin/news` and `PUT /admin/news/{newsId}` (`NewsRequestDto`).
- * The endpoint takes these three fields and nothing else — there is no way to
+ * The endpoint takes these three fields and nothing else: there is no way to
  * set the source, the publication date or a game association from the editor.
  */
 export interface AdminNewsPayload {
@@ -251,7 +251,7 @@ export interface AdminTopReviewer {
 
 /**
  * `GET /admin/analytics` (`AdminAnalyticsDto`). Five running totals plus two
- * top-five rankings — there is no time series in the payload, so nothing here
+ * top-five rankings: there is no time series in the payload, so nothing here
  * is plotted over time.
  */
 export interface AdminAnalytics {

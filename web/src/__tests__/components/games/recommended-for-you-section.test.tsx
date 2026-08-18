@@ -27,7 +27,7 @@ vi.mock('@tanstack/react-router', () => ({
   },
 }))
 
-// GameCardHoverActions short-circuits when there is no user — keep tests focused
+// GameCardHoverActions short-circuits when there is no user: keep tests focused
 // on the section / card rendering itself.
 vi.mock('@/hooks/use-auth', () => ({
   useAuth: () => ({ user: null, isLoading: false }),

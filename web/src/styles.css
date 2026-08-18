@@ -38,7 +38,7 @@ code {
   --border: oklch(0.3537 0.0319 264.0401);
   --input: oklch(0.3071 0.0264 264.0713);
   --ring: oklch(0.4365 0.2008 286.1087);
-  /* Rainbow button border palette — shades of the violet primary, varied in
+  /* Rainbow button border palette: shades of the violet primary, varied in
      lightness so the animated border stays visible over the solid fill. */
   --color-1: hsl(258 90% 66%);
   --color-2: hsl(265 89% 80%);

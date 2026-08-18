@@ -114,7 +114,7 @@ class RateControllerTest {
     @WithMockUser(username = "testuser")
     @DisplayName("PUT /api/v1/me/games/{videoGameId}/rate should accept half-star scores (1-10)")
     void rateGame_shouldAcceptHalfStarScore() throws Exception {
-        // Given — score 7 represents 3.5★
+        // Given: score 7 represents 3.5★
         RateRequestDto request = new RateRequestDto(7);
         RateResponseDto halfStarResponse = new RateResponseDto(
                 UUID.randomUUID(),

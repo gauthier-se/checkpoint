@@ -11,7 +11,7 @@ import { seo } from '@/lib/seo'
 
 export const Route = createFileRoute('/_app/_protected/settings/profile')({
   head: () => ({
-    meta: seo({ title: 'Profile settings — Checkpoint' }),
+    meta: seo({ title: 'Profile settings - Checkpoint' }),
   }),
   loader: async ({ context }) => {
     const user = await context.queryClient.ensureQueryData({

@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import com.checkpoint.api.entities.ReviewView;
 
 /**
- * Repository for {@link ReviewView} — distinct reviews opened by a user.
+ * Repository for {@link ReviewView}: distinct reviews opened by a user.
  */
 public interface ReviewViewRepository extends JpaRepository<ReviewView, ReviewView.PK> {
 

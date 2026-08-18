@@ -16,7 +16,7 @@ interface HomeData {
 export const Route = createFileRoute('/_app/')({
   head: () => ({
     meta: seo({
-      title: 'Checkpoint — Your gaming journal',
+      title: 'Checkpoint - Your gaming journal',
       description:
         'Track the games you play, rate and review them, build lists, and follow what your friends are playing.',
     }),

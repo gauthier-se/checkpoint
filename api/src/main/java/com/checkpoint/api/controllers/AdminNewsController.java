@@ -191,7 +191,7 @@ public class AdminNewsController {
      * admins to top up the news section without waiting for the scheduled task, and by
      * QA when validating the import path.
      *
-     * @param source the source to import from (STEAM or RSS — MANUAL is rejected)
+     * @param source the source to import from (STEAM or RSS: MANUAL is rejected)
      * @return a JSON object {@code {"imported": <count>}}
      */
     @PostMapping("/import/{source}")

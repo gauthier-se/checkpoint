@@ -11,7 +11,7 @@ interface IntegrationsSearch {
 
 export const Route = createFileRoute('/_app/_protected/settings/integrations')({
   head: () => ({
-    meta: seo({ title: 'Integrations — Checkpoint' }),
+    meta: seo({ title: 'Integrations - Checkpoint' }),
   }),
   validateSearch: (search: Record<string, unknown>): IntegrationsSearch => ({
     linked: typeof search.linked === 'string' ? search.linked : undefined,

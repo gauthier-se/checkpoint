@@ -30,7 +30,7 @@ function monthLabel(dateStr: string): string {
 
 /**
  * Groups journal (play log) entries by month and lays them out as a vertical
- * timeline — a month heading followed by its entries along a left rail. Shared
+ * timeline: a month heading followed by its entries along a left rail. Shared
  * by the owner journal tab (with delete actions) and the read-only profile one.
  */
 export function JournalTimeline({
@@ -40,7 +40,7 @@ export function JournalTimeline({
   const groups: Array<MonthGroup> = []
   for (const entry of entries) {
     const key = monthKey(entry.updatedAt)
-    // Entries arrive pre-sorted desc, so equal-month entries stay contiguous —
+    // Entries arrive pre-sorted desc, so equal-month entries stay contiguous:
     // the last group is always the right one to extend.
     const last = groups[groups.length - 1]
     if (groups.length > 0 && last.key === key) {

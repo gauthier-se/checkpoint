@@ -63,7 +63,7 @@ public class GameSimilarityServiceImpl implements GameSimilarityService {
         Map<UUID, Double> companyScores = presenceScores(seed.getCompanies().stream().map(Company::getId).toList());
 
         if (genreScores.isEmpty() && companyScores.isEmpty()) {
-            log.debug("Game {} has no genre/company tags — no similar games", gameId);
+            log.debug("Game {} has no genre/company tags: no similar games", gameId);
             return List.of();
         }
 

@@ -2,7 +2,7 @@
 
 {
   # ---------------------------------------------------------------------------
-  # Toolchain — versions mirror the CI workflows so that "works on my machine"
+  # Toolchain: versions mirror the CI workflows so that "works on my machine"
   # and "passes CI" mean the same thing.
   #
   #   api      targets Java 21, its CI job runs JDK 25
@@ -157,6 +157,6 @@
   processes.web.exec = "web-dev";
 
   enterShell = ''
-    echo "CheckPoint dev environment ready — run 'dev-help' for the available commands."
+    echo "CheckPoint dev environment ready: run 'dev-help' for the available commands."
   '';
 }

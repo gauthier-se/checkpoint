@@ -265,7 +265,7 @@ public class AdminGameServiceImpl implements AdminGameService {
 
         Map<String, Long> blocking = collectBlockingReferences(game);
         if (!blocking.isEmpty()) {
-            log.warn("Refusing to delete game {} — blocking references: {}", gameId, blocking);
+            log.warn("Refusing to delete game {}: blocking references: {}", gameId, blocking);
             throw new GameReferencedException(gameId, blocking);
         }
 

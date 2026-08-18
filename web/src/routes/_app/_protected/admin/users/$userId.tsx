@@ -12,7 +12,7 @@ import { isApiError } from '@/services/api'
 
 export const Route = createFileRoute('/_app/_protected/admin/users/$userId')({
   head: () => ({
-    meta: seo({ title: 'User — Admin — Checkpoint' }),
+    meta: seo({ title: 'User, Admin - Checkpoint' }),
   }),
   loader: ({ context, params }) => {
     void context.queryClient.prefetchQuery(adminUserQueryOptions(params.userId))

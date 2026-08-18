@@ -16,7 +16,7 @@ export interface NewsArticle {
   publishedAt: string
   createdAt: string
   updatedAt: string
-  // Null for imported news (STEAM/RSS) — attribution lives in feedName / externalUrl.
+  // Null for imported news (STEAM/RSS): attribution lives in feedName / externalUrl.
   author: NewsAuthor | null
   source: NewsSource
   externalUrl?: string

@@ -6,7 +6,7 @@
  * different title overrides the root's instead of appending a second one.
  *
  * @example
- * head: () => ({ meta: seo({ title: 'Games — Checkpoint' }) })
+ * head: () => ({ meta: seo({ title: 'Games - Checkpoint' }) })
  */
 export function seo({
   title,

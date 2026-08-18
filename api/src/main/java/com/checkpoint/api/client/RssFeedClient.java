@@ -16,7 +16,7 @@ public interface RssFeedClient {
      *
      * @param name a human-readable feed name (used for logging only)
      * @param url  the feed URL
-     * @return the entries in publication order. Empty if the fetch or parse fails —
+     * @return the entries in publication order. Empty if the fetch or parse fails:
      *         the caller decides how to react. Never returns {@code null}.
      */
     List<RssItem> fetch(String name, String url);

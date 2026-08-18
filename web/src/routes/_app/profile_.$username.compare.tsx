@@ -15,7 +15,7 @@ type CompareSearch = {
 export const Route = createFileRoute('/_app/profile_/$username/compare')({
   component: CompareProfilePage,
   head: ({ params }) => ({
-    meta: seo({ title: `Compare with ${params.username} — Checkpoint` }),
+    meta: seo({ title: `Compare with ${params.username} - Checkpoint` }),
   }),
   validateSearch: (search: Record<string, unknown>): CompareSearch => ({
     page: Math.max(1, Math.floor(Number(search.page ?? 1)) || 1),
@@ -61,7 +61,7 @@ function CompareProfilePage() {
 
       {data && (
         <div className="grid gap-8 lg:grid-cols-[minmax(0,22rem)_1fr] lg:items-start">
-          {/* Summary card — sticky sidebar on desktop, stacked on mobile */}
+          {/* Summary card: sticky sidebar on desktop, stacked on mobile */}
           <aside className="lg:sticky lg:top-6">
             <div className="flex flex-col items-center gap-4 rounded-xl border p-6 text-center">
               <AffinityGauge score={data.affinityScore} />

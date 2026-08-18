@@ -24,7 +24,7 @@ public interface ImportProgressListener {
      */
     void failed(String label);
 
-    /** A listener that ignores every callback — used by the synchronous import path. */
+    /** A listener that ignores every callback: used by the synchronous import path. */
     ImportProgressListener NOOP = new ImportProgressListener() {
         @Override
         public void processed() {

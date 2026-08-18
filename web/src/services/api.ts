@@ -13,7 +13,7 @@ export class ApiError extends Error {
   readonly code: string
   /**
    * Parsed error body, for endpoints that answer with structured detail beyond
-   * a message — e.g. the `blockingReferences` map returned when a game deletion
+   * a message: e.g. the `blockingReferences` map returned when a game deletion
    * is refused. Undefined when the response carried no JSON body.
    */
   readonly details?: Record<string, unknown>
@@ -62,7 +62,7 @@ interface ServerErrorResponse {
  * auth cookies scoped to the web origin, which is required for SSR auth.
  *
  * Server-side: uses `API_INTERNAL_URL` for direct API calls (Node fetch
- * requires absolute URLs) and forwards the incoming SSR request's auth cookie —
+ * requires absolute URLs) and forwards the incoming SSR request's auth cookie:
  * Node's fetch has no browser cookie jar, so `credentials: 'include'` alone
  * sends nothing and any protected endpoint hit from a loader would 401.
  *

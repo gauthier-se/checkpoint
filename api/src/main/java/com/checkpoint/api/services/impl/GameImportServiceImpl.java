@@ -23,7 +23,7 @@ import com.checkpoint.api.services.ImportProgressListener;
  * Orchestrates imports from IGDB: it fetches data and time-to-beat statistics,
  * then delegates the per-game write to {@link GamePersistenceService} (which runs
  * each game in its own transaction). This class is intentionally NOT
- * {@code @Transactional} — a bulk import of thousands of games must not run in a
+ * {@code @Transactional}: a bulk import of thousands of games must not run in a
  * single giant transaction.
  */
 @Service

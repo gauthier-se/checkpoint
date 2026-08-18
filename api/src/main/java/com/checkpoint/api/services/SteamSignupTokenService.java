@@ -13,7 +13,7 @@ import java.util.Optional;
  * {@code /api/v1/auth/register/steam} to create the account.</p>
  *
  * <p>The token must carry the verified SteamID plus any Steam profile fields that were
- * available at issuance time. Email is deliberately <em>not</em> part of the token —
+ * available at issuance time. Email is deliberately <em>not</em> part of the token:
  * the user supplies it on the signup form, which prevents an attacker from squatting
  * an arbitrary email using a Steam identity they control.</p>
  */
@@ -35,7 +35,7 @@ public interface SteamSignupTokenService {
      *
      * <p>Returns {@link Optional#empty()} for any failure: null/blank token, malformed JWT,
      * bad signature, expired token, or wrong token type. Callers should treat all empty
-     * results identically — distinguishing the cause leaks information to an attacker.</p>
+     * results identically: distinguishing the cause leaks information to an attacker.</p>
      *
      * @param token the candidate JWT from the {@code steam_token} query parameter
      * @return parsed claims on success, empty otherwise

@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
  * perform on its own (notably dropping a NOT NULL constraint on an existing
  * column).
  *
- * <p>Each statement here must be idempotent — it runs on every application
+ * <p>Each statement here must be idempotent: it runs on every application
  * startup. Add new patches by appending statements; never delete past ones.</p>
  */
 @Component
@@ -60,7 +60,7 @@ public class SchemaPatch implements CommandLineRunner {
             jdbcTemplate.execute("ALTER TABLE news ALTER COLUMN user_id DROP NOT NULL");
             log.info("SchemaPatch: ensured news.user_id is nullable");
         } catch (Exception e) {
-            // Table may not exist yet on a fresh install — Hibernate creates it
+            // Table may not exist yet on a fresh install: Hibernate creates it
             // after the runner fires. The next startup will pick it up.
             log.debug("SchemaPatch: skipping news.user_id NOT NULL drop ({})", e.getMessage());
         }

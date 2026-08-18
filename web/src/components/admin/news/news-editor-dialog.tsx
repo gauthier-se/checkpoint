@@ -44,7 +44,7 @@ interface NewsEditorDialogProps {
 
 /**
  * Create/edit dialog, mirroring the desktop `news-editor-dialog`. The endpoint
- * accepts a title, a description and a picture URL — there is no way to set the
+ * accepts a title, a description and a picture URL: there is no way to set the
  * source, the publication date or a game association here, so none is offered.
  */
 export function NewsEditorDialog({ article, trigger }: NewsEditorDialogProps) {
@@ -98,7 +98,7 @@ export function NewsEditorDialog({ article, trigger }: NewsEditorDialogProps) {
             <DialogDescription>
               {article
                 ? 'Changes go live immediately for a published article.'
-                : 'The article is saved as a draft — publish it when it is ready.'}
+                : 'The article is saved as a draft: publish it when it is ready.'}
             </DialogDescription>
           </DialogHeader>
 

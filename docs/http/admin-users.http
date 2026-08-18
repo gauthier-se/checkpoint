@@ -1,4 +1,4 @@
-### CheckPoint — Admin Users endpoints
+### CheckPoint: Admin Users endpoints
 ### Requires an ADMIN account. Obtain a JWT via the login request below,
 ### then paste it into the @token variable.
 

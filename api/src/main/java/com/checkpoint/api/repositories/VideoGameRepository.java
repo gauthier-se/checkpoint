@@ -117,7 +117,7 @@ public interface VideoGameRepository extends JpaRepository<VideoGame, UUID>, Vid
     Optional<VideoGame> findByIdWithRelationships(@Param("id") UUID id);
 
     /**
-     * Batched counterpart of {@link #findByIdWithRelationships} — loads every game whose
+     * Batched counterpart of {@link #findByIdWithRelationships}: loads every game whose
      * ID is in the given collection and eagerly fetches genres, platforms, and companies
      * in a single round-trip. Used by the recommendation service to score either the
      * user's library or the candidate pool without N+1 access on tag sets.
@@ -137,11 +137,11 @@ public interface VideoGameRepository extends JpaRepository<VideoGame, UUID>, Vid
     /**
      * Pre-filters the catalog to games sharing at least one genre or company with the
      * user's taste profile, excluding any DLC and any game the user already has a
-     * relationship with — library ({@code UserGame}), wishlist ({@code Wish}),
+     * relationship with: library ({@code UserGame}), wishlist ({@code Wish}),
      * favorites ({@code Favorite}), backlog ({@code Backlog}), or a top-level game-like
      * ({@code Like}). Returns only IDs so the caller can apply an upper bound via
      * {@link org.springframework.data.domain.Pageable} without hitting Hibernate's
-     * JOIN FETCH + first/max in-memory pagination caveat — load the entities in a
+     * JOIN FETCH + first/max in-memory pagination caveat: load the entities in a
      * second pass through {@link #findAllByIdInWithRelationships}.
      *
      * <p>Used by the v1 recommendation service to keep the candidate pool bounded
@@ -319,7 +319,7 @@ public interface VideoGameRepository extends JpaRepository<VideoGame, UUID>, Vid
      *
      * @param friendIds the IDs of users in the follow graph
      * @param since     the start of the trending window
-     * @param pageable  pagination parameters (sorting is ignored — server-side score order)
+     * @param pageable  pagination parameters (sorting is ignored: server-side score order)
      * @return a page of trending game data as Object arrays
      *         (id, title, coverUrl, releaseDate, averageRating, ratingCount)
      */

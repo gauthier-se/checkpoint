@@ -48,7 +48,7 @@ public interface LikeService {
 
     /**
      * Toggles a like on a video game. If the user already likes the game, the like is removed.
-     * Otherwise, a new like is created. A "like" marks a game the user loves — distinct from
+     * Otherwise, a new like is created. A "like" marks a game the user loves: distinct from
      * the wishlist, which tracks games the user wants to buy.
      *
      * @param userEmail   the authenticated user's email
@@ -60,7 +60,7 @@ public interface LikeService {
 
     /**
      * Returns the games the authenticated user has liked (top-level game likes), paginated.
-     * A "like" marks a game the user loves — distinct from the wishlist (games to buy).
+     * A "like" marks a game the user loves: distinct from the wishlist (games to buy).
      *
      * @param userEmail the authenticated user's email
      * @param pageable  pagination and sort parameters

@@ -45,7 +45,7 @@ export function FriendWantToPlaySection({
                 rating={null}
                 hasReview={false}
                 href={`/profile/${f.pseudo}/games?tab=${tab}`}
-                tooltip={`${f.pseudo} — ${
+                tooltip={`${f.pseudo} - ${
                   f.collectionType === 'WISHLIST' ? 'Wishlist' : 'Backlog'
                 }`}
               />

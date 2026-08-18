@@ -46,8 +46,8 @@ export const Route = createFileRoute('/_app/lists/$listId')({
   head: ({ loaderData }) => ({
     meta: seo({
       title: loaderData
-        ? `${loaderData.title} — Checkpoint`
-        : 'List — Checkpoint',
+        ? `${loaderData.title} - Checkpoint`
+        : 'List - Checkpoint',
     }),
   }),
 })

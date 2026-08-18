@@ -99,7 +99,7 @@ public class BadgeAwardingServiceImpl implements BadgeAwardingService {
 
         Badge badge = badgeRepository.findByCode(code.name()).orElse(null);
         if (badge == null) {
-            log.warn("Badge code {} not found in DB — skipping award for user {}. Seed the badge catalog.",
+            log.warn("Badge code {} not found in DB: skipping award for user {}. Seed the badge catalog.",
                     code, userId);
             return;
         }

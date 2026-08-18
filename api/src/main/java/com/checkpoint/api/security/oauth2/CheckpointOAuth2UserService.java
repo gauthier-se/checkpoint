@@ -28,7 +28,7 @@ import com.checkpoint.api.entities.User;
  *
  * <p>Twitch's Helix {@code /users} endpoint requires a {@code Client-Id} header
  * alongside the bearer token and wraps the user object inside a {@code data}
- * array, so the stock {@link DefaultOAuth2UserService} cannot be used as-is —
+ * array, so the stock {@link DefaultOAuth2UserService} cannot be used as-is:
  * we issue the request manually instead.</p>
  *
  * <p>The returned principal carries the local user's email as its

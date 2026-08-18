@@ -37,8 +37,8 @@ import com.rometools.rome.io.SyndFeedInput;
  *
  * <p>Each fetch opens the URL with a 10s connect/read timeout, parses the body with
  * ROME's {@link SyndFeedInput}, strips all HTML from the description (we store plain
- * text — eliminates stored-XSS risk), and tries several sources to recover a usable
- * thumbnail URL. Any failure returns an empty list — callers decide how to react.</p>
+ * text: eliminates stored-XSS risk), and tries several sources to recover a usable
+ * thumbnail URL. Any failure returns an empty list: callers decide how to react.</p>
  */
 @Component
 public class RssFeedClientImpl implements RssFeedClient {
@@ -117,7 +117,7 @@ public class RssFeedClientImpl implements RssFeedClient {
     /**
      * Strips every HTML tag (safelist=none) and returns the decoded text content.
      * Two-step pipeline because {@code Jsoup.clean} removes tags but leaves entities
-     * un-decoded — {@code parse().text()} then collapses whitespace and decodes them.
+     * un-decoded: {@code parse().text()} then collapses whitespace and decodes them.
      */
     private String stripHtmlToPlainText(String html) {
         if (html == null) {
@@ -211,7 +211,7 @@ public class RssFeedClientImpl implements RssFeedClient {
     }
 
     /**
-     * Allows only absolute http(s) URLs through — blocks {@code data:},
+     * Allows only absolute http(s) URLs through: blocks {@code data:},
      * {@code javascript:}, and relative paths that wouldn't render anyway.
      */
     private String acceptHttpUrl(String url) {

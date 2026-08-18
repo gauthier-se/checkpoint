@@ -31,7 +31,7 @@ public interface UserGameRepository extends JpaRepository<UserGame, UUID> {
      * with the video game eagerly fetched and the user's rating left-joined.
      * Each row is a tuple {@code [UserGame, Integer rateScore]} where the rate score is
      * {@code null} when the user hasn't rated the game. Sorting is delegated to the
-     * supplied {@link Pageable} (entity fields only — to sort by rating, use
+     * supplied {@link Pageable} (entity fields only: to sort by rating, use
      * {@link #findLibraryProjectionSortedByRating}).
      */
     @Query("""
@@ -48,7 +48,7 @@ public interface UserGameRepository extends JpaRepository<UserGame, UUID> {
     /**
      * Same projection as {@link #findLibraryProjection} but forces the row order to
      * the user's rating descending (unrated games last). The supplied {@link Pageable}'s
-     * sort is ignored — only page number and size are honoured.
+     * sort is ignored: only page number and size are honoured.
      */
     @Query(value = """
             SELECT ug, r.score FROM UserGame ug

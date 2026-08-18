@@ -7,7 +7,7 @@ interface AdminStatTileProps {
   /** Secondary line under the value, e.g. a breakdown. */
   detail?: ReactNode
   /**
-   * Renders a meter under the value for a single ratio against a limit — the
+   * Renders a meter under the value for a single ratio against a limit: the
    * honest form for a two-part split, where a pie would be an anti-pattern.
    */
   ratio?: { value: number; of: number; label: string }

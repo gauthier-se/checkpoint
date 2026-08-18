@@ -93,7 +93,7 @@ public class GameSocialServiceImpl implements GameSocialService {
             scoreByUserId.put(rate.getUser().getId(), rate.getScore());
         }
 
-        // Friends who only rated (no play) deserve an entry too — collect them.
+        // Friends who only rated (no play) deserve an entry too: collect them.
         Map<UUID, FriendActivityEntryDto> entriesByUserId = new HashMap<>();
         for (UserGamePlay play : latestPlays) {
             User u = play.getUser();
@@ -176,7 +176,7 @@ public class GameSocialServiceImpl implements GameSocialService {
         List<Wish> wishes = wishRepository.findByVideoGameIdAndUserIdIn(videoGameId, followingIds);
         List<Backlog> backlogs = backlogRepository.findByVideoGameIdAndUserIdIn(videoGameId, followingIds);
 
-        // A friend can theoretically have the game in both — prefer WISHLIST in that case
+        // A friend can theoretically have the game in both: prefer WISHLIST in that case
         // (it's a stronger "want" signal than a backlog entry).
         Map<UUID, FriendWishlistEntryDto> entriesByUserId = new HashMap<>();
         for (Wish wish : wishes) {
@@ -217,7 +217,7 @@ public class GameSocialServiceImpl implements GameSocialService {
         }
         User viewer = userRepository.findByEmail(viewerEmail).orElse(null);
         if (viewer == null) {
-            log.debug("Unknown viewer email '{}' — returning empty friend payload", viewerEmail);
+            log.debug("Unknown viewer email '{}': returning empty friend payload", viewerEmail);
             return Collections.emptyList();
         }
         Set<User> following = viewer.getFollowing();

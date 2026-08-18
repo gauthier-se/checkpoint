@@ -16,7 +16,7 @@ export const Route = createFileRoute('/_app/news/$newsId')({
   pendingComponent: NewsDetailSkeleton,
   pendingMs: 0,
   head: () => ({
-    meta: seo({ title: 'News — Checkpoint' }),
+    meta: seo({ title: 'News - Checkpoint' }),
   }),
   loader: ({ params: { newsId }, context }) => {
     void context.queryClient.prefetchQuery(newsDetailQueryOptions(newsId))

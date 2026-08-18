@@ -22,7 +22,7 @@ docs {
   are resolved to IGDB game IDs via the IGDB `/external_games` endpoint
   (`external_game_source = 1` for Steam). Resolved games that are not yet in
   the local catalog are imported on the fly via the existing
-  `GameImportService`. Games already in the user's library are skipped — their
+  `GameImportService`. Games already in the user's library are skipped: their
   status is preserved.
 
   The sync is **synchronous**: the request blocks until everything is matched,
@@ -31,7 +31,7 @@ docs {
   batch of 500 appIds.
 
   Requires a linked Steam account (see `POST /api/v1/me/steam/link` or the
-  OpenID flow) **and** a publicly visible Steam profile — Steam's
+  OpenID flow) **and** a publicly visible Steam profile: Steam's
   `GetOwnedGames` endpoint returns no data when `communityvisibilitystate`
   is anything other than `3` (public).
 

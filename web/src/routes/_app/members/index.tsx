@@ -16,7 +16,7 @@ import { parseOptionalString } from '@/lib/search-params'
 
 export const Route = createFileRoute('/_app/members/')({
   head: () => ({
-    meta: seo({ title: 'Members — Checkpoint' }),
+    meta: seo({ title: 'Members - Checkpoint' }),
   }),
   component: RouteComponent,
   beforeLoad: ({ search }) => {

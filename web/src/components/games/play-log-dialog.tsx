@@ -36,7 +36,7 @@ export function PlayLogDialog({
             {isEdit ? 'Edit Play Session' : 'Log Play Session'}
           </DialogTitle>
           <DialogDescription className="mt-0 pt-0.5">
-            —{' '}
+            -{' '}
             {isEdit
               ? `Update your play session.`
               : `Record your playtime, dates, and thoughts.`}

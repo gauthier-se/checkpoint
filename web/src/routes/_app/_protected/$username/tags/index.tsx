@@ -48,7 +48,7 @@ const tagNameSchema = z.object({
 
 export const Route = createFileRoute('/_app/_protected/$username/tags/')({
   head: ({ params }) => ({
-    meta: seo({ title: `${params.username}'s tags — Checkpoint` }),
+    meta: seo({ title: `${params.username}'s tags - Checkpoint` }),
   }),
   component: TagManagementPage,
   loader: async ({ context }) => {

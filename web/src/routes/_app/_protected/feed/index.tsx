@@ -22,7 +22,7 @@ const PAGE_SIZE = 20
 
 export const Route = createFileRoute('/_app/_protected/feed/')({
   head: () => ({
-    meta: seo({ title: 'Feed — Checkpoint' }),
+    meta: seo({ title: 'Feed - Checkpoint' }),
   }),
   validateSearch: (search: Record<string, unknown>): FeedSearchParams => {
     const rawType = search.type
@@ -38,7 +38,7 @@ export const Route = createFileRoute('/_app/_protected/feed/')({
   loader: async ({ deps, context }) => {
     // Best-effort SSR prefetch only. The feed is a protected endpoint; on a hard
     // refresh the server-side request may not be authenticated, so swallow the
-    // error rather than 500 — the component's useQuery refetches on the client
+    // error rather than 500: the component's useQuery refetches on the client
     // (where the session cookie is always present).
     try {
       await context.queryClient.ensureQueryData(

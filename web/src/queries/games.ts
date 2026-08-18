@@ -39,7 +39,7 @@ export function userRatingQueryOptions(gameId: string) {
         const res = await apiFetch(`/api/me/games/${gameId}/rate`)
         return (await res.json()) as RateResponseDto
       } catch (e) {
-        // 404 means the user hasn't rated this game yet — not an error.
+        // 404 means the user hasn't rated this game yet: not an error.
         if (isApiError(e) && e.status === 404) return null
         throw e
       }
@@ -123,7 +123,7 @@ export async function updateBacklogPriority(
 }
 
 /**
- * Toggles a "like" on a game. A like marks a game the user loves — distinct from
+ * Toggles a "like" on a game. A like marks a game the user loves: distinct from
  * the wishlist (games the user wants to buy). The endpoint is a server-side toggle:
  * a single POST likes or unlikes depending on the current state.
  */

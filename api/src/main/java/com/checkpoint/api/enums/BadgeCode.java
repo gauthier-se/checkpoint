@@ -6,7 +6,7 @@ package com.checkpoint.api.enums;
  * <p>Each constant carries a default display name and description used by the
  * database seeder when creating the corresponding {@code badges} row. The enum
  * name (e.g. {@code FIRST_REVIEW}) is the immutable contract between in-code
- * logic and the persisted {@code Badge.code} column — admins may later edit
+ * logic and the persisted {@code Badge.code} column: admins may later edit
  * the display name/description in the DB without breaking awarding.
  *
  * <p>{@code hidden} marks easter-egg badges: until earned, the UI shows a
@@ -107,7 +107,7 @@ public enum BadgeCode {
             "Lifer",
             "Awarded for staying active 365 days since registration."),
 
-    // Hidden easter-egg badges — discovered, not chased.
+    // Hidden easter-egg badges: discovered, not chased.
     // The display name is part of the joke; the description is intentionally
     // vague so it doesn't spoil the trigger once unlocked.
     NIGHT_OWL(
@@ -143,7 +143,7 @@ public enum BadgeCode {
             "Removed a game from your library.",
             true),
     MISSION_FAILED(
-            "Mission Failed — We'll Get 'Em Next Time",
+            "Mission Failed: We'll Get 'Em Next Time",
             "Deleted a review right after posting it.",
             true),
     HEY_LISTEN(

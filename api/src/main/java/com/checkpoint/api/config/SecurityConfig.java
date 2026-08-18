@@ -40,9 +40,9 @@ import com.checkpoint.api.security.oauth2.OAuth2AuthenticationSuccessHandler;
  *
  * Public endpoints accessible without credentials:
  * <ul>
- *   <li>{@code /api/v1/auth/**} — authentication endpoints</li>
- *   <li>{@code GET /api/v1/games/**} — public game catalog</li>
- *   <li>{@code /error} — Spring Boot error endpoint</li>
+ *   <li>{@code /api/v1/auth/**}: authentication endpoints</li>
+ *   <li>{@code GET /api/v1/games/**}: public game catalog</li>
+ *   <li>{@code /error}: Spring Boot error endpoint</li>
  * </ul>
  */
 @Configuration
@@ -72,7 +72,7 @@ public class SecurityConfig {
     }
 
     /**
-     * Filter Chain 0 — WebSocket (HTTP upgrade handshake).
+     * Filter Chain 0: WebSocket (HTTP upgrade handshake).
      * Matches all requests under {@code /ws/**}.
      * Permits all HTTP requests; actual authentication is handled at the
      * STOMP protocol level by {@link com.checkpoint.api.security.WebSocketAuthInterceptor}.
@@ -92,7 +92,7 @@ public class SecurityConfig {
     }
 
     /**
-     * Filter Chain 1 — API (stateless JWT).
+     * Filter Chain 1: API (stateless JWT).
      * Matches all requests under {@code /api/v1/**}.
      * JWT is extracted from either the {@code Authorization: Bearer} header (Desktop)
      * or the {@code checkpoint_token} HttpOnly cookie (Web).

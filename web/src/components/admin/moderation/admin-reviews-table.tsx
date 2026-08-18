@@ -27,14 +27,14 @@ const baseColumns: Array<AdminDataTableColumn<ModeratedReviewRow>> = [
     id: 'author',
     header: 'Author',
     className: 'w-36',
-    cell: (review) => review.authorUsername ?? '—',
+    cell: (review) => review.authorUsername ?? '-',
   },
   {
     id: 'game',
     header: 'Game',
     className: 'w-44',
     cell: (review) => (
-      <span className="text-muted-foreground">{review.gameTitle ?? '—'}</span>
+      <span className="text-muted-foreground">{review.gameTitle ?? '-'}</span>
     ),
   },
   {

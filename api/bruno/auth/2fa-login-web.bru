@@ -23,7 +23,7 @@ docs {
 
   Called after `POST /api/v1/auth/login` returns `{ "twoFactorRequired": true }`.
   The intermediate token is automatically sent via the `checkpoint_2fa` HttpOnly cookie
-  (set by the login endpoint) — no manual token handling needed.
+  (set by the login endpoint): no manual token handling needed.
 
   On success, the final `checkpoint_token` and `checkpoint_refresh` cookies are set.
 

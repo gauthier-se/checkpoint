@@ -13,7 +13,7 @@ import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
  * Nightly sweep that awards the SNAKE_BACKLOG easter-egg badge to every user
  * who has at least one backlog entry that has been sitting untouched for a
  * full year. The check has to be scheduled because no domain event fires "365
- * days later" — only time passing makes the user eligible.
+ * days later": only time passing makes the user eligible.
  *
  * <p>Idempotent thanks to {@code awardIfEligible}: re-running this task does
  * not double-award.</p>

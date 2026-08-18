@@ -3,7 +3,7 @@ package com.checkpoint.api.events;
 import java.util.UUID;
 
 /**
- * Event published when a user marks a game as PLAYING — either by adding a new
+ * Event published when a user marks a game as PLAYING: either by adding a new
  * library entry with that status, or by transitioning an existing entry to
  * PLAYING. Powers the {@code LEEROY} easter-egg badge (jumping into a new game
  * while the backlog is huge).

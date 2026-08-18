@@ -8,8 +8,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *
  * <p>Success codes returned by Steam:
  * <ul>
- *   <li>{@code 1} — vanity resolved, {@code steamid} is populated</li>
- *   <li>{@code 42} — no match for the supplied vanity</li>
+ *   <li>{@code 1}: vanity resolved, {@code steamid} is populated</li>
+ *   <li>{@code 42}: no match for the supplied vanity</li>
  * </ul>
  *
  * @param response the inner response payload

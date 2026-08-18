@@ -48,7 +48,7 @@ function parseMinGames(value: unknown): number | undefined {
 
 export const Route = createFileRoute('/_app/lists/browse')({
   head: () => ({
-    meta: seo({ title: 'Browse lists — Checkpoint' }),
+    meta: seo({ title: 'Browse lists - Checkpoint' }),
   }),
   component: RouteComponent,
   pendingComponent: BrowseListsSkeleton,

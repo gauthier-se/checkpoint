@@ -1,4 +1,4 @@
-<h1 align="center">CheckPoint — Web</h1>
+<h1 align="center">CheckPoint: Web</h1>
 
 <p align="center">
   <strong>The player-facing web application for CheckPoint</strong>
@@ -46,16 +46,16 @@ pnpm dev
 
 ## Available scripts
 
-| Script          | Description                                                 |
-| --------------- | ----------------------------------------------------------- |
-| `pnpm dev`      | Start the Vite dev server on port 3000                      |
-| `pnpm build`    | Build for production                                        |
-| `pnpm serve`    | Preview the production build                                |
-| `pnpm start`    | Run the built SSR server (`.output/server/index.mjs`)       |
-| `pnpm test`     | Run the Vitest test suite                                   |
-| `pnpm coverage` | Run tests with coverage                                     |
-| `pnpm check`    | Auto-fix formatting (prettier) and lint (eslint)            |
-| `pnpm check:ci` | Verify formatting and lint without writing — **runs in CI** |
+| Script          | Description                                                |
+| --------------- | ---------------------------------------------------------- |
+| `pnpm dev`      | Start the Vite dev server on port 3000                     |
+| `pnpm build`    | Build for production                                       |
+| `pnpm serve`    | Preview the production build                               |
+| `pnpm start`    | Run the built SSR server (`.output/server/index.mjs`)      |
+| `pnpm test`     | Run the Vitest test suite                                  |
+| `pnpm coverage` | Run tests with coverage                                    |
+| `pnpm check`    | Auto-fix formatting (prettier) and lint (eslint)           |
+| `pnpm check:ci` | Verify formatting and lint without writing: **runs in CI** |
 
 > CI runs `pnpm check:ci` and `pnpm test`. Run them locally before opening a PR.
 > Eslint uses [`@tanstack/eslint-config`](https://tanstack.com/config/latest/docs/eslint).
@@ -86,6 +86,6 @@ pnpx shadcn@latest add button
 
 ## Related documentation
 
-- [Root README](../README.md) — project overview and full setup
-- [Contributing guide](../CONTRIBUTING.md) — conventions and workflow
-- [API README](../api/README.md) — backend the web app consumes
+- [Root README](../README.md): project overview and full setup
+- [Contributing guide](../CONTRIBUTING.md): conventions and workflow
+- [API README](../api/README.md): backend the web app consumes

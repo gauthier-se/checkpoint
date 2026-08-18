@@ -28,7 +28,7 @@ function parseStatus(value: unknown): AdminUserStatus {
 
 export const Route = createFileRoute('/_app/_protected/admin/users/')({
   head: () => ({
-    meta: seo({ title: 'Users — Admin — Checkpoint' }),
+    meta: seo({ title: 'Users, Admin - Checkpoint' }),
   }),
   validateSearch: (
     search: Record<string, unknown>,

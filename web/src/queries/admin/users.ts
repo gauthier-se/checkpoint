@@ -8,8 +8,8 @@ const USERS_PATH = '/api/admin/users'
 export const adminUsersQueryKey = [ADMIN_QUERY_KEY, 'users'] as const
 
 /**
- * The endpoint returns the full user list in one payload — unlike the other
- * admin listings it is not paginated — so searching and paging happen on the
+ * The endpoint returns the full user list in one payload: unlike the other
+ * admin listings it is not paginated, so searching and paging happen on the
  * client (see `lib/admin-users.ts`).
  */
 export function adminUsersQueryOptions() {

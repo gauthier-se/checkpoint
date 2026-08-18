@@ -73,7 +73,7 @@ export function BulkImportPanel() {
         <CardTitle className="text-base">Bulk import</CardTitle>
         <CardDescription>
           Pulls many titles from IGDB in the background. Only one import runs at
-          a time — the API rejects a second one while the first is going.
+          a time: the API rejects a second one while the first is going.
         </CardDescription>
       </CardHeader>
 

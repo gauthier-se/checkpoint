@@ -155,7 +155,7 @@ export function AdminGameForm({
         <CardHeader>
           <CardTitle className="text-base">Media</CardTitle>
           <CardDescription>
-            Images are referenced by URL — the API stores links, not uploads.
+            Images are referenced by URL: the API stores links, not uploads.
           </CardDescription>
         </CardHeader>
         <CardContent>

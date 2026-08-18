@@ -80,7 +80,7 @@ public class GamificationListener {
 
     /**
      * Handles a {@link UserFollowedEvent} by awarding XP to the follower.
-     * Dedup key: {@code (followerId, USER_FOLLOWED, followedUserId)} — unfollow
+     * Dedup key: {@code (followerId, USER_FOLLOWED, followedUserId)}, unfollow
      * + refollow does not grant a second time.
      */
     @Async
@@ -147,7 +147,7 @@ public class GamificationListener {
 
     /**
      * Handles a {@link GameRatedEvent} by awarding XP to the rater.
-     * Dedup key: {@code (userId, GAME_RATED, videoGameId)} — re-rating the same
+     * Dedup key: {@code (userId, GAME_RATED, videoGameId)}, re-rating the same
      * game never grants twice, even though the publisher already filters re-rates.
      */
     @Async
@@ -161,7 +161,7 @@ public class GamificationListener {
 
     /**
      * Handles a {@link CommentReplyEvent} by awarding XP to the replier.
-     * Dedup key: {@code (replierId, COMMENT_REPLY, parentCommentId)} — only the
+     * Dedup key: {@code (replierId, COMMENT_REPLY, parentCommentId)}, only the
      * first reply to a given parent earns XP.
      */
     @Async

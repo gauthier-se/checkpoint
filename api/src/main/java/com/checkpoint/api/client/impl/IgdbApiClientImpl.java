@@ -142,7 +142,7 @@ public class IgdbApiClientImpl implements IgdbApiClient {
 
     /**
      * Fetches the most well-known games from IGDB, ordered by popularity
-     * ({@code total_rating_count} descending — the number of ratings is a good
+     * ({@code total_rating_count} descending: the number of ratings is a good
      * proxy for how widely known a game is). Games below {@code minRatingCount}
      * are excluded so obscure titles never enter the catalogue.
      *

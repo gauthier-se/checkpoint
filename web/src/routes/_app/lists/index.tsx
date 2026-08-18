@@ -22,7 +22,7 @@ const TRENDING_CRITERIA = { page: 1, sort: 'recent' as const }
 
 export const Route = createFileRoute('/_app/lists/')({
   head: () => ({
-    meta: seo({ title: 'Lists — Checkpoint' }),
+    meta: seo({ title: 'Lists - Checkpoint' }),
   }),
   component: RouteComponent,
   pendingComponent: ListsIndexSkeleton,

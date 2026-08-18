@@ -40,7 +40,7 @@ export const Route = createFileRoute('/_app/games/$gameId')({
     // and causes the backend to see the request as anonymous. They will fetch
     // naturally on the client.
 
-    // Warm all caches in the background — none are awaited so navigation is
+    // Warm all caches in the background: none are awaited so navigation is
     // immediate and each section renders as its data arrives.
     void context.queryClient.prefetchQuery(gameDetailQueryOptions(gameId))
     void context.queryClient.prefetchQuery(
@@ -49,7 +49,7 @@ export const Route = createFileRoute('/_app/games/$gameId')({
     void context.queryClient.prefetchQuery(similarGamesQueryOptions(gameId))
   },
   head: () => ({
-    meta: seo({ title: 'Game — Checkpoint' }),
+    meta: seo({ title: 'Game - Checkpoint' }),
   }),
   errorComponent: ({ error, reset }) => {
     if (isApiError(error) && error.status === 404) {
@@ -99,7 +99,7 @@ function GameDetailContent({ gameId }: { gameId: string }) {
 
   return (
     <div className="relative isolate max-w-7xl mx-auto">
-      {/* Ambient artwork background — bound to the page container, strongly muted, fades on every edge */}
+      {/* Ambient artwork background: bound to the page container, strongly muted, fades on every edge */}
       {game.artworkUrl && (
         <div className="pointer-events-none absolute inset-x-0 -top-20 h-[28rem] -z-10 overflow-hidden">
           <img
@@ -109,9 +109,9 @@ function GameDetailContent({ gameId }: { gameId: string }) {
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-background/80" />
-          {/* Top fade — softens the edge behind the nav */}
+          {/* Top fade: softens the edge behind the nav */}
           <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-background to-transparent" />
-          {/* Bottom fade — finishes higher than before */}
+          {/* Bottom fade: finishes higher than before */}
           <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background to-transparent" />
           {/* Left fade */}
           <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-background to-transparent" />
@@ -171,7 +171,7 @@ function GameDetailContent({ gameId }: { gameId: string }) {
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-3xl p-0 overflow-hidden">
                   <DialogTitle className="sr-only">
-                    {game.title} — Trailer
+                    {game.title} - Trailer
                   </DialogTitle>
                   <div className="aspect-video w-full">
                     <iframe

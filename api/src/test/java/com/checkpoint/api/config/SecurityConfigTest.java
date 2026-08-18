@@ -173,7 +173,7 @@ class SecurityConfigTest {
 
             String token = jwtService.generateToken(Map.of(), userDetails);
 
-            // When / Then — assert authentication passes (not 401/403),
+            // When / Then: assert authentication passes (not 401/403),
             // regardless of downstream service availability
             mockMvc.perform(get("/api/v1/admin/external-games/search")
                             .param("query", "zelda")

@@ -95,7 +95,7 @@ describe('AdminReportsTable', () => {
 
     expect(screen.getByText('Content unavailable')).toBeInTheDocument()
     // Missing reporter and missing reason both render as a dash.
-    expect(screen.getAllByText('—').length).toBeGreaterThanOrEqual(2)
+    expect(screen.getAllByText('-').length).toBeGreaterThanOrEqual(2)
   })
 
   it('keeps the type filter when paginating', () => {

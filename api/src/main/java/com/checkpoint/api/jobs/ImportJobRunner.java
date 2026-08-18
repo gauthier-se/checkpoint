@@ -14,7 +14,7 @@ import com.checkpoint.api.services.GameImportService;
 
 /**
  * Executes a bulk-import job on a background thread (the dedicated single-thread
- * {@code importExecutor}). Runs OUTSIDE any transaction — each game is committed
+ * {@code importExecutor}). Runs OUTSIDE any transaction: each game is committed
  * independently by {@code GamePersistenceService}. Errors are captured into the
  * job status rather than propagated, since there is no HTTP caller to receive them.
  */

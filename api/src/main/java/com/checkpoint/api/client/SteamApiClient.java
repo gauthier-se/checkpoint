@@ -39,7 +39,7 @@ public interface SteamApiClient {
      * Fetches every game owned by a Steam user via {@code IPlayerService/GetOwnedGames}
      * (with {@code include_appinfo=true} and {@code include_played_free_games=true}).
      *
-     * <p>Returns an empty list when the library is private or the user owns nothing —
+     * <p>Returns an empty list when the library is private or the user owns nothing:
      * Steam represents both as an empty outer object. Visibility validation is the
      * caller's responsibility (see {@code SteamPlayerSummaryDto#communityVisibilityState}).</p>
      *

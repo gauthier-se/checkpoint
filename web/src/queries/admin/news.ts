@@ -80,7 +80,7 @@ export async function importAdminNews(
 
 /**
  * Anything that changes an article also changes what `/news` shows, and the
- * panel cannot know which public queries cached it — so both roots are marked
+ * panel cannot know which public queries cached it, so both roots are marked
  * stale. Nothing public is mounted here, so this costs no refetch now.
  */
 export async function invalidateNews(queryClient: QueryClient): Promise<void> {

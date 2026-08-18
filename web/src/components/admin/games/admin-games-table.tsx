@@ -6,7 +6,7 @@ import { AdminDataTable } from '@/components/admin/admin-data-table'
 import { DeleteGameButton } from '@/components/admin/games/delete-game-button'
 
 function releaseYear(game: Game): string {
-  return game.releaseDate ? game.releaseDate.slice(0, 4) : '—'
+  return game.releaseDate ? game.releaseDate.slice(0, 4) : '-'
 }
 
 const columns: Array<AdminDataTableColumn<Game>> = [
@@ -46,7 +46,7 @@ const columns: Array<AdminDataTableColumn<Game>> = [
     cell: (game) => (
       <span className="text-muted-foreground tabular-nums">
         {game.averageRating === null
-          ? '—'
+          ? '-'
           : `${game.averageRating.toFixed(1)} (${game.ratingCount})`}
       </span>
     ),

@@ -34,7 +34,7 @@ import jakarta.servlet.http.HttpServletResponse;
  *   <li>Redirecting to the configured frontend URL.</li>
  * </ol>
  *
- * No server-side session is created — the flow is fully stateless.
+ * No server-side session is created: the flow is fully stateless.
  */
 @Component
 public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccessHandler {

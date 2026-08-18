@@ -25,8 +25,8 @@ import com.checkpoint.api.repositories.NewsRepository;
  * Integration tests covering which news articles the public endpoints expose.
  * Uses H2 plus a real in-heap Lucene index so the search predicates are exercised for real.
  *
- * <p>Regression coverage for #553: an article with no {@code publishedAt} — a draft that was
- * never published, or one that was unpublished again — used to be listed publicly while the
+ * <p>Regression coverage for #553: an article with no {@code publishedAt}, a draft that was
+ * never published, or one that was unpublished again: used to be listed publicly while the
  * single-article endpoint 404'd on it.
  */
 @SpringBootTest

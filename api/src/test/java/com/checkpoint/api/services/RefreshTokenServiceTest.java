@@ -171,14 +171,14 @@ class RefreshTokenServiceTest {
             // Given
             when(refreshTokenRepository.findByToken("unknown")).thenReturn(Optional.empty());
 
-            // When / Then — no exception
+            // When / Then: no exception
             refreshTokenService.revokeToken("unknown");
         }
 
         @Test
         @DisplayName("Should silently ignore null token")
         void revokeToken_shouldIgnoreNull() {
-            // When / Then — no exception, no repo call
+            // When / Then: no exception, no repo call
             refreshTokenService.revokeToken(null);
         }
     }

@@ -66,7 +66,7 @@ export function NotesDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Notes — {gameTitle}</DialogTitle>
+          <DialogTitle>Notes - {gameTitle}</DialogTitle>
           <DialogDescription>
             Private notes, visible only to you.
           </DialogDescription>

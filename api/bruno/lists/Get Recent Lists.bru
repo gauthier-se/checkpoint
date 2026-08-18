@@ -32,11 +32,11 @@ docs {
   |-------------|----------|-------------|
   | page        | 0        | Page number (0-based) |
   | size        | 20       | Items per page (max 100) |
-  | q           | —        | Fuzzy query against title + description (max edit distance 2) |
+  | q           | -        | Fuzzy query against title + description (max edit distance 2) |
   | sort        | recent¹  | `recent` \| `popular` \| `most-games` \| `relevance` |
-  | visibility  | public   | `public` \| `mine` — `mine` requires authentication |
-  | author      | —        | Filter by author pseudo (exact keyword match) |
-  | minGames    | —        | Inclusive lower bound on the number of games in the list |
+  | visibility  | public   | `public` \| `mine`: `mine` requires authentication |
+  | author      | -        | Filter by author pseudo (exact keyword match) |
+  | minGames    | -        | Inclusive lower bound on the number of games in the list |
 
   ¹ When `q` is provided and `sort` is omitted, results are ordered by `createdAt desc`.
     Use `sort=relevance` for best-match ordering with a text query.

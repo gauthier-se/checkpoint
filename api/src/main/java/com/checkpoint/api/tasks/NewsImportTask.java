@@ -27,7 +27,7 @@ public class NewsImportTask {
 
     /**
      * Every 6 hours at minute 0. Steam News rate-limits at 1 req/s in the client,
-     * so a library of 200 games takes ~3 minutes — well within the cron window.
+     * so a library of 200 games takes ~3 minutes: well within the cron window.
      */
     @Scheduled(cron = "0 0 */6 * * *")
     @SchedulerLock(name = "newsImportSteam", lockAtLeastFor = "30m", lockAtMostFor = "2h")

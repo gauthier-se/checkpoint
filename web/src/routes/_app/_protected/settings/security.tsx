@@ -5,7 +5,7 @@ import { seo } from '@/lib/seo'
 
 export const Route = createFileRoute('/_app/_protected/settings/security')({
   head: () => ({
-    meta: seo({ title: 'Security — Checkpoint' }),
+    meta: seo({ title: 'Security - Checkpoint' }),
   }),
   component: SettingsSecurityPage,
 })

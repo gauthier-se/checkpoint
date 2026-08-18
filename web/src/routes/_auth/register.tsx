@@ -28,7 +28,7 @@ function steamSignupPrefillQuery(token: string) {
 
 export const Route = createFileRoute('/_auth/register')({
   head: () => ({
-    meta: seo({ title: 'Create account — Checkpoint' }),
+    meta: seo({ title: 'Create account - Checkpoint' }),
   }),
   validateSearch: (search: Record<string, unknown>): RegisterSearchParams => ({
     steam_token:

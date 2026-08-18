@@ -43,7 +43,7 @@ import jakarta.persistence.EntityManager;
 
 /**
  * Unit tests for {@link ListSearchServiceImpl}. Mirrors the mocking pattern from
- * {@code NewsSearchServiceImplTest} — the full Hibernate Search DSL is mocked end-to-end.
+ * {@code NewsSearchServiceImplTest}: the full Hibernate Search DSL is mocked end-to-end.
  */
 @ExtendWith(MockitoExtension.class)
 class ListSearchServiceImplTest {

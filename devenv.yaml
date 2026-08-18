@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=https://devenv.sh/devenv.schema.json
 #
-# CheckPoint development environment — see devenv.nix and the "Nix + devenv"
+# CheckPoint development environment: see devenv.nix and the "Nix + devenv"
 # section of the README.
 inputs:
   nixpkgs:

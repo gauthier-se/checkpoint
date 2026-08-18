@@ -25,7 +25,7 @@ const TABS: ReadonlyArray<{ label: string; link: LinkProps }> = [
 
 export const Route = createFileRoute('/_app/_protected/admin/moderation')({
   head: () => ({
-    meta: seo({ title: 'Moderation — Admin — Checkpoint' }),
+    meta: seo({ title: 'Moderation, Admin - Checkpoint' }),
   }),
   component: AdminModerationLayout,
 })

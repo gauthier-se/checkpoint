@@ -1,4 +1,4 @@
-### CheckPoint — Admin Reviews endpoints
+### CheckPoint: Admin Reviews endpoints
 ### Requires an ADMIN account. See admin-users.http for the login request.
 
 @baseUrl = http://localhost:8080/api/v1

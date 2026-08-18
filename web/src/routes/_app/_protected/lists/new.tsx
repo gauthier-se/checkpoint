@@ -6,7 +6,7 @@ import { seo } from '@/lib/seo'
 
 export const Route = createFileRoute('/_app/_protected/lists/new')({
   head: () => ({
-    meta: seo({ title: 'New list — Checkpoint' }),
+    meta: seo({ title: 'New list - Checkpoint' }),
   }),
   component: RouteComponent,
 })

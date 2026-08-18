@@ -4,7 +4,7 @@ import { seo } from '@/lib/seo'
 
 export const Route = createFileRoute('/_app/legal')({
   head: () => ({
-    meta: seo({ title: 'Legal — Checkpoint' }),
+    meta: seo({ title: 'Legal - Checkpoint' }),
   }),
   component: LegalPage,
 })

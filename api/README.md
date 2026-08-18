@@ -1,4 +1,4 @@
-<h1 align="center">CheckPoint — API</h1>
+<h1 align="center">CheckPoint: API</h1>
 
 <p align="center">
   <strong>The Spring Boot REST API powering CheckPoint</strong>
@@ -106,6 +106,6 @@ list (IGDB, Steam, JWT, OAuth2, Swagger toggle, …).
 
 ## Related documentation
 
-- [Root README](../README.md) — project overview and full setup
-- [Contributing guide](../CONTRIBUTING.md) — conventions and workflow
-- [HTTP files](../docs/http/) — ready-to-run admin requests
+- [Root README](../README.md): project overview and full setup
+- [Contributing guide](../CONTRIBUTING.md): conventions and workflow
+- [HTTP files](../docs/http/): ready-to-run admin requests

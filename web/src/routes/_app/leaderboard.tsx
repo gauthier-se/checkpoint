@@ -22,7 +22,7 @@ interface LeaderboardSearch {
 
 export const Route = createFileRoute('/_app/leaderboard')({
   head: () => ({
-    meta: seo({ title: 'Leaderboard — Checkpoint' }),
+    meta: seo({ title: 'Leaderboard - Checkpoint' }),
   }),
   component: LeaderboardPage,
   pendingComponent: LeaderboardSkeleton,

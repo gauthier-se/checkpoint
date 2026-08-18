@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
  * news.rss.feeds[0].url=https://feeds.feedburner.com/ign/all
  * </pre>
  *
- * <p>This is the first {@code @ConfigurationProperties} bean in the codebase — picked
+ * <p>This is the first {@code @ConfigurationProperties} bean in the codebase: picked
  * over {@code @Value} because of the structured list-of-objects shape, which {@code @Value}
  * can't express cleanly.</p>
  */

@@ -14,7 +14,7 @@ interface GameInteractionMutationConfig<TVariables> {
   ) => GameInteractionStatusDto
   /** Toast shown on failure, after the optimistic change is rolled back. */
   errorMessage: string
-  /** Optional success toast — a static string or a factory from the inputs. */
+  /** Optional success toast: a static string or a factory from the inputs. */
   successMessage?:
     | string
     | ((

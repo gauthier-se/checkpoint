@@ -8,7 +8,7 @@ import { seo } from '@/lib/seo'
 export const Route = createFileRoute('/_app/_protected/settings/notifications')(
   {
     head: () => ({
-      meta: seo({ title: 'Notification settings — Checkpoint' }),
+      meta: seo({ title: 'Notification settings - Checkpoint' }),
     }),
     loader: async ({ context }) => {
       await context.queryClient.ensureQueryData(

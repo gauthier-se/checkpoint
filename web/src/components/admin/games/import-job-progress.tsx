@@ -67,7 +67,7 @@ export function ImportJobProgress({ job }: { job: ImportJobStatus }) {
 
       {isRunning && (
         <p className="text-xs text-muted-foreground">
-          Leaving this page does not stop the import — come back and it will
+          Leaving this page does not stop the import: come back and it will
           still be running.
         </p>
       )}

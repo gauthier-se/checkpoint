@@ -62,7 +62,7 @@ public class NotificationServiceImpl implements NotificationService {
                                                       UUID referenceId, String message) {
         // Self-notification prevention: never notify a user about their own actions
         if (senderId != null && senderId.equals(recipientId)) {
-            log.debug("Skipping self-notification — sender and recipient are the same user: {}", senderId);
+            log.debug("Skipping self-notification: sender and recipient are the same user: {}", senderId);
             return null;
         }
 
@@ -71,14 +71,14 @@ public class NotificationServiceImpl implements NotificationService {
         if (senderId != null && referenceId != null
                 && notificationRepository.existsBySenderIdAndRecipientIdAndTypeAndReferenceId(
                         senderId, recipientId, type, referenceId)) {
-            log.debug("Skipping duplicate notification — type: {}, sender: {}, recipient: {}, reference: {}",
+            log.debug("Skipping duplicate notification, type: {}, sender: {}, recipient: {}, reference: {}",
                     type, senderId, recipientId, referenceId);
             return null;
         }
 
         // Preference gating: skip persistence + WS push when the recipient has opted out of this type
         if (!preferencesService.isEnabled(recipientId, type)) {
-            log.debug("Skipping notification — recipient {} has disabled type {}", recipientId, type);
+            log.debug("Skipping notification: recipient {} has disabled type {}", recipientId, type);
             return null;
         }
 
@@ -101,7 +101,7 @@ public class NotificationServiceImpl implements NotificationService {
                 responseDto
         );
 
-        log.info("Notification created for user {} — type: {}", recipient.getPseudo(), type);
+        log.info("Notification created for user {}: type: {}", recipient.getPseudo(), type);
 
         return responseDto;
     }

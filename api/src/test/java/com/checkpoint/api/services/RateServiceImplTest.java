@@ -78,7 +78,7 @@ class RateServiceImplTest {
         @Test
         @DisplayName("Should create a new rating if none exists")
         void rateGame_shouldCreateNewRating() {
-            // Given — score 8 = 4.0★; raw average 8.0 / 2 = 4.0 in display range
+            // Given: score 8 = 4.0★; raw average 8.0 / 2 = 4.0 in display range
             when(userRepository.findByEmail(testUser.getEmail())).thenReturn(Optional.of(testUser));
             when(videoGameRepository.findById(gameId)).thenReturn(Optional.of(testGame));
             when(rateRepository.findByUserEmailAndVideoGameId(testUser.getEmail(), gameId)).thenReturn(Optional.empty());
@@ -106,7 +106,7 @@ class RateServiceImplTest {
         @Test
         @DisplayName("Should store half-star averageRating with 0.1 precision (raw avg / 2)")
         void rateGame_shouldStoreHalfStarAverage() {
-            // Given — score 7 = 3.5★; raw average 7.0 / 2 = 3.5
+            // Given: score 7 = 3.5★; raw average 7.0 / 2 = 3.5
             when(userRepository.findByEmail(testUser.getEmail())).thenReturn(Optional.of(testUser));
             when(videoGameRepository.findById(gameId)).thenReturn(Optional.of(testGame));
             when(rateRepository.findByUserEmailAndVideoGameId(testUser.getEmail(), gameId)).thenReturn(Optional.empty());
@@ -129,7 +129,7 @@ class RateServiceImplTest {
         @Test
         @DisplayName("Should update an existing rating")
         void rateGame_shouldUpdateExistingRating() {
-            // Given — bumping from 6 (3★) to 10 (5★)
+            // Given: bumping from 6 (3★) to 10 (5★)
             Rate existingRate = new Rate(testUser, testGame, 6);
             existingRate.setId(UUID.randomUUID());
 

@@ -4,22 +4,22 @@ import { seo } from '@/lib/seo'
 
 describe('seo', () => {
   it('emits the title plus twitter/og title tags', () => {
-    const tags = seo({ title: 'Games — Checkpoint' })
+    const tags = seo({ title: 'Games - Checkpoint' })
 
-    expect(tags).toContainEqual({ title: 'Games — Checkpoint' })
+    expect(tags).toContainEqual({ title: 'Games - Checkpoint' })
     expect(tags).toContainEqual({
       name: 'twitter:title',
-      content: 'Games — Checkpoint',
+      content: 'Games - Checkpoint',
     })
     expect(tags).toContainEqual({
       name: 'og:title',
-      content: 'Games — Checkpoint',
+      content: 'Games - Checkpoint',
     })
     expect(tags).toContainEqual({ name: 'og:type', content: 'website' })
   })
 
   it('omits description tags when no description is provided', () => {
-    const tags = seo({ title: 'Games — Checkpoint' })
+    const tags = seo({ title: 'Games - Checkpoint' })
 
     expect(tags.some((t) => t.name === 'description')).toBe(false)
     expect(tags.some((t) => t.name === 'og:description')).toBe(false)

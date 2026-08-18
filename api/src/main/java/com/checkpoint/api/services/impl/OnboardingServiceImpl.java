@@ -21,9 +21,9 @@ import com.checkpoint.api.services.OnboardingService;
  *
  * <p>State lives in two columns on {@code users}:
  * <ul>
- *     <li>{@code onboarding_completed_at} — {@code null} while the user has not finished or
+ *     <li>{@code onboarding_completed_at}: {@code null} while the user has not finished or
  *         dismissed the flow.</li>
- *     <li>{@code onboarding_steps} — a {@code jsonb} map of step key → {@code true}/{@code false}.
+ *     <li>{@code onboarding_steps}: a {@code jsonb} map of step key → {@code true}/{@code false}.
  *         Missing key means "not yet seen".</li>
  * </ul>
  */

@@ -44,7 +44,7 @@ public interface FollowService {
 
     /**
      * Removes a follower from the authenticated user: the given follower will no
-     * longer follow the authenticated user. Idempotent — does nothing if the user
+     * longer follow the authenticated user. Idempotent: does nothing if the user
      * is not currently a follower. No notification is sent to the removed follower.
      *
      * @param userEmail  the authenticated user's email

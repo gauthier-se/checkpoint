@@ -127,7 +127,7 @@ public class BadgeListener {
 
     /**
      * Handles a {@link UserActivityEvent} by evaluating longevity badges
-     * ({@code VETERAN_30}, {@code LIFER}) — checked on every meaningful activity
+     * ({@code VETERAN_30}, {@code LIFER}): checked on every meaningful activity
      * so an active user crosses the threshold organically.
      */
     @Async

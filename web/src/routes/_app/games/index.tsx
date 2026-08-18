@@ -43,7 +43,7 @@ export type GamesSearchParams = {
 
 export const Route = createFileRoute('/_app/games/')({
   head: () => ({
-    meta: seo({ title: 'Games — Checkpoint' }),
+    meta: seo({ title: 'Games - Checkpoint' }),
   }),
   component: RouteComponent,
   pendingComponent: GamesIndexSkeleton,

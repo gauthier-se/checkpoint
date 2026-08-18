@@ -21,8 +21,8 @@ public interface GameRecommendationService {
      *
      * @param userEmail the authenticated user's email (resolved from the JWT)
      * @param size      requested number of recommendations (clamped to 1..30)
-     * @return ordered list of recommendations, never null and — for an authenticated
-     *         user — never empty as long as the catalog has at least one trending game
+     * @return ordered list of recommendations, never null and, for an authenticated
+     *         user, never empty as long as the catalog has at least one trending game
      */
     List<RecommendedGameDto> getRecommendationsFor(String userEmail, int size);
 }

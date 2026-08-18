@@ -9,7 +9,7 @@ type ResetPasswordSearchParams = {
 
 export const Route = createFileRoute('/_auth/reset-password')({
   head: () => ({
-    meta: seo({ title: 'Reset password — Checkpoint' }),
+    meta: seo({ title: 'Reset password - Checkpoint' }),
   }),
   validateSearch: (
     search: Record<string, unknown>,

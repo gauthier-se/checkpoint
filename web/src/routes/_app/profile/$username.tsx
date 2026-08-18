@@ -46,7 +46,7 @@ export const Route = createFileRoute('/_app/profile/$username')({
   pendingComponent: UserProfileSkeleton,
   pendingMs: 0,
   head: ({ params }) => ({
-    meta: seo({ title: `${params.username} — Checkpoint` }),
+    meta: seo({ title: `${params.username} - Checkpoint` }),
   }),
   validateSearch: (search: Record<string, unknown>): ProfileSearchParams => {
     const rawTab = String(search.tab ?? 'profile')
@@ -84,7 +84,7 @@ export const Route = createFileRoute('/_app/profile/$username')({
         }
         break
       // journal, followers, following: require profile data (isOwner / profile.id)
-      // — loaded by the component after profile resolves
+      // - loaded by the component after profile resolves
     }
   },
 })
@@ -234,7 +234,7 @@ function UserProfileSkeleton() {
           </aside>
         </div>
 
-        {/* Recent games — full-width row */}
+        {/* Recent games: full-width row */}
         <div className="space-y-3">
           <div className="py-2">
             <Skeleton className="h-5 w-32" />

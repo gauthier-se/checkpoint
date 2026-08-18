@@ -79,7 +79,7 @@ public interface LikeRepository extends JpaRepository<Like, UUID> {
 
     /**
      * Returns every video game ID the given user has liked (top-level game likes only).
-     * Unbounded counterpart of {@link #findVideoGameIdsLikedByUser} — used by the
+     * Unbounded counterpart of {@link #findVideoGameIdsLikedByUser}: used by the
      * recommendation service to fold game-likes into the affinity profile. The
      * {@code videoGame IS NOT NULL} guard is required because {@link Like} is polymorphic
      * (it may instead point at a review, list, or comment).

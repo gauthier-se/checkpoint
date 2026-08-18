@@ -329,7 +329,7 @@ public class AuthServiceImpl implements AuthService {
         user.setSteamProfileUrl(claims.steamProfileUrl());
         user.setSteamSyncedAt(LocalDateTime.now());
 
-        // Account is created with Steam already linked — count that step as done, and the
+        // Account is created with Steam already linked: count that step as done, and the
         // picture step too when Steam handed us an avatar URL.
         user.getOnboardingSteps().put(OnboardingSteps.STEAM, true);
         if (claims.steamAvatarUrl() != null && !claims.steamAvatarUrl().isBlank()) {
