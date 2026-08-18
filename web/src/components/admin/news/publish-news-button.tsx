@@ -12,7 +12,7 @@ import {
 
 /**
  * Publishing is reversible and low-stakes, so it is a single click rather than
- * a confirmation dialog — unlike the destructive actions elsewhere in the panel.
+ * a confirmation dialog: unlike the destructive actions elsewhere in the panel.
  */
 export function PublishNewsButton({ article }: { article: AdminNews }) {
   const queryClient = useQueryClient()

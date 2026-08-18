@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * A single owned-game entry returned by Steam's {@code IPlayerService/GetOwnedGames} endpoint.
- * Only the fields used by CheckPoint are mapped — {@code appId} is the load-bearing one;
+ * Only the fields used by CheckPoint are mapped: {@code appId} is the load-bearing one;
  * {@code name}, {@code playtimeForever}, and {@code imgIconUrl} are kept for logging and
  * possible future UI use.
  *

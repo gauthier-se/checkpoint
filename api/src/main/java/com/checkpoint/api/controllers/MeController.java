@@ -72,7 +72,7 @@ public class MeController {
 
     /**
      * Permanently deletes the authenticated user's account and every piece of
-     * personal data associated with it (GDPR Article 17 — right to erasure).
+     * personal data associated with it (GDPR Article 17: right to erasure).
      *
      * <p>The session is invalidated: the refresh token row is destroyed by the
      * account-erasure transaction and both the {@code checkpoint_token} and
@@ -102,7 +102,7 @@ public class MeController {
 
     /**
      * Returns the authenticated user's personal data in a single
-     * machine-readable JSON file (GDPR Article 20 — right to data portability).
+     * machine-readable JSON file (GDPR Article 20: right to data portability).
      *
      * <p>The response body is the export payload itself. The
      * {@code Content-Disposition} header instructs the browser to save it as

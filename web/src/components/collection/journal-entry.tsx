@@ -39,7 +39,7 @@ function formatDate(dateStr: string): string {
 
 interface JournalEntryProps {
   entry: PlayLogResponse
-  /** Optional action buttons shown on hover (e.g. delete) — owner only. */
+  /** Optional action buttons shown on hover (e.g. delete): owner only. */
   actions?: React.ReactNode
 }
 
@@ -142,7 +142,7 @@ export function JournalEntry({ entry, actions }: JournalEntryProps) {
             <span className="flex items-center gap-1">
               <Calendar className="size-3" />
               {formatDate(entry.startDate)}
-              {entry.endDate && ` — ${formatDate(entry.endDate)}`}
+              {entry.endDate && ` - ${formatDate(entry.endDate)}`}
             </span>
           )}
         </div>

@@ -1,4 +1,4 @@
-### CheckPoint — Admin Comments endpoints
+### CheckPoint: Admin Comments endpoints
 ### Requires an ADMIN account. See admin-users.http for the login request.
 
 @baseUrl = http://localhost:8080/api/v1

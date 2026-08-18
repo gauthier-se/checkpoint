@@ -32,6 +32,6 @@ export interface User {
   steamDisplayName: string | null
   /** ISO timestamp set once the wizard is finished or dismissed; null while still onboarding. */
   onboardingCompletedAt: string | null
-  /** Sparse map — missing entries mean "not yet seen". */
+  /** Sparse map: missing entries mean "not yet seen". */
   onboardingSteps: Partial<Record<OnboardingStepKey, boolean>>
 }

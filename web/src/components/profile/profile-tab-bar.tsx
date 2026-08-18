@@ -185,7 +185,7 @@ export function ProfileTabBar({
           )
         }
 
-        // 'lists' — dedicated route
+        // 'lists': dedicated route
         return (
           <Link
             key={value}

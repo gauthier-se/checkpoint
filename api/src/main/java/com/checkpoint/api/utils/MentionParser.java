@@ -13,7 +13,7 @@ public final class MentionParser {
 
     /**
      * Matches an {@code @pseudo} token where the pseudo is 2-30 characters of
-     * letters, digits, underscores or hyphens — the valid CheckPoint pseudo format.
+     * letters, digits, underscores or hyphens: the valid CheckPoint pseudo format.
      *
      * <p>The {@code (?<![\w@])} lookbehind ensures the {@code @} is not preceded by
      * a word character or another {@code @}, so email addresses ({@code user@host})

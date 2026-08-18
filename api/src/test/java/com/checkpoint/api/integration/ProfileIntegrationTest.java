@@ -396,7 +396,7 @@ class ProfileIntegrationTest {
          * <ul>
          *   <li>viewer (gamer123) library: A (COMPLETED), B (PLAYING), C (PLAYING)</li>
          *   <li>target (otheruser) library: A (COMPLETED), B (DROPPED), D (PLAYING)</li>
-         *   <li>common games: A, B — union: A,B,C,D (4) — libraryScore = 2/4 = 50</li>
+         *   <li>common games: A, B - union: A,B,C,D (4) - libraryScore = 2/4 = 50</li>
          *   <li>ratings: A viewer 10/target 8 (5.0 vs 4.0, diff 1.0); B viewer 6 only</li>
          * </ul>
          * Affinity = round(0.6*50 + 0.4*(1 - 1.0/4)*100) = round(30 + 30) = 60.

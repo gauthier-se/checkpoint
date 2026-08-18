@@ -9,7 +9,7 @@ import { seo } from '@/lib/seo'
 
 export const Route = createFileRoute('/_app/_protected/lists/$listId/edit')({
   head: () => ({
-    meta: seo({ title: 'Edit list — Checkpoint' }),
+    meta: seo({ title: 'Edit list - Checkpoint' }),
   }),
   component: RouteComponent,
   loader: async ({ params: { listId }, context }) => {

@@ -8,7 +8,7 @@ import com.checkpoint.api.entities.VideoGame;
  * Persists a single game (and its relationships) from IGDB data in its own
  * transaction.
  *
- * <p>This lives in a dedicated bean — separate from {@link GameImportService} —
+ * <p>This lives in a dedicated bean, separate from {@link GameImportService},
  * on purpose. Spring's {@code @Transactional} only takes effect when a method is
  * invoked through the Spring proxy; a self-invocation (one method calling another
  * on {@code this}) bypasses the proxy and the annotation is ignored. By keeping

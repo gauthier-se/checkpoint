@@ -26,7 +26,7 @@ interface AdminDataTableProps<T> {
   columns: Array<AdminDataTableColumn<T>>
   rows: Array<T>
   rowKey: (row: T) => string
-  /** Current page, **1-based** — matches the route search params. */
+  /** Current page, **1-based**: matches the route search params. */
   page?: number
   /** Pagination envelope returned by the endpoint; omit for unpaginated lists. */
   metadata?: PaginationMetadata

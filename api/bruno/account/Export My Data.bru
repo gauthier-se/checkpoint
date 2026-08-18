@@ -18,7 +18,7 @@ docs {
   # Export My Data
 
   Returns every personal data category we hold about the authenticated user
-  as a single machine-readable JSON file (GDPR Article 20 — right to data
+  as a single machine-readable JSON file (GDPR Article 20: right to data
   portability).
 
   The response body is the export payload itself. The
@@ -27,24 +27,24 @@ docs {
 
   ## Categories included
 
-  - `profile` — id, username (pseudo), email, bio, picture, isPrivate,
+  - `profile`: id, username (pseudo), email, bio, picture, isPrivate,
     level, xpPoint, createdAt
-  - `library` — UserGame entries with game title and status
-  - `playLogs` — UserGamePlay entries with game title, platform name,
+  - `library`: UserGame entries with game title and status
+  - `playLogs`: UserGamePlay entries with game title, platform name,
     status, time played, score, ownership, tags, dates
-  - `reviews` — review id, game title, content, spoiler flag, timestamps
-  - `comments` — id, content, reviewId or gameListId (exactly one), timestamps
-  - `wishlist` — Wish entries with game title and priority
-  - `backlogs` — Backlog entries with game title and priority
-  - `favorites` — Favorite entries with game title and display order
-  - `gameLists` — lists owned by the user, each containing its ordered
+  - `reviews`: review id, game title, content, spoiler flag, timestamps
+  - `comments`: id, content, reviewId or gameListId (exactly one), timestamps
+  - `wishlist`: Wish entries with game title and priority
+  - `backlogs`: Backlog entries with game title and priority
+  - `favorites`: Favorite entries with game title and display order
+  - `gameLists`: lists owned by the user, each containing its ordered
     entries (game title + position)
-  - `tags` — user-scoped tags (id, name, createdAt)
-  - `ratings` — Rate entries with game title and score
-  - `socialLinks` — url + createdAt
-  - `exportedAt` — server-side timestamp of the export
+  - `tags`: user-scoped tags (id, name, createdAt)
+  - `ratings`: Rate entries with game title and score
+  - `socialLinks`: url + createdAt
+  - `exportedAt`: server-side timestamp of the export
 
-  Categories **not** included: follows, badges, likes, reports — intentionally
+  Categories **not** included: follows, badges, likes, reports - intentionally
   out of scope.
 
   ## Authentication

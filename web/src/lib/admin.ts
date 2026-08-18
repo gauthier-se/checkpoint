@@ -11,7 +11,7 @@ export const ADMIN_ROLE = 'ADMIN'
 
 /**
  * Client-side role check used to gate the `/admin` routes and the entry point
- * in the avatar menu. It is a UX guard only — every `/admin/**` endpoint is
+ * in the avatar menu. It is a UX guard only: every `/admin/**` endpoint is
  * independently protected by `@PreAuthorize("hasRole('ADMIN')")` on the API.
  */
 export function isAdmin(user: User | null | undefined): boolean {

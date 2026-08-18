@@ -14,7 +14,7 @@ const CATALOG_PAGE_SIZE = 20
 export const adminGamesQueryKey = [ADMIN_QUERY_KEY, 'games'] as const
 
 /**
- * The catalog listing reuses the public endpoints — there is no admin-specific
+ * The catalog listing reuses the public endpoints: there is no admin-specific
  * one. Browsing is paginated by the API; searching is not, so the route pages
  * the search result client-side (see `lib/admin-pagination.ts`).
  */
@@ -84,7 +84,7 @@ export async function updateAdminGame(
 
 /**
  * Refused with `409` and a `blockingReferences` map when the game is still
- * referenced by user data — see `parseBlockingReferences`.
+ * referenced by user data: see `parseBlockingReferences`.
  */
 export async function deleteAdminGame(gameId: string): Promise<void> {
   await apiFetch(`${ADMIN_GAMES_PATH}/${gameId}`, { method: 'DELETE' })
@@ -140,7 +140,7 @@ export async function startRecentImport(params: {
 /**
  * Polls a running import. The interval is dropped once the job reaches a
  * terminal state so a finished job stops generating requests, and polling only
- * runs while a job id is set — react-query also stops it on unmount.
+ * runs while a job id is set: react-query also stops it on unmount.
  */
 export function importJobQueryOptions(jobId: string | null) {
   return queryOptions({

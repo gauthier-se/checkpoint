@@ -262,7 +262,7 @@ class ProfileServiceImplTest {
         @Test
         @DisplayName("should populate recentPlays with correct flags and batched isLiked")
         void getUserProfile_shouldPopulateRecentPlaysWithBatchedLikes() {
-            // Given: three plays — one scored, one with a review, one replay.
+            // Given: three plays, one scored, one with a review, one replay.
             VideoGame gameA = new VideoGame();
             gameA.setId(UUID.randomUUID());
             gameA.setTitle("Game A");
@@ -310,7 +310,7 @@ class ProfileServiceImplTest {
             when(wishRepository.countByUserPseudo("gamer123")).thenReturn(0L);
             when(userGamePlayRepository.findRecentByUserId(eq(profileUser.getId()), any(Pageable.class)))
                     .thenReturn(List.of(playA, playB, playC));
-            // Only Game A is liked — the batched query returns just A's id.
+            // Only Game A is liked: the batched query returns just A's id.
             when(likeRepository.findVideoGameIdsLikedByUser(eq(profileUser.getId()), anyCollection()))
                     .thenReturn(List.of(gameA.getId()));
 

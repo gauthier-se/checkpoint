@@ -9,7 +9,7 @@ public interface AccountService {
 
     /**
      * Permanently deletes the account of the authenticated user along with
-     * all of their personal data (GDPR Article 17 — right to erasure).
+     * all of their personal data (GDPR Article 17: right to erasure).
      *
      * <p>The deletion runs in a single transaction and follows a fixed order
      * so that foreign-key constraints are respected. After the call returns

@@ -57,7 +57,7 @@ public class GameListController {
      * @param size        page size (clamped to [1, 100])
      * @param q           optional fuzzy query against title + description
      * @param sort        "recent" (default) | "popular" | "most-games" | "relevance"
-     * @param visibility  "public" (default) | "mine" — {@code mine} requires authentication
+     * @param visibility  "public" (default) | "mine": {@code mine} requires authentication
      * @param author      optional filter by author pseudo (exact match)
      * @param minGames    optional inclusive lower bound on the number of games in the list
      * @param userDetails the authenticated user, or null if anonymous

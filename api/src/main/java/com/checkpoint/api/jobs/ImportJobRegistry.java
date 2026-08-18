@@ -18,7 +18,7 @@ import com.checkpoint.api.exceptions.ImportAlreadyRunningException;
  *
  * <p>A single admin instance is expected, so an in-memory map is sufficient;
  * jobs are lost on restart (the desktop treats a missing job as terminal).
- * Only one import may run at a time — {@link #startJob} atomically refuses to
+ * Only one import may run at a time: {@link #startJob} atomically refuses to
  * create a second job while one is pending or running.</p>
  */
 @Component

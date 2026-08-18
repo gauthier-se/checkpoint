@@ -16,7 +16,7 @@ interface ProfileListsTabProps {
 export function ProfileListsTab({ profile, page }: ProfileListsTabProps) {
   const apiPage = Math.max(0, page - 1)
   // isOwner is stale during SSR (auth cookie unreachable from web
-  // origin), so we derive ownership from useAuth — same pattern as TE-335.
+  // origin), so we derive ownership from useAuth: same pattern as TE-335.
   const { user } = useAuth()
   const isOwner = user?.username === profile.username
   // Owner hits /api/me/lists so private lists are included; visitors hit the

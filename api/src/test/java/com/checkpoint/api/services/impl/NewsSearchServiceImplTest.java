@@ -39,7 +39,7 @@ import jakarta.persistence.EntityManager;
 
 /**
  * Unit tests for {@link NewsSearchServiceImpl}. Mirrors the mocking pattern used in
- * {@code GameSearchServiceImplTest} — the full Hibernate Search DSL is mocked end-to-end.
+ * {@code GameSearchServiceImplTest}: the full Hibernate Search DSL is mocked end-to-end.
  */
 @ExtendWith(MockitoExtension.class)
 class NewsSearchServiceImplTest {

@@ -97,7 +97,7 @@ public class NewsSearchServiceImpl implements NewsSearchService {
     /**
      * Restricts results to published articles. {@code publishedAt} is null on a draft and on an
      * article that was unpublished, and Lucene does not index null values, so an {@code exists}
-     * clause keeps both out of the public search paths — matching the single-article endpoint,
+     * clause keeps both out of the public search paths: matching the single-article endpoint,
      * which loads through {@code findByIdAndPublishedAtIsNotNull}.
      */
     private PredicateFinalStep publishedOnly(SearchPredicateFactory f) {

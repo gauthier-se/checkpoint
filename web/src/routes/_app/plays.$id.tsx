@@ -59,7 +59,7 @@ export const Route = createFileRoute('/_app/plays/$id')({
   pendingComponent: PlayLogDetailSkeleton,
   pendingMs: 0,
   head: () => ({
-    meta: seo({ title: 'Play log — Checkpoint' }),
+    meta: seo({ title: 'Play log - Checkpoint' }),
   }),
   errorComponent: ({ error }) => {
     const isForbidden = isApiError(error) && error.status === 403

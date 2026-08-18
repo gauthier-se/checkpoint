@@ -1,4 +1,4 @@
-### CheckPoint — Admin Games endpoints
+### CheckPoint: Admin Games endpoints
 ### Requires an ADMIN account. See admin-users.http for the login request.
 
 @baseUrl = http://localhost:8080/api/v1

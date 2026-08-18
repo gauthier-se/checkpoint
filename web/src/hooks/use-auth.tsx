@@ -14,7 +14,7 @@ export const authQueryOptions = queryOptions({
       const res = await apiFetch('/api/auth/me')
       return res.json()
     } catch (e) {
-      // Not authenticated — surface as null rather than as an error.
+      // Not authenticated: surface as null rather than as an error.
       if (isApiError(e) && (e.status === 401 || e.status === 403)) return null
       throw e
     }

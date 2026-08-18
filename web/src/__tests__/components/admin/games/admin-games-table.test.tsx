@@ -106,7 +106,7 @@ describe('AdminGamesTable', () => {
     renderTable()
 
     const row = screen.getByText('Unrated Game').closest('tr')!
-    expect(within(row).getAllByText('—')).toHaveLength(2)
+    expect(within(row).getAllByText('-')).toHaveLength(2)
   })
 
   it('offers a delete action per row', () => {

@@ -22,9 +22,9 @@ import com.checkpoint.api.enums.Priority;
  *                        {@code LIBRARY}, {@code WISHLIST}, {@code BACKLOG},
  *                        {@code LIKED}
  * @param addedAt         the most recent interaction date across all collections
- * @param libraryStatus   play status — non-null when {@code LIBRARY} is present
- * @param userRating      the owner's rating (0.5–5.0) — non-null when rated
- * @param priority        the user-assigned priority — non-null when
+ * @param libraryStatus   play status: non-null when {@code LIBRARY} is present
+ * @param userRating      the owner's rating (0.5–5.0): non-null when rated
+ * @param priority        the user-assigned priority: non-null when
  *                        {@code WISHLIST} or {@code BACKLOG} is present
  */
 public record UnifiedGameResponseDto(

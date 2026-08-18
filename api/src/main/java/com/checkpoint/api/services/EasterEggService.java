@@ -7,7 +7,7 @@ import java.util.UUID;
  * detected on the backend (Konami code typed on the homepage, a special URL
  * sort param, clicks on the notification bell, etc.). The web client signals
  * the trigger through a dedicated POST endpoint and the server is the one
- * deciding whether to award — so the mapping {endpoint → badge} stays
+ * deciding whether to award, so the mapping {endpoint → badge} stays
  * un-forgeable. The payload (if any) is never trusted.
  */
 public interface EasterEggService {

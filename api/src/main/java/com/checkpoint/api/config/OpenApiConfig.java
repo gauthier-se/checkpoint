@@ -18,8 +18,8 @@ import io.swagger.v3.oas.models.servers.Server;
  * <p>Defines the global API metadata, the available servers and two JWT-based
  * security schemes so the Swagger UI exposes an <em>Authorize</em> button:
  * <ul>
- *   <li>{@code bearer-jwt} — {@code Authorization: Bearer <token>} header (Desktop clients).</li>
- *   <li>{@code cookie-auth} — {@code checkpoint_token} HttpOnly cookie (Web clients).</li>
+ *   <li>{@code bearer-jwt}: {@code Authorization: Bearer <token>} header (Desktop clients).</li>
+ *   <li>{@code cookie-auth}: {@code checkpoint_token} HttpOnly cookie (Web clients).</li>
  * </ul>
  *
  * <p>The endpoints themselves ({@code /swagger-ui.html}, {@code /v3/api-docs}) are
@@ -38,7 +38,7 @@ public class OpenApiConfig {
                 .info(new Info()
                         .title("CheckPoint API")
                         .version("0.0.1")
-                        .description("REST API for CheckPoint — a video game library tracker. "
+                        .description("REST API for CheckPoint: a video game library tracker. "
                                 + "Authenticate with a JWT via the Authorization header (Desktop) "
                                 + "or the checkpoint_token cookie (Web)."))
                 .servers(List.of(

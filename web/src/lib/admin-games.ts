@@ -4,7 +4,7 @@ import { isApiError } from '@/services/api'
 
 /**
  * Human labels for the reference kinds the API reports on a refused deletion.
- * Both forms are spelled out — naive pluralisation would produce "library
+ * Both forms are spelled out: naive pluralisation would produce "library
  * entrys".
  */
 const REFERENCE_LABELS: Record<string, { one: string; many: string }> = {

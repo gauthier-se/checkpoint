@@ -261,7 +261,7 @@ public class GamePlayLogServiceImpl implements GamePlayLogService {
         }
 
         if (previousScore != null && newScore == null) {
-            // Score was cleared — recalculate from remaining scored logs
+            // Score was cleared: recalculate from remaining scored logs
             syncGlobalRatingAfterRemoval(userEmail, userId, videoGameId);
             return;
         }
@@ -270,7 +270,7 @@ public class GamePlayLogServiceImpl implements GamePlayLogService {
                 .findMostRecentScoredPlay(userId, videoGameId);
 
         if (mostRecentScored.isPresent() && mostRecentScored.get().getId().equals(updatedPlay.getId())) {
-            // The updated entry is the most recent scored log — update global rating
+            // The updated entry is the most recent scored log: update global rating
             log.info("Updating global rating for game {} to score {} from updated play log", videoGameId, newScore);
             rateService.rateGame(userEmail, videoGameId, newScore);
         }

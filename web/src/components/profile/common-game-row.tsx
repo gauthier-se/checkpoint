@@ -73,7 +73,7 @@ export function CommonGameRow({ entry, targetUsername }: CommonGameRowProps) {
         <div className="w-12 text-center">
           <p className="text-muted-foreground text-[11px]">Δ</p>
           {entry.ratingDiff === null ? (
-            <p className="text-muted-foreground">—</p>
+            <p className="text-muted-foreground">-</p>
           ) : (
             <p
               className={cn('font-semibold', isDisagreement && 'text-red-500')}
@@ -98,7 +98,7 @@ function RatingValue({
     <div className="w-14 text-center">
       <p className="text-muted-foreground text-[11px]">{label}</p>
       {rating === null ? (
-        <p className="text-muted-foreground">—</p>
+        <p className="text-muted-foreground">-</p>
       ) : (
         <p className="inline-flex items-center gap-1 font-medium">
           <Star className="size-3.5 fill-yellow-400 text-yellow-500" />

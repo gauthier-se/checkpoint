@@ -67,7 +67,7 @@ public interface AuthService {
      * gated behind two-factor authentication.
      *
      * <p>If the user has 2FA enabled, writes the short-lived {@code checkpoint_2fa} intermediate
-     * cookie and returns {@code true} — the caller must then redirect to the 2FA challenge instead
+     * cookie and returns {@code true}: the caller must then redirect to the 2FA challenge instead
      * of establishing a session. If 2FA is disabled, writes nothing and returns {@code false},
      * leaving the caller to establish the session as usual.</p>
      *

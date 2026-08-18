@@ -1,4 +1,4 @@
-### CheckPoint — Admin Analytics endpoint
+### CheckPoint: Admin Analytics endpoint
 ### Requires an ADMIN account. See admin-users.http for the login request.
 ### Backs the desktop analytics dashboard (see TE-253).
 

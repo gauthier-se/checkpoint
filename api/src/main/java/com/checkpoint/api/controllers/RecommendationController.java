@@ -19,7 +19,7 @@ import com.checkpoint.api.services.GameRecommendationService;
 /**
  * REST controller for personalised game recommendations.
  *
- * <p>Authentication is enforced upstream by the JWT filter — endpoints under
+ * <p>Authentication is enforced upstream by the JWT filter: endpoints under
  * {@code /api/v1/me/**} are unreachable for anonymous callers.</p>
  */
 @Tag(name = "Gamification", description = "Personalized game recommendations")

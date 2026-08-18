@@ -13,7 +13,7 @@ import { adminNewsListQueryOptions } from '@/queries/admin/news'
 
 export const Route = createFileRoute('/_app/_protected/admin/news')({
   head: () => ({
-    meta: seo({ title: 'News — Admin — Checkpoint' }),
+    meta: seo({ title: 'News, Admin - Checkpoint' }),
   }),
   validateSearch: (search: Record<string, unknown>): AdminNewsSearchParams => ({
     page: Math.max(1, Math.floor(Number(search.page ?? 1)) || 1),

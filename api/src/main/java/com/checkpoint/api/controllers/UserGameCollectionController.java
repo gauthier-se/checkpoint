@@ -168,7 +168,7 @@ public class UserGameCollectionController {
 
     /**
      * Maps API sort field names to entity field names. The {@code rating} field is a
-     * sentinel — the service detects it on the resulting Sort and routes the call to
+     * sentinel: the service detects it on the resulting Sort and routes the call to
      * the rating-sorted repository query (which expresses the ORDER BY directly in JPQL).
      */
     private String mapSortField(String field) {

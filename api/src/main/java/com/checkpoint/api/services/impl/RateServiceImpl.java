@@ -121,7 +121,7 @@ public class RateServiceImpl implements RateService {
      *
      * <p>Raw scores are stored as 1-10 (half-star steps). The average is divided
      * by 2 here so {@code averageRating} stays in the 0-5 display range with
-     * 0.1 precision — no conversion needed on the frontend.</p>
+     * 0.1 precision: no conversion needed on the frontend.</p>
      *
      * @param videoGame the video game entity to update
      */

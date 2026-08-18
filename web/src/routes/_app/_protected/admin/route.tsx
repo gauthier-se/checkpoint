@@ -9,7 +9,7 @@ import { ErrorPage } from '@/components/errors/error-page'
 
 export const Route = createFileRoute('/_app/_protected/admin')({
   head: () => ({
-    meta: seo({ title: 'Admin — Checkpoint' }),
+    meta: seo({ title: 'Admin - Checkpoint' }),
   }),
   beforeLoad: ({ context }) => requireAdmin(context.queryClient),
   errorComponent: ({ error, reset }) => (

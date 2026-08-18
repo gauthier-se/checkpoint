@@ -27,7 +27,7 @@ import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
  * <p>Runs daily at 04:00. Picks up to {@code steam.refresh.batch-size} users whose
  * {@code steamSyncedAt} is older than 24 hours and re-fetches their summary from Steam.
  * The underlying {@link SteamApiClient} enforces a 1 req/s rate limit, so a batch of N
- * users takes roughly N seconds — keep the batch size well under the daily window.</p>
+ * users takes roughly N seconds: keep the batch size well under the daily window.</p>
  *
  * <p>If Steam returns no player (unknown SteamID), or throws, the entity is left unchanged
  * so {@code /me} keeps serving the previously cached values.</p>
@@ -79,7 +79,7 @@ public class SteamProfileRefreshTask {
         try {
             Optional<SteamPlayerSummaryDto> summary = steamApiClient.fetchPlayerSummary(user.getSteamId());
             if (summary.isEmpty()) {
-                log.warn("Steam profile refresh: SteamID {} not recognized — leaving cache unchanged",
+                log.warn("Steam profile refresh: SteamID {} not recognized, leaving cache unchanged",
                         user.getSteamId());
                 return false;
             }
@@ -91,7 +91,7 @@ public class SteamProfileRefreshTask {
             userRepository.save(user);
             return true;
         } catch (SteamApiException e) {
-            log.warn("Steam profile refresh failed for SteamID {}: {} — leaving cache unchanged",
+            log.warn("Steam profile refresh failed for SteamID {}: {}, leaving cache unchanged",
                     user.getSteamId(), e.getMessage());
             return false;
         }

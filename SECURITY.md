@@ -20,10 +20,10 @@ pull requests, or discussions.**
 
 Instead, report them privately using one of the following:
 
-- **GitHub Security Advisories** — use the
+- **GitHub Security Advisories**: use the
   [Report a vulnerability](https://docs.github.com/en/code-security/security-advisories/guidance-on-reporting-and-writing-information-about-vulnerabilities/privately-reporting-a-security-vulnerability)
   button under the repository's **Security** tab.
-- **Email** — [gseyzeriat1@gmail.com](mailto:gseyzeriat1@gmail.com)
+- **Email**: [gseyzeriat1@gmail.com](mailto:gseyzeriat1@gmail.com)
 
 Please include as much detail as possible:
 

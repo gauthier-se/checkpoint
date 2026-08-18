@@ -84,7 +84,7 @@ export function ProfileHeader({ profile, nav }: ProfileHeaderProps) {
             <span>Member since {memberSince}</span>
           </div>
 
-          {/* Stats + XP Progress — grouped so the bar matches the stats width */}
+          {/* Stats + XP Progress: grouped so the bar matches the stats width */}
           <div className="w-fit space-y-2">
             <div className="flex gap-6 text-sm">
               <div>
@@ -208,7 +208,7 @@ export function ProfileHeader({ profile, nav }: ProfileHeaderProps) {
         </aside>
       </div>
 
-      {/* Recent games — full-width row below the two-column body */}
+      {/* Recent games: full-width row below the two-column body */}
       <RecentGamesSection
         username={profile.username}
         isPrivate={profile.isPrivate}

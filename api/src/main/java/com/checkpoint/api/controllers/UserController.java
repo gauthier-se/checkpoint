@@ -440,7 +440,7 @@ public class UserController {
 
     /**
      * Removes a follower from the authenticated user. The given follower will no
-     * longer follow the authenticated user. Idempotent and silent — no notification
+     * longer follow the authenticated user. Idempotent and silent: no notification
      * is sent to the removed follower.
      *
      * @param userDetails the authenticated user principal

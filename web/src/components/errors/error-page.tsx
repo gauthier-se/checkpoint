@@ -94,7 +94,7 @@ export function ErrorPage({ status, title, message, onRetry }: ErrorPageProps) {
   useEffect(() => {
     if (typeof document === 'undefined') return
     const previous = document.title
-    document.title = `${resolvedTitle} — Checkpoint`
+    document.title = `${resolvedTitle} - Checkpoint`
     return () => {
       document.title = previous
     }

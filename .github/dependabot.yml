@@ -60,7 +60,7 @@ updates:
     commit-message:
       prefix: chore(web)
       # "chore(web): bump x" for prod deps, "chore(web)(deps-dev): bump x" for
-      # dev ones — the scope stays parseable either way.
+      # dev ones: the scope stays parseable either way.
       include: scope
     groups:
       web-minor-and-patch:

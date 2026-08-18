@@ -501,7 +501,7 @@ class GamePlayLogServiceImplTest {
     }
 
     @Nested
-    @DisplayName("logPlay() — collection reconciliation")
+    @DisplayName("logPlay(): collection reconciliation")
     class CollectionReconciliation {
 
         private void stubLogPlayHappyPath(GamePlayLogRequestDto request) {

@@ -163,7 +163,7 @@ class UserGameCollectionControllerTest {
         @DisplayName("should return 400 when request body is invalid")
         @WithMockUser(username = "user@example.com")
         void addGame_shouldReturn400WhenInvalidBody() throws Exception {
-            // Given — missing required fields
+            // Given: missing required fields
             String invalidJson = "{}";
 
             // When / Then

@@ -32,7 +32,7 @@ docs {
   ```
 
   - `completedAt` is `null` while the user is still in the wizard / checklist.
-  - `steps` is a sparse map — a missing entry means "not yet seen".
+  - `steps` is a sparse map: a missing entry means "not yet seen".
 
   This data is also embedded in `GET /api/v1/auth/me`, so the frontend usually
   doesn't need to call this endpoint explicitly.

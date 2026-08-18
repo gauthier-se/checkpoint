@@ -26,7 +26,7 @@ export const fetchCurrentUserServerFn = createServerFn({
 // Returns the incoming SSR request's Cookie header so server-side `apiFetch`
 // calls (route loaders hitting protected endpoints) can forward the user's
 // session. Reading the header inside a server function guarantees the request
-// context is present — a bare `getRequestHeader` call from within a react-query
+// context is present: a bare `getRequestHeader` call from within a react-query
 // queryFn does not. Runs only on the server; the handler is stripped from the
 // client bundle by the Start compiler.
 export const getRequestCookieServerFn = createServerFn({

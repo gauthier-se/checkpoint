@@ -233,7 +233,7 @@ export function QuickLogModal({ open, onOpenChange }: QuickLogModalProps) {
               </DialogTitle>
               {activeGame && (
                 <DialogDescription className="mt-0 pt-0.5">
-                  — Record your playtime, dates, and thoughts.
+                  - Record your playtime, dates, and thoughts.
                 </DialogDescription>
               )}
             </DialogHeader>

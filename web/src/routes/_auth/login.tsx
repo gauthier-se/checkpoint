@@ -21,7 +21,7 @@ const OAUTH_ERROR_MESSAGES: Record<string, string> = {
 
 export const Route = createFileRoute('/_auth/login')({
   head: () => ({
-    meta: seo({ title: 'Sign in — Checkpoint' }),
+    meta: seo({ title: 'Sign in - Checkpoint' }),
   }),
   validateSearch: (search: Record<string, unknown>): LoginSearchParams => ({
     redirect: typeof search.redirect === 'string' ? search.redirect : undefined,

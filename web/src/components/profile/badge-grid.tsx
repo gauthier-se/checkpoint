@@ -13,7 +13,7 @@ interface BadgeGridProps {
   /**
    * When set, only the first `limit` visible badges are rendered (earned
    * first), hidden silhouettes and the "X of Y hidden discovered" footer are
-   * omitted. Used by the profile header to keep the badge section compact —
+   * omitted. Used by the profile header to keep the badge section compact:
    * the full grid still lives on the dedicated badges page.
    */
   limit?: number
@@ -27,7 +27,7 @@ interface BadgeGridProps {
 
 /**
  * Returns true when the badge catalog has more content than would fit in a
- * preview limited to `limit` visible badges — i.e. there are more visible
+ * preview limited to `limit` visible badges: i.e. there are more visible
  * badges than the limit, or any hidden badges exist. Used to decide whether
  * to show a "See all" link next to a limited grid.
  */
@@ -38,7 +38,7 @@ export function hasMoreBadges(badges: Array<BadgeDto>, limit: number): boolean {
 }
 
 export function BadgeGrid({ badges, limit, gridClassName }: BadgeGridProps) {
-  // Visible (non-hidden) badges always render in the grid — earned ones in
+  // Visible (non-hidden) badges always render in the grid: earned ones in
   // full colour, locked ones desaturated so the user knows what to chase.
   // Hidden badges only show as silhouettes until earned (and then in full).
   const visibleAll = badges.filter((b) => !b.hidden || b.earned)
@@ -141,7 +141,7 @@ export function BadgeGrid({ badges, limit, gridClassName }: BadgeGridProps) {
                   </div>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Hidden badge — unlock it to reveal.</p>
+                  <p>Hidden badge: unlock it to reveal.</p>
                 </TooltipContent>
               </Tooltip>
             ))}

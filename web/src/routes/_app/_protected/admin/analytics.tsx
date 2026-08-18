@@ -11,7 +11,7 @@ import { adminAnalyticsQueryOptions } from '@/queries/admin/analytics'
 
 export const Route = createFileRoute('/_app/_protected/admin/analytics')({
   head: () => ({
-    meta: seo({ title: 'Analytics — Admin — Checkpoint' }),
+    meta: seo({ title: 'Analytics, Admin - Checkpoint' }),
   }),
   loader: ({ context }) => {
     void context.queryClient.prefetchQuery(adminAnalyticsQueryOptions())

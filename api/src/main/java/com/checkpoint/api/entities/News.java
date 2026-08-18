@@ -67,7 +67,7 @@ public class News {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    // Author is nullable: imported news (STEAM/RSS) have no human author —
+    // Author is nullable: imported news (STEAM/RSS) have no human author,
     // attribution lives in {@code feedName} and {@code externalUrl} instead.
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")

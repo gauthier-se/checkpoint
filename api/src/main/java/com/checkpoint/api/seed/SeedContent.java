@@ -32,7 +32,7 @@ final class SeedContent {
     static final List<String> BIO_TEMPLATES = List.of(
             "Souls fan, currently lost in another playthrough.",
             "Cozy game enjoyer. Will rate your farming sim.",
-            "JRPG addict — the longer the better.",
+            "JRPG addict: the longer the better.",
             "Speedrunning is a lifestyle.",
             "Indie game discoverer. Hidden gems > AAA.",
             "Couch co-op evangelist.",
@@ -43,7 +43,7 @@ final class SeedContent {
             "FPS veteran since the LAN party era.",
             "Casual on weekdays, hardcore on weekends.",
             "Story over gameplay. Always.",
-            "Platformer enthusiast — pixel-perfect or nothing.",
+            "Platformer enthusiast: pixel-perfect or nothing.",
             "Strategy games are my therapy.",
             "Racing sim driver, real life passenger.",
             "Just here for the lore.",
@@ -55,7 +55,7 @@ final class SeedContent {
     static final List<String> REVIEW_SNIPPETS = List.of(
             "Genuinely surprised by how much I enjoyed this. The pacing is tight and the mechanics click together once you push past the early hours.",
             "Beautiful art direction carried me through some rough difficulty spikes. Would replay just for the soundtrack.",
-            "Combat feels weighty and deliberate. Boss fights are the highlight — every encounter feels designed, not just thrown together.",
+            "Combat feels weighty and deliberate. Boss fights are the highlight: every encounter feels designed, not just thrown together.",
             "Story stuck the landing in a way I did not expect. The middle drags but the payoff is worth it.",
             "Mechanically polished but emotionally hollow. Fun for a weekend, forgettable a month later.",
             "If you bounced off the early game, push through. The systems open up beautifully around the 10-hour mark.",
@@ -69,7 +69,7 @@ final class SeedContent {
             "The world feels lived-in. NPCs have routines, weather changes everything, and side quests connect in clever ways.",
             "Soundtrack is the real protagonist. Closed my eyes during the ending credits and just listened.",
             "Co-op was the right call. Solo experience would be a chore; with a friend it becomes one of my favorites of the year.",
-            "Difficulty options are a masterclass — accessible without sanding away the tension.",
+            "Difficulty options are a masterclass: accessible without sanding away the tension.",
             "Crafting system is too fiddly. Spent more time in menus than fighting.",
             "Every dungeon teaches you something new. Pure metroidvania bliss.",
             "Sequel that justifies its existence. Bigger, sharper, and weirder."
@@ -94,7 +94,7 @@ final class SeedContent {
     );
 
     static final List<String> LIST_DESCRIPTIONS = List.of(
-            "A personal pick. Not exhaustive — just the ones I keep coming back to.",
+            "A personal pick. Not exhaustive: just the ones I keep coming back to.",
             "Built this list over a couple of years. Open to suggestions.",
             "Curated for friends who keep asking what to play next.",
             "Ranked by replay value, not release order.",
@@ -103,7 +103,7 @@ final class SeedContent {
 
     static final List<String> COMMENT_SNIPPETS = List.of(
             "Totally agree with this take.",
-            "Hard disagree — I think the second act is the weakest part.",
+            "Hard disagree: I think the second act is the weakest part.",
             "Have you tried the DLC? Changes my read on the ending entirely.",
             "Soundtrack alone makes it a 10.",
             "Played this last summer. Best decision of the year.",
@@ -113,7 +113,7 @@ final class SeedContent {
             "Underrated. Glad to see someone covering it.",
             "Going to give this another try based on your review.",
             "The pacing thing is real. Almost dropped it at hour 6.",
-            "Disagree on the combat — felt floaty to me.",
+            "Disagree on the combat: felt floaty to me.",
             "Adding it to my backlog right now.",
             "First time I see this take, fascinating angle."
     );

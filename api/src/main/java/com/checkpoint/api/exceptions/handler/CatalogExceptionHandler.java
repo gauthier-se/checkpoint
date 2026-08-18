@@ -80,7 +80,7 @@ public class CatalogExceptionHandler extends AbstractExceptionHandler {
      */
     @ExceptionHandler(GameReferencedException.class)
     public ResponseEntity<GameReferencedResponse> handleGameReferenced(GameReferencedException ex) {
-        log.warn("Game referenced — refusing delete: {}", ex.getMessage());
+        log.warn("Game referenced, refusing delete: {}", ex.getMessage());
 
         GameReferencedResponse body = new GameReferencedResponse(
                 HttpStatus.CONFLICT.value(),

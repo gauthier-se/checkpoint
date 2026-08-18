@@ -425,7 +425,7 @@ class SteamServiceImplTest {
 
         VideoGame g1 = videoGameWith(1000L);
         VideoGame g2 = videoGameWith(2000L);
-        // Both games already exist locally — no IGDB import needed.
+        // Both games already exist locally: no IGDB import needed.
         when(videoGameRepository.findAllByIgdbIdIn(anyCollection())).thenReturn(List.of(g1, g2));
         // g1 is already in the backlog; g2 is new.
         when(backlogRepository.findExistingVideoGameIds(eq(user.getId()), anyCollection()))

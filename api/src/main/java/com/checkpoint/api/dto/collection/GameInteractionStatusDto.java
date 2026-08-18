@@ -17,7 +17,7 @@ import com.checkpoint.api.enums.Priority;
  * @param userRating        the user's global rating from the Rate entity
  * @param hasReview         whether the user has reviewed the game
  * @param lastPlayRating    the score from the most recent scored play log, or null
- * @param liked             whether the user likes (loves) the game — distinct from the wishlist
+ * @param liked             whether the user likes (loves) the game: distinct from the wishlist
  */
 public record GameInteractionStatusDto(
         boolean inWishlist,

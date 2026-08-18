@@ -99,7 +99,7 @@ public class GameRecommendationServiceImpl implements GameRecommendationService 
         AffinityProfile profile = buildAffinityProfile(userId);
         Map<UUID, Double> affinityByGameId = profile.weightByGameId();
         if (affinityByGameId.isEmpty()) {
-            log.debug("Cold-start path for user {} — no affinity signal, falling back to trending", userEmail);
+            log.debug("Cold-start path for user {}: no affinity signal, falling back to trending", userEmail);
             return mapTrendingToRecommendations(gameTrendingService.getTrendingGames(validatedSize));
         }
 
@@ -125,7 +125,7 @@ public class GameRecommendationServiceImpl implements GameRecommendationService 
         }
 
         if (genreScores.isEmpty() && companyScores.isEmpty()) {
-            log.debug("Profile resolved to no genre/company signal for user {} — falling back to trending", userEmail);
+            log.debug("Profile resolved to no genre/company signal for user {}: falling back to trending", userEmail);
             return mapTrendingToRecommendations(gameTrendingService.getTrendingGames(validatedSize));
         }
 
@@ -136,7 +136,7 @@ public class GameRecommendationServiceImpl implements GameRecommendationService 
                 PageRequest.of(0, CANDIDATE_POOL_CAP));
 
         if (candidateIds.isEmpty()) {
-            log.debug("No candidate games for user {} — falling back to trending", userEmail);
+            log.debug("No candidate games for user {}: falling back to trending", userEmail);
             return mapTrendingToRecommendations(gameTrendingService.getTrendingGames(validatedSize));
         }
 
@@ -181,7 +181,7 @@ public class GameRecommendationServiceImpl implements GameRecommendationService 
 
     /**
      * Builds the user's affinity profile: a per-game weight map (used to score candidate
-     * tags) plus two source sets — games the user <em>loved</em> (high/mid rates,
+     * tags) plus two source sets: games the user <em>loved</em> (high/mid rates,
      * COMPLETED/PLAYING library entries, or game-likes) and games they only
      * <em>wishlisted</em>. The source sets let {@link #buildReason} phrase the reason as
      * "Because you liked …" versus "Similar to … on your wishlist". A game may legitimately

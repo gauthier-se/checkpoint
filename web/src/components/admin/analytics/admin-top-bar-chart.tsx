@@ -61,7 +61,7 @@ function ChartTooltip({
 
 /**
  * Horizontal bars for a small ranked list. One series, so every bar carries the
- * same hue — a darker-where-bigger ramp would double-encode the length and say
+ * same hue: a darker-where-bigger ramp would double-encode the length and say
  * nothing new. Values are direct-labelled, which both replaces the numeric axis
  * and keeps every value readable without hovering.
  *

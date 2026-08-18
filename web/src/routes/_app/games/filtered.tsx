@@ -75,7 +75,7 @@ function buildCatalogUrl(params: FilteredGamesSearchParams): string {
 
 export const Route = createFileRoute('/_app/games/filtered')({
   head: () => ({
-    meta: seo({ title: 'Browse games — Checkpoint' }),
+    meta: seo({ title: 'Browse games - Checkpoint' }),
   }),
   component: RouteComponent,
   validateSearch: (

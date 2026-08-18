@@ -14,7 +14,7 @@ export function DeleteNewsButton({ article }: { article: AdminNews }) {
       title={`Delete “${article.title}”?`}
       description={
         isPublished(article)
-          ? 'The article is live — deleting it removes it from the public news page immediately. This cannot be undone.'
+          ? 'The article is live: deleting it removes it from the public news page immediately. This cannot be undone.'
           : 'The draft is deleted permanently. This cannot be undone.'
       }
       mutationFn={() => deleteAdminNews(article.id)}

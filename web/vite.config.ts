@@ -45,7 +45,7 @@ const config = defineConfig(({ mode }) => {
         // Ratchet baseline: thresholds sit just below the measured floor so
         // regressions trip CI while there's room to grow them upward as the
         // suite expands. Initial measurement: lines 4.81, statements 4.81,
-        // functions 32.5, branches 41.86 — see TE-255.
+        // functions 32.5, branches 41.86: see TE-255.
         thresholds: {
           lines: 4,
           statements: 4,

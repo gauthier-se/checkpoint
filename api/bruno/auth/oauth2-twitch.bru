@@ -11,7 +11,7 @@ get {
 }
 
 docs {
-  # OAuth2 — Sign in with Twitch
+  # OAuth2: Sign in with Twitch
 
   Entry point of the Twitch OAuth2 login flow. Hitting this URL in a browser
   redirects the user to Twitch's consent screen. After consent, Twitch calls
@@ -27,7 +27,7 @@ docs {
 
   - **Browser**: 302 redirect to Twitch's OAuth consent screen.
   - **Server (after callback)**: fetches the Twitch user via Helix
-    (`https://api.twitch.tv/helix/users` — note the required `Client-Id` header
+    (`https://api.twitch.tv/helix/users`: note the required `Client-Id` header
     and `data` array unwrap, both handled by `CheckpointOAuth2UserService`),
     creates or links a local user, sets a `JSESSIONID` cookie, then
     302-redirects to the frontend.
@@ -43,7 +43,7 @@ docs {
 
   ## Scopes
 
-  - `user:read:email` — required to retrieve the user's email from Helix.
+  - `user:read:email`: required to retrieve the user's email from Helix.
 
   ## Configuration
 

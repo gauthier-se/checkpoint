@@ -28,7 +28,7 @@ interface AdminConfirmButtonProps {
   mutationFn: () => Promise<unknown>
   onSuccess?: () => void | Promise<void>
   /**
-   * Replaces the global error toast with bespoke handling — used where a
+   * Replaces the global error toast with bespoke handling: used where a
    * failure carries detail worth explaining, such as a deletion refused
    * because the record is still referenced.
    */

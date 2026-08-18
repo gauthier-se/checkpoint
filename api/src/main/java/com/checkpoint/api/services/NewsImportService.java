@@ -25,7 +25,7 @@ public interface NewsImportService {
 
     /**
      * Dispatches to {@link #importSteamNews()} or {@link #importRssFeeds()}.
-     * {@link NewsSource#MANUAL} is rejected — manual news has no import pass.
+     * {@link NewsSource#MANUAL} is rejected: manual news has no import pass.
      *
      * @param source the source to import from
      * @return the number of news entries inserted by this run

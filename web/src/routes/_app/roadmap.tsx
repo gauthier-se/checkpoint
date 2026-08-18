@@ -50,7 +50,7 @@ const PHASES: Array<RoadmapPhase> = [
 export const Route = createFileRoute('/_app/roadmap')({
   head: () => ({
     meta: seo({
-      title: 'Roadmap — Checkpoint',
+      title: 'Roadmap - Checkpoint',
       description: 'Discover what we are building next for Checkpoint.',
     }),
   }),

@@ -55,7 +55,7 @@ import com.checkpoint.api.repositories.VideoGameRepository;
  * <ol>
  *   <li>Ensures the {@code USER} and {@code ADMIN} roles exist.</li>
  *   <li>Bootstraps a default admin account ({@code admin / Password1!}) when no
- *       admin user exists yet — so a fresh database can be brought to a usable
+ *       admin user exists yet, so a fresh database can be brought to a usable
  *       state without manual SQL.</li>
  *   <li>Aborts gracefully if no games are imported yet, with a message pointing
  *       to the bulk-import workflow (TE-241).</li>
@@ -132,7 +132,7 @@ public class DatabaseSeeder implements ApplicationRunner {
 
         List<Platform> platforms = platformRepository.findAll();
         if (platforms.isEmpty()) {
-            log.warn("No platforms in DB — game imports must populate platforms before the seeder can attach play logs. Skipping.");
+            log.warn("No platforms in DB: game imports must populate platforms before the seeder can attach play logs. Skipping.");
             return;
         }
 
@@ -437,7 +437,7 @@ public class DatabaseSeeder implements ApplicationRunner {
 
         for (int i = 0; i < listCount; i++) {
             String baseTitle = SeedContent.LIST_TITLES.get(i % SeedContent.LIST_TITLES.size());
-            String title = usedTitles.add(baseTitle) ? baseTitle : baseTitle + " — vol. " + (i + 1);
+            String title = usedTitles.add(baseTitle) ? baseTitle : baseTitle + " - vol. " + (i + 1);
             usedTitles.add(title);
 
             User author = random.pick(users);

@@ -78,7 +78,7 @@ class TwoFactorControllerTest {
     private ApiAuthenticationEntryPoint apiAuthenticationEntryPoint;
 
     @Nested
-    @DisplayName("POST /api/v1/auth/login — 2FA flow")
+    @DisplayName("POST /api/v1/auth/login: 2FA flow")
     class LoginTwoFactorTests {
 
         @Test

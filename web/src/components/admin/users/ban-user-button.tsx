@@ -34,7 +34,7 @@ export function BanUserButton({ user, size = 'sm' }: BanUserButtonProps) {
       description={
         banned
           ? 'They will be able to sign in and post again.'
-          : 'They will be blocked from signing in. Their existing content stays in place — remove it from the moderation queue if it also needs to go.'
+          : 'They will be blocked from signing in. Their existing content stays in place: remove it from the moderation queue if it also needs to go.'
       }
       mutationFn={() =>
         banned ? unbanAdminUser(user.id) : banAdminUser(user.id)

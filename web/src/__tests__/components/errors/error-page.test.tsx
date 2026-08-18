@@ -105,6 +105,6 @@ describe('ErrorPage', () => {
 
   it('sets document.title from the resolved title', () => {
     render(<ErrorPage status={404} />)
-    expect(document.title).toBe('Page not found — Checkpoint')
+    expect(document.title).toBe('Page not found - Checkpoint')
   })
 })

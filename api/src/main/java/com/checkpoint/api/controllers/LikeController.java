@@ -114,7 +114,7 @@ public class LikeController {
 
     /**
      * Toggles a like on a video game. If the user already likes the game, the like is removed.
-     * Otherwise, a new like is created. A "like" marks a game the user loves — distinct from the
+     * Otherwise, a new like is created. A "like" marks a game the user loves: distinct from the
      * wishlist (games the user wants to buy).
      *
      * @param userDetails the authenticated user principal

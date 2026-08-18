@@ -36,7 +36,7 @@ public interface SteamOpenIdStateService {
      *
      * <p>Returns {@link Optional#empty()} for any failure: null/blank token, malformed JWT,
      * bad signature, expired token, or wrong token type. Callers should treat all empty
-     * results identically (reject the callback) — distinguishing the cause leaks information
+     * results identically (reject the callback): distinguishing the cause leaks information
      * to an attacker.</p>
      *
      * @param token the candidate JWT from the {@code state} query parameter

@@ -21,7 +21,7 @@ export interface TwoFactorSetupProps {
   compact?: boolean
   /** Called once the user has successfully verified the 6-digit code. */
   onEnabled?: () => void
-  /** Skip the internal "Enable 2FA" button and start the setup flow on mount — the parent provides the trigger. */
+  /** Skip the internal "Enable 2FA" button and start the setup flow on mount: the parent provides the trigger. */
   autoStart?: boolean
 }
 

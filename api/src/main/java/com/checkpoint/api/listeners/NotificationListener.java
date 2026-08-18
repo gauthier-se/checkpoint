@@ -40,7 +40,7 @@ public class NotificationListener {
     @Async
     @EventListener
     public void onNotificationEvent(NotificationEvent event) {
-        log.info("Received notification event — type: {}, recipient: {}", event.getType(), event.getRecipientId());
+        log.info("Received notification event, type: {}, recipient: {}", event.getType(), event.getRecipientId());
 
         notificationService.createNotification(
                 event.getRecipientId(),

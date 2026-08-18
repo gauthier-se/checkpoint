@@ -9,7 +9,7 @@ interface MiniStarRatingProps {
 
 /**
  * Compact, display-only star rendering for the friend-activity panel.
- * Only renders the filled portion of the rating — no empty-star track — so a
+ * Only renders the filled portion of the rating, no empty-star track, so a
  * 2-star rating shows two stars (no greys after), centered under the avatar.
  * Use {@link StarRating} for the interactive rating widget.
  */

@@ -19,7 +19,7 @@ export const Route = createFileRoute(
   '/_app/_protected/games/popular-with-friends',
 )({
   head: () => ({
-    meta: seo({ title: 'Popular with friends — Checkpoint' }),
+    meta: seo({ title: 'Popular with friends - Checkpoint' }),
   }),
   validateSearch: (
     search: Record<string, unknown>,

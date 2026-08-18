@@ -25,7 +25,7 @@ import com.checkpoint.api.services.NewsImportService;
  * Implementation of {@link NewsImportService}.
  *
  * <p>Each save is unwrapped from any service-level transaction so that a single
- * poison item — bad payload, dedup race, etc. — cannot roll back the rest of the
+ * poison item, bad payload, dedup race, etc., cannot roll back the rest of the
  * batch. Per-item and per-source error isolation are explicit in the code below.</p>
  */
 @Service
@@ -203,7 +203,7 @@ public class NewsImportServiceImpl implements NewsImportService {
             case STEAM -> importSteamNews();
             case RSS -> importRssFeeds();
             case MANUAL -> throw new IllegalArgumentException(
-                    "Cannot import from MANUAL — manual news is created via the admin panel");
+                    "Cannot import from MANUAL: manual news is created via the admin panel");
         };
     }
 }

@@ -32,7 +32,7 @@ interface FeedTabsProps {
 
 /**
  * Controlled filter tabs row for the activity feed. Renders only the tab
- * selector (no `TabsContent`) — the feed list is rendered separately and
+ * selector (no `TabsContent`): the feed list is rendered separately and
  * driven by the selected value via the query key. Uses the default
  * segmented (pill) style: compact and left-aligned.
  */

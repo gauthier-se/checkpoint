@@ -75,7 +75,7 @@ type ProfileGamesSearch = {
 
 export const Route = createFileRoute('/_app/profile_/$username/games')({
   head: ({ params }) => ({
-    meta: seo({ title: `${params.username}'s games — Checkpoint` }),
+    meta: seo({ title: `${params.username}'s games - Checkpoint` }),
   }),
   component: ProfileGamesPage,
   validateSearch: (search: Record<string, unknown>): ProfileGamesSearch => {
@@ -115,7 +115,7 @@ export const Route = createFileRoute('/_app/profile_/$username/games')({
       }
     }
     // wishlist, backlog, liked: require profile data (isOwner / profile.id)
-    // — prefetched in the component after profile resolves
+    // - prefetched in the component after profile resolves
     return profile
   },
 })

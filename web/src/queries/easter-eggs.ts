@@ -4,7 +4,7 @@ async function trigger(path: string): Promise<void> {
   try {
     await apiFetch(`/api/me/easter-eggs/${path}`, { method: 'POST' })
   } catch {
-    // Easter-egg badges are fire-and-forget — an offline user or a 401 should
+    // Easter-egg badges are fire-and-forget: an offline user or a 401 should
     // not surface anything to the UI. The badge stays "undiscovered" and the
     // user can trigger it again later.
   }

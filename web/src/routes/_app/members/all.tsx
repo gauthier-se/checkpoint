@@ -17,7 +17,7 @@ const PAGE_SIZE = 20
 
 export const Route = createFileRoute('/_app/members/all')({
   head: () => ({
-    meta: seo({ title: 'All members — Checkpoint' }),
+    meta: seo({ title: 'All members - Checkpoint' }),
   }),
   component: RouteComponent,
   pendingComponent: AllMembersSkeleton,

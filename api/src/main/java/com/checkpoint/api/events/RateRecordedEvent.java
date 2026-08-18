@@ -3,7 +3,7 @@ package com.checkpoint.api.events;
 import java.util.UUID;
 
 /**
- * Event published every time a user records a rating — whether the rating is
+ * Event published every time a user records a rating: whether the rating is
  * brand new or an update of an existing one. The distinct {@link GameRatedEvent}
  * only fires on first-time ratings (XP must not be granted on re-rates), so the
  * badge system needs this broader signal to evaluate threshold + change-count

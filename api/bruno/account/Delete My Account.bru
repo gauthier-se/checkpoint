@@ -18,7 +18,7 @@ docs {
   # Delete My Account
 
   Permanently deletes the authenticated user's account along with every piece
-  of personal data associated with it (GDPR Article 17 — right to erasure).
+  of personal data associated with it (GDPR Article 17: right to erasure).
 
   The deletion runs in a single transaction and follows a strict order so
   foreign-key constraints are respected:
@@ -27,7 +27,7 @@ docs {
   2. Refresh tokens and password reset tokens
   3. Notification preferences
   4. Follow relationships (both directions of the `user_follows` join table)
-  5. The user row itself — JPA cascades to: likes, comments, reports filed,
+  5. The user row itself, JPA cascades to: likes, comments, reports filed,
      reviews, play logs, library entries, wishes, backlog, favorites, lists
      and list entries, tags, rates, news, social links.
 

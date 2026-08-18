@@ -39,7 +39,7 @@ import com.checkpoint.api.repositories.VideoGameRepository;
 import com.checkpoint.api.services.impl.GamePersistenceServiceImpl;
 
 /**
- * Unit tests for {@link GamePersistenceServiceImpl} — the per-game upsert that
+ * Unit tests for {@link GamePersistenceServiceImpl}: the per-game upsert that
  * resolves relationships and applies the pre-fetched time-to-beat data.
  */
 @ExtendWith(MockitoExtension.class)

@@ -29,7 +29,7 @@ const columns: Array<AdminDataTableColumn<AdminReport>> = [
     header: 'Reason',
     cell: (report) => (
       <p className="line-clamp-2 max-w-xs text-muted-foreground">
-        {report.reason ?? '—'}
+        {report.reason ?? '-'}
       </p>
     ),
   },
@@ -37,7 +37,7 @@ const columns: Array<AdminDataTableColumn<AdminReport>> = [
     id: 'reporter',
     header: 'Reported by',
     className: 'w-36',
-    cell: (report) => report.reporterUsername ?? '—',
+    cell: (report) => report.reporterUsername ?? '-',
   },
   {
     id: 'createdAt',

@@ -65,19 +65,19 @@ public class AccountServiceImpl implements AccountService {
 
         deleteProfilePictureIfPresent(user);
 
-        // 1. Notifications — recipient cascade is on User, but sender FK is not.
+        // 1. Notifications: recipient cascade is on User, but sender FK is not.
         //    Delete both sides in a single query before the user row is gone.
         notificationRepository.deleteAllForUser(userId);
 
-        // 2. Auth tokens — neither RefreshToken nor PasswordResetToken
+        // 2. Auth tokens: neither RefreshToken nor PasswordResetToken
         //    is cascade-managed by the User entity.
         refreshTokenRepository.deleteByUserId(userId);
         passwordResetTokenRepository.deleteByUserId(userId);
 
-        // 3. Notification preferences — OneToOne with no cascade from User.
+        // 3. Notification preferences: OneToOne with no cascade from User.
         notificationPreferencesRepository.deleteByUserId(userId);
 
-        // 4. Follow relationships — clear both owning and inverse sides of
+        // 4. Follow relationships: clear both owning and inverse sides of
         //    the user_follows join table. JPA only owns the follower side.
         userRepository.deleteFollowsInvolvingUser(userId);
 

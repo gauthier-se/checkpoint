@@ -21,8 +21,8 @@ import com.checkpoint.api.services.OAuth2UserService;
  *
  * <p>Resolution order on each OAuth2 callback:</p>
  * <ol>
- *   <li>Lookup by {@code (provider, providerId)} — returning user.</li>
- *   <li>Lookup by email — link the OAuth identity to that account by setting
+ *   <li>Lookup by {@code (provider, providerId)}: returning user.</li>
+ *   <li>Lookup by email: link the OAuth identity to that account by setting
  *       its provider/providerId fields. This covers users who initially
  *       registered with a password and now sign in through Google/Twitch
  *       on the same email.</li>
@@ -81,7 +81,7 @@ public class OAuth2UserServiceImpl implements OAuth2UserService {
         User created = new User(pseudo, email, provider, providerId);
         created.setPicture(picture);
         created.setRole(userRole);
-        // The OAuth provider already gave us an avatar — count the picture step as done.
+        // The OAuth provider already gave us an avatar: count the picture step as done.
         if (picture != null && !picture.isBlank()) {
             created.getOnboardingSteps().put(OnboardingSteps.PICTURE, true);
         }

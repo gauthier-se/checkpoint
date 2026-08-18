@@ -8,7 +8,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * Wrapper for Steam's {@code IPlayerService/GetOwnedGames} response.
  *
  * <p>Steam returns the data inside an outer {@code response} object. When the library is
- * private the outer object is empty ({@code {"response": {}}}) — both nested fields are
+ * private the outer object is empty ({@code {"response": {}}}), both nested fields are
  * therefore nullable.</p>
  */
 public record SteamOwnedGamesResponseDto(
