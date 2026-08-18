@@ -115,6 +115,9 @@ class ProfileIntegrationTest {
         // Clear join tables and users before badges
         userRepository.deleteAll();
         badgeRepository.deleteAll();
+        // Flush the deletes: the startup badge catalog already holds a FIRST_REVIEW row, and
+        // Hibernate would otherwise order the insert below before these deletes.
+        badgeRepository.flush();
 
         testUser = new User();
         testUser.setEmail("gamer@example.com");
@@ -242,6 +245,22 @@ class ProfileIntegrationTest {
                     .andExpect(jsonPath("$.badges[0].name").value("First Review"))
                     .andExpect(jsonPath("$.isFollowing").isEmpty())
                     .andExpect(jsonPath("$.isOwner").value(false));
+        }
+
+        @Test
+        @DisplayName("should expose unearned catalog badges so the profile can list locked ones")
+        void shouldExposeUnearnedCatalogBadges() throws Exception {
+            Badge locked = new Badge();
+            locked.setCode("REVIEW_10");
+            locked.setName("Critic in the Making");
+            locked.setDescription("Write 10 reviews");
+            badgeRepository.save(locked);
+
+            mockMvc.perform(get("/api/v1/users/{username}", "gamer123"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.badges.length()").value(2))
+                    .andExpect(jsonPath("$.badges[?(@.code == 'FIRST_REVIEW')].earned").value(true))
+                    .andExpect(jsonPath("$.badges[?(@.code == 'REVIEW_10')].earned").value(false));
         }
 
         @Test
