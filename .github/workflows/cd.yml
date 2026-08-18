@@ -1,12 +1,20 @@
 name: CD
 
 # Deployment is driven from here rather than from Dokploy's "auto deploy on push"
-# setting. Dokploy watches the repository silently: when one of its applications
-# fails to pick a commit up, nothing surfaces anywhere, which is how the API once
-# stayed several versions behind the web app while both looked deployed. Going
-# through the deploy hooks puts a green or red check per application on every
-# commit of main, gates the rollout on the test suite, and orders the API ahead
-# of the web app.
+# setting. Dokploy watches the repository silently: its webhook handler answers
+# 301 and gives up when the branch or the configured watch paths do not match the
+# push payload, so an application that stops deploying looks exactly like one
+# with nothing to deploy. That is how the API once stayed several versions behind
+# the web app while both looked healthy. Driving it from here puts a green or red
+# check per application on every commit of main, gates the rollout on the test
+# suite, and orders the API ahead of the web app.
+#
+# Note this uses the application.deploy API rather than an application's deploy
+# hook URL. The hook is a git-provider webhook receiver, not a "deploy now"
+# button: it refuses with 400 unless autoDeploy is enabled on the application,
+# and it parses a push payload to decide the branch. autoDeploy is deliberately
+# off here, since leaving it on would let a push deploy straight to production
+# without passing the gate below.
 
 on:
   push:
@@ -106,15 +114,25 @@ jobs:
 
       - name: Trigger the Dokploy deployment
         env:
-          HOOK: ${{ secrets.DOKPLOY_API_DEPLOY_HOOK }}
+          DOKPLOY_URL: ${{ secrets.DOKPLOY_URL }}
+          DOKPLOY_API_KEY: ${{ secrets.DOKPLOY_API_KEY }}
+          APPLICATION_ID: ${{ secrets.DOKPLOY_API_APPLICATION_ID }}
         run: |
           set -euo pipefail
-          if [ -z "$HOOK" ]; then
-            echo "::error::DOKPLOY_API_DEPLOY_HOOK is not set in the repository secrets."
+          if [ -z "$DOKPLOY_URL" ] || [ -z "$DOKPLOY_API_KEY" ] || [ -z "$APPLICATION_ID" ]; then
+            echo "::error::DOKPLOY_URL, DOKPLOY_API_KEY and DOKPLOY_API_APPLICATION_ID must all be set in the repository secrets."
             exit 1
           fi
-          status=$(curl -sS -X POST -o /dev/null -w '%{http_code}' --max-time 30 "$HOOK")
-          echo "Dokploy answered HTTP $status"
+
+          body=$(mktemp)
+          status=$(curl -sS -o "$body" -w '%{http_code}' --max-time 60 \
+            -X POST "$DOKPLOY_URL/api/application.deploy" \
+            -H 'accept: application/json' \
+            -H "x-api-key: $DOKPLOY_API_KEY" \
+            -H 'Content-Type: application/json' \
+            -d "$(jq -nc --arg id "$APPLICATION_ID" '{ applicationId: $id }')")
+
+          echo "Dokploy answered HTTP $status: $(cat "$body")"
           case "$status" in
             2*) ;;
             *) echo "::error::Dokploy refused the deploy request (HTTP $status)."; exit 1 ;;
@@ -123,7 +141,7 @@ jobs:
       - name: Wait for the new build to serve traffic
         env:
           STARTED_AT: ${{ steps.start.outputs.at }}
-        # The hook only acknowledges the request: it says nothing about whether
+        # The API only queues the deployment: it says nothing about whether
         # the image built or the container came back up. The build timestamp
         # baked into the jar is the only thing that proves the running process
         # is the one this run asked for.
@@ -173,15 +191,25 @@ jobs:
 
       - name: Trigger the Dokploy deployment
         env:
-          HOOK: ${{ secrets.DOKPLOY_WEB_DEPLOY_HOOK }}
+          DOKPLOY_URL: ${{ secrets.DOKPLOY_URL }}
+          DOKPLOY_API_KEY: ${{ secrets.DOKPLOY_API_KEY }}
+          APPLICATION_ID: ${{ secrets.DOKPLOY_WEB_APPLICATION_ID }}
         run: |
           set -euo pipefail
-          if [ -z "$HOOK" ]; then
-            echo "::error::DOKPLOY_WEB_DEPLOY_HOOK is not set in the repository secrets."
+          if [ -z "$DOKPLOY_URL" ] || [ -z "$DOKPLOY_API_KEY" ] || [ -z "$APPLICATION_ID" ]; then
+            echo "::error::DOKPLOY_URL, DOKPLOY_API_KEY and DOKPLOY_WEB_APPLICATION_ID must all be set in the repository secrets."
             exit 1
           fi
-          status=$(curl -sS -X POST -o /dev/null -w '%{http_code}' --max-time 30 "$HOOK")
-          echo "Dokploy answered HTTP $status"
+
+          body=$(mktemp)
+          status=$(curl -sS -o "$body" -w '%{http_code}' --max-time 60 \
+            -X POST "$DOKPLOY_URL/api/application.deploy" \
+            -H 'accept: application/json' \
+            -H "x-api-key: $DOKPLOY_API_KEY" \
+            -H 'Content-Type: application/json' \
+            -d "$(jq -nc --arg id "$APPLICATION_ID" '{ applicationId: $id }')")
+
+          echo "Dokploy answered HTTP $status: $(cat "$body")"
           case "$status" in
             2*) ;;
             *) echo "::error::Dokploy refused the deploy request (HTTP $status)."; exit 1 ;;

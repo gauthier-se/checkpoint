@@ -257,14 +257,21 @@ to `main` and:
 2. Re-runs `api-ci.yml` and `web-ci.yml` on the merge commit. The pull request
    runs cover the branch, not the commit that actually lands, and a push to
    `main` triggers neither workflow on its own.
-3. Calls the Dokploy deploy hook of each changed application, API first. A
-   commit touching both must ship the API ahead of the web app: the front end
-   calls endpoints that have to exist already, and it is also the proxy in
-   front of the API.
+3. Asks Dokploy to deploy each changed application, API first. A commit touching
+   both must ship the API ahead of the web app: the front end calls endpoints
+   that have to exist already, and it is also the proxy in front of the API.
 4. Waits for the deployment to be observably live.
 
-That last step matters. A deploy hook only acknowledges the request, so a build
-that fails inside Dokploy still answers with a success code. For the API the
+Step 3 goes through Dokploy's `application.deploy` API, not through an
+application's deploy hook URL. That hook is a git-provider webhook receiver
+rather than a "deploy now" button: it answers 400 unless `autoDeploy` is enabled
+on the application, and it parses a push payload to decide which branch to build,
+answering 301 and giving up when the branch or the configured watch paths do not
+match. `autoDeploy` is deliberately off on both applications, since leaving it on
+would let a push reach production without passing the gate above.
+
+Step 4 matters just as much. Queuing a deployment only acknowledges the request,
+so a build that fails inside Dokploy still answers with a success code. For the API the
 workflow polls `/api/v1/actuator/info` until the reported `build.time` is newer
 than the run, which is what proves the container restarted on a new image. The
 web app has no equivalent stamp, so the workflow waits for the site to answer
@@ -275,10 +282,17 @@ tab and pick `api`, `web`, or `both`.
 
 ### Required repository secrets
 
-| Secret                    | Purpose                        |
-| ------------------------- | ------------------------------ |
-| `DOKPLOY_API_DEPLOY_HOOK` | Deploy hook URL of the API app |
-| `DOKPLOY_WEB_DEPLOY_HOOK` | Deploy hook URL of the web app |
+| Secret                       | Purpose                                          |
+| ---------------------------- | ------------------------------------------------ |
+| `DOKPLOY_URL`                | Base URL of the Dokploy panel, no trailing slash |
+| `DOKPLOY_API_KEY`            | Dokploy API key, from Settings > API/CLI         |
+| `DOKPLOY_API_APPLICATION_ID` | `applicationId` of the API application           |
+| `DOKPLOY_WEB_APPLICATION_ID` | `applicationId` of the web application           |
 
-These URLs are credentials: anyone holding one can trigger a production
-deployment. Regenerate them in Dokploy if they are ever exposed.
+The application ids are visible in the URL of each application's page in the
+Dokploy panel. The panel URL is a secret rather than a literal in this file
+because the repository is public.
+
+The API key is a credential: anyone holding it can deploy to production, and it
+is not scoped to a single application. Rotate it in Dokploy if it is ever
+exposed.
