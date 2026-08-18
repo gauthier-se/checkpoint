@@ -57,9 +57,10 @@ interface ServerErrorResponse {
  * Wrapper around fetch that automatically includes credentials (cookies)
  * for session-based authentication.
  *
- * Client-side: uses relative paths so requests hit the web origin and are
- * proxied to the API (see `nitro.routeRules` in vite.config.ts). This keeps
- * auth cookies scoped to the web origin, which is required for SSR auth.
+ * Client-side: prefixes `VITE_API_URL`, the API's own origin in production, and
+ * falls back to relative paths locally, where the Nitro proxy in vite.config.ts
+ * forwards them. Cookies reach the API either way: same origin locally, and in
+ * production a cookie domain shared by both subdomains.
  *
  * Server-side: uses `API_INTERNAL_URL` for direct API calls (Node fetch
  * requires absolute URLs) and forwards the incoming SSR request's auth cookie:

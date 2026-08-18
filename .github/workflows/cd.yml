@@ -1,20 +1,10 @@
 name: CD
 
-# Deployment is driven from here rather than from Dokploy's "auto deploy on push"
-# setting. Dokploy watches the repository silently: its webhook handler answers
-# 301 and gives up when the branch or the configured watch paths do not match the
-# push payload, so an application that stops deploying looks exactly like one
-# with nothing to deploy. That is how the API once stayed several versions behind
-# the web app while both looked healthy. Driving it from here puts a green or red
-# check per application on every commit of main, gates the rollout on the test
-# suite, and orders the API ahead of the web app.
-#
-# Note this uses the application.deploy API rather than an application's deploy
-# hook URL. The hook is a git-provider webhook receiver, not a "deploy now"
-# button: it refuses with 400 unless autoDeploy is enabled on the application,
-# and it parses a push payload to decide the branch. autoDeploy is deliberately
-# off here, since leaving it on would let a push deploy straight to production
-# without passing the gate below.
+# Dokploy's own "auto deploy on push" is off on both applications: it deploys
+# without passing this gate, and it fails silently when its watch paths or branch
+# do not match. Deployments go through the application.deploy API rather than an
+# application's deploy hook, which is a git-provider webhook receiver and refuses
+# with 400 when autoDeploy is off.
 
 on:
   push:
@@ -27,8 +17,6 @@ on:
         options: [both, api, web]
         default: both
 
-# One deployment at a time, and never cancel one midway: a half-applied rollout
-# is worse than a queued one.
 concurrency:
   group: cd
   cancel-in-progress: false
@@ -38,10 +26,9 @@ permissions:
 
 env:
   SITE_URL: https://checkpoint.seyzeriat.com
-  # The API is served from its own subdomain, and that is also what the browser
-  # bundle calls (VITE_API_URL is baked in at build time). SITE_URL/api/** is a
-  # dev-only Nitro route rule and does not resolve in production, so probing it
-  # would time out on a perfectly healthy deployment.
+  # Each application has its own domain, and the browser bundle calls the API
+  # directly. SITE_URL/api/** is a dev-only Nitro route rule and never resolves
+  # in production.
   API_URL: https://checkpoint-api.seyzeriat.com
 
 jobs:
@@ -73,8 +60,8 @@ jobs:
               *)   api=true;  web=true  ;;
             esac
           elif ! git cat-file -e "${BEFORE}^{commit}" 2>/dev/null; then
-            # First push on the branch, or history rewritten: the diff base is
-            # gone, so deploy both rather than silently skipping one.
+            # Diff base gone (first push, or history rewritten): deploy both
+            # rather than silently skipping one.
             echo "No usable diff base ($BEFORE), deploying both applications."
             api=true
             web=true
@@ -112,9 +99,7 @@ jobs:
     steps:
       - name: Record the trigger time
         id: start
-        # Two minutes of slack absorbs clock skew between this runner and the
-        # VPS, so a correct deployment is never rejected for being a moment
-        # "older" than the trigger.
+        # Two minutes of slack absorbs clock skew against the VPS.
         run: echo "at=$(( $(date -u +%s) - 120 ))" >> "$GITHUB_OUTPUT"
 
       - name: Trigger the Dokploy deployment
@@ -146,14 +131,10 @@ jobs:
       - name: Wait for the new build to serve traffic
         env:
           STARTED_AT: ${{ steps.start.outputs.at }}
-        # The API only queues the deployment: it says nothing about whether the
-        # image built or the container came back up. The JVM start instant is
-        # what proves the rollout was applied, since it moves on every container
-        # start. build.time cannot carry that on its own: the image layers are
-        # cached on the source tree, so redeploying a commit that left api/
-        # untouched rebuilds to a byte-identical image with an unchanged
-        # build.time, and waiting on it would hang on a healthy deployment. It is
-        # still reported, because it says which image is now serving.
+        # Dokploy only queues the deployment, so the rollout has to be observed.
+        # The gate is the JVM start instant, not build.time: image layers are
+        # cached on the source tree, so a deploy leaving api/ untouched rebuilds
+        # to an identical image whose build.time never moves.
         run: |
           set -uo pipefail
           info_url="$API_URL/api/v1/actuator/info"
@@ -177,9 +158,6 @@ jobs:
               state="not answering"
             fi
 
-            # One line when the state changes, then one every two minutes: a
-            # rollout takes minutes, and sixty identical lines only make the
-            # real failure at the end harder to find.
             if [ "$state" != "$last_state" ] || [ $(( attempt % 8 )) -eq 0 ]; then
               echo "API $state, waiting."
               last_state="$state"
@@ -189,15 +167,12 @@ jobs:
             sleep 15
           done
 
-          echo "::error::The API never reported a process started after this run, so the rollout was never applied. The image may have failed to build, or the container may have failed to start. Note that a task Swarm rejects outright, over an invalid mount for instance, never produces a container and never logs anything: 'docker service ps --no-trunc <service>' is what shows that."
+          echo "::error::The API never reported a process started after this run, so the rollout was never applied. A task Swarm rejects outright, over an invalid mount for instance, produces neither a container nor a log line: 'docker service ps --no-trunc <service>' is what shows that."
           exit 1
 
   deploy-web:
     name: Deploy web
-    # Depends on deploy-api so that a commit touching both ships the API first.
-    # The web app calls endpoints that must already exist, and it also proxies
-    # /api/** to the API, so the reverse order leaves a window where the front
-    # end is live against a backend that does not know its routes yet.
+    # After deploy-api: the web app calls endpoints that must already exist.
     needs: [changes, test-web, deploy-api]
     if: ${{ !cancelled() && !failure() && needs.changes.outputs.web == 'true' }}
     runs-on: ubuntu-latest
@@ -240,12 +215,9 @@ jobs:
       - name: Wait for the site to serve traffic again
         env:
           BEFORE_HASH: ${{ steps.before.outputs.hash }}
-        # There is no build stamp on the web side, so this proves the container
-        # is back up rather than that it runs new code. The bundle hash is
-        # content-derived, so a changed hash confirms new code shipped: it is
-        # only reported, not enforced, because a deploy that touches the
-        # lockfile or the Dockerfile alone can legitimately rebuild to the same
-        # bundle.
+        # The web app has no build stamp, so this only proves it is back up. The
+        # bundle hash is content-derived and reported, not enforced: a deploy
+        # touching only the lockfile can rebuild to the same bundle.
         run: |
           set -uo pipefail
           deadline=$(( $(date -u +%s) + 900 ))
@@ -254,8 +226,8 @@ jobs:
           while [ "$(date -u +%s)" -lt "$deadline" ]; do
             html=$(curl -sS --max-time 15 "$SITE_URL/" 2>/dev/null || true)
             if printf '%s' "$html" | grep -q '<!DOCTYPE html>'; then
-              # Give the rollout a moment to finish swapping containers before
-              # reading the hash, so the old one is not caught on its way out.
+              # Settle before reading the hash, so the outgoing container is not
+              # the one measured.
               if [ -z "$settled_since" ]; then
                 settled_since=$(date -u +%s)
               elif [ $(( $(date -u +%s) - settled_since )) -ge 30 ]; then
