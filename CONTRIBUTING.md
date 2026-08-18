@@ -282,16 +282,16 @@ tab and pick `api`, `web`, or `both`.
 
 ### Required repository secrets
 
-| Secret                       | Purpose                                          |
-| ---------------------------- | ------------------------------------------------ |
-| `DOKPLOY_URL`                | Base URL of the Dokploy panel, no trailing slash |
-| `DOKPLOY_API_KEY`            | Dokploy API key, from Settings > API/CLI         |
-| `DOKPLOY_API_APPLICATION_ID` | `applicationId` of the API application           |
-| `DOKPLOY_WEB_APPLICATION_ID` | `applicationId` of the web application           |
+| Secret                       | Purpose                                         |
+| ---------------------------- | ----------------------------------------------- |
+| `DOKPLOY_URL`                | Base URL of the panel, no trailing slash        |
+| `DOKPLOY_API_KEY`            | Settings > Profile, the "API/CLI Keys" card     |
+| `DOKPLOY_API_APPLICATION_ID` | `applicationId` of the API application          |
+| `DOKPLOY_WEB_APPLICATION_ID` | `applicationId` of the web application          |
 
-The application ids are visible in the URL of each application's page in the
-Dokploy panel. The panel URL is a secret rather than a literal in this file
-because the repository is public.
+An `applicationId` is the last segment of the application's URL in the panel,
+after `/services/application/`. The panel URL is a secret rather than a literal
+in this file because the repository is public.
 
 The API key is a credential: anyone holding it can deploy to production, and it
 is not scoped to a single application. Rotate it in Dokploy if it is ever
