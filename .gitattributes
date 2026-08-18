@@ -1,0 +1,7 @@
+# `api/mvnw.cmd` is a Windows batch script and needs CRLF endings when checked
+# out, but it must be *stored* with LF: the Maven wrapper bump in #559 committed
+# it with CRLF in the blob, which makes every clone configured with
+# `core.autocrlf=input` report the file as modified forever, with no way to
+# clean it. Declaring the conversion here fixes it for everyone.
+*.cmd text eol=crlf
+*.bat text eol=crlf
