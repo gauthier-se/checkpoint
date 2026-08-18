@@ -1,5 +1,7 @@
 package com.checkpoint.api.repositories;
 
+import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -41,4 +43,17 @@ public interface NewsRepository extends JpaRepository<News, UUID> {
      * @return the published news, or empty if not found or not published
      */
     Optional<News> findByIdAndPublishedAtIsNotNull(UUID id);
+
+    /**
+     * Counts the articles pulled in from external sources since the given instant.
+     * Backs the daily import ceiling: {@code created_at} is the insertion time, so
+     * this is the number of rows the importers actually added today, not the number
+     * of items the feeds offered. {@link NewsSource#MANUAL} is left out by the
+     * caller, so admin-written news never eats the import budget.
+     *
+     * @param sources the sources to count
+     * @param from    the start of the window, inclusive
+     * @return how many matching articles were created in the window
+     */
+    long countBySourceInAndCreatedAtGreaterThanEqual(Collection<NewsSource> sources, LocalDateTime from);
 }

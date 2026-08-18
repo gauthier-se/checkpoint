@@ -30,12 +30,15 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.checkpoint.api.dto.catalog.NewsAuthorDto;
+import com.checkpoint.api.dto.catalog.NewsImportSettingsDto;
+import com.checkpoint.api.dto.catalog.NewsImportSettingsRequestDto;
 import com.checkpoint.api.dto.catalog.NewsRequestDto;
 import com.checkpoint.api.dto.catalog.NewsResponseDto;
 import com.checkpoint.api.entities.NewsSource;
 import com.checkpoint.api.security.ApiAuthenticationEntryPoint;
 import com.checkpoint.api.security.JwtAuthenticationFilter;
 import com.checkpoint.api.services.NewsImportService;
+import com.checkpoint.api.services.NewsImportSettingsService;
 import com.checkpoint.api.services.NewsService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -54,6 +57,9 @@ class AdminNewsControllerTest {
 
     @MockitoBean
     private NewsImportService newsImportService;
+
+    @MockitoBean
+    private NewsImportSettingsService newsImportSettingsService;
 
     @MockitoBean
     private JwtAuthenticationFilter jwtAuthenticationFilter;
@@ -225,5 +231,41 @@ class AdminNewsControllerTest {
                 .andExpect(jsonPath("$.imported").value(0));
 
         verify(newsImportService).importFromSource(NewsSource.RSS);
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/admin/news/import-settings should return the settings and today's counters")
+    @WithMockUser(username = "admin@test.com", roles = "ADMIN")
+    void getImportSettings_shouldReturnSettings() throws Exception {
+        when(newsImportSettingsService.get()).thenReturn(new NewsImportSettingsDto(
+                true, false, 200, 5, 12L, 188, LocalDateTime.now(), "admin"));
+
+        mockMvc.perform(get("/api/v1/admin/news/import-settings"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.steamEnabled").value(true))
+                .andExpect(jsonPath("$.rssEnabled").value(false))
+                .andExpect(jsonPath("$.maxArticlesPerDay").value(200))
+                .andExpect(jsonPath("$.importedToday").value(12))
+                .andExpect(jsonPath("$.remainingToday").value(188));
+    }
+
+    @Test
+    @DisplayName("PUT /api/v1/admin/news/import-settings should forward the payload and the admin username")
+    @WithMockUser(username = "admin@test.com", roles = "ADMIN")
+    void updateImportSettings_shouldForwardPayload() throws Exception {
+        NewsImportSettingsRequestDto request =
+                new NewsImportSettingsRequestDto(false, null, 50, null, null);
+        when(newsImportSettingsService.update(eq("admin@test.com"), any(NewsImportSettingsRequestDto.class)))
+                .thenReturn(new NewsImportSettingsDto(
+                        false, true, 50, 5, 0L, 50, LocalDateTime.now(), "admin@test.com"));
+
+        mockMvc.perform(put("/api/v1/admin/news/import-settings")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.steamEnabled").value(false))
+                .andExpect(jsonPath("$.maxArticlesPerDay").value(50));
+
+        verify(newsImportSettingsService).update(eq("admin@test.com"), any(NewsImportSettingsRequestDto.class));
     }
 }

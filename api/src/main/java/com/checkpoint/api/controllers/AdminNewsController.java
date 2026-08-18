@@ -25,11 +25,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.checkpoint.api.dto.catalog.NewsImportSettingsDto;
+import com.checkpoint.api.dto.catalog.NewsImportSettingsRequestDto;
 import com.checkpoint.api.dto.catalog.NewsRequestDto;
 import com.checkpoint.api.dto.catalog.NewsResponseDto;
 import com.checkpoint.api.dto.catalog.PagedResponseDto;
 import com.checkpoint.api.entities.NewsSource;
 import com.checkpoint.api.services.NewsImportService;
+import com.checkpoint.api.services.NewsImportSettingsService;
 import com.checkpoint.api.services.NewsService;
 
 /**
@@ -51,16 +54,21 @@ public class AdminNewsController {
 
     private final NewsService newsService;
     private final NewsImportService newsImportService;
+    private final NewsImportSettingsService newsImportSettingsService;
 
     /**
      * Constructs a new AdminNewsController.
      *
-     * @param newsService       the news service
-     * @param newsImportService the news import orchestrator (Steam / RSS)
+     * @param newsService               the news service
+     * @param newsImportService         the news import orchestrator (Steam / RSS)
+     * @param newsImportSettingsService the admin-editable import settings
      */
-    public AdminNewsController(NewsService newsService, NewsImportService newsImportService) {
+    public AdminNewsController(NewsService newsService,
+                               NewsImportService newsImportService,
+                               NewsImportSettingsService newsImportSettingsService) {
         this.newsService = newsService;
         this.newsImportService = newsImportService;
+        this.newsImportSettingsService = newsImportSettingsService;
     }
 
     /**
@@ -199,6 +207,35 @@ public class AdminNewsController {
         log.info("Admin request: triggering news import from {}", source);
         int imported = newsImportService.importFromSource(source);
         return ResponseEntity.ok(Map.of("imported", imported));
+    }
+
+    /**
+     * Returns the news-import settings together with today's article counters.
+     *
+     * @return the current settings
+     */
+    @GetMapping("/import-settings")
+    public ResponseEntity<NewsImportSettingsDto> getImportSettings() {
+        log.info("Admin request: fetching news import settings");
+        return ResponseEntity.ok(newsImportSettingsService.get());
+    }
+
+    /**
+     * Updates the news-import settings. Null fields are left untouched, so the panel
+     * can send a single toggle without restating the whole form.
+     *
+     * @param userDetails the authenticated admin, recorded on the row
+     * @param request     the partial update payload
+     * @return the settings as they now stand
+     */
+    @PutMapping("/import-settings")
+    public ResponseEntity<NewsImportSettingsDto> updateImportSettings(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestBody NewsImportSettingsRequestDto request) {
+
+        log.info("Admin request: updating news import settings by {}", userDetails.getUsername());
+
+        return ResponseEntity.ok(newsImportSettingsService.update(userDetails.getUsername(), request));
     }
 
     /**

@@ -3,6 +3,8 @@ import { ADMIN_QUERY_KEY, adminFetchJson, buildAdminPageUrl } from './shared'
 import type { QueryClient } from '@tanstack/react-query'
 import type {
   AdminNews,
+  AdminNewsImportSettings,
+  AdminNewsImportSettingsPayload,
   AdminNewsPayload,
   AdminPagedResponse,
   ImportableNewsSource,
@@ -88,4 +90,32 @@ export async function invalidateNews(queryClient: QueryClient): Promise<void> {
     queryClient.invalidateQueries({ queryKey: adminNewsQueryKey }),
     queryClient.invalidateQueries({ queryKey: ['news'] }),
   ])
+}
+
+export const adminNewsImportSettingsQueryKey = [
+  ...adminNewsQueryKey,
+  'import-settings',
+] as const
+
+/**
+ * The key sits under `adminNewsQueryKey`, so `invalidateNews` refreshes it too:
+ * a manual import run therefore updates the today counter without extra wiring.
+ */
+export function adminNewsImportSettingsQueryOptions() {
+  return queryOptions({
+    queryKey: adminNewsImportSettingsQueryKey,
+    queryFn: () =>
+      adminFetchJson<AdminNewsImportSettings>(`${NEWS_PATH}/import-settings`),
+  })
+}
+
+export async function updateAdminNewsImportSettings(
+  payload: AdminNewsImportSettingsPayload,
+): Promise<AdminNewsImportSettings> {
+  const res = await apiFetch(`${NEWS_PATH}/import-settings`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+  return res.json() as Promise<AdminNewsImportSettings>
 }

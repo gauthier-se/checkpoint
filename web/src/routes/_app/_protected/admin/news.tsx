@@ -9,7 +9,10 @@ import { NewsImportPanel } from '@/components/admin/news/news-import-panel'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { seo } from '@/lib/seo'
-import { adminNewsListQueryOptions } from '@/queries/admin/news'
+import {
+  adminNewsImportSettingsQueryOptions,
+  adminNewsListQueryOptions,
+} from '@/queries/admin/news'
 
 export const Route = createFileRoute('/_app/_protected/admin/news')({
   head: () => ({
@@ -21,6 +24,9 @@ export const Route = createFileRoute('/_app/_protected/admin/news')({
   loaderDeps: ({ search }) => search,
   loader: ({ context, deps }) => {
     void context.queryClient.prefetchQuery(adminNewsListQueryOptions(deps))
+    void context.queryClient.prefetchQuery(
+      adminNewsImportSettingsQueryOptions(),
+    )
   },
   component: AdminNewsPage,
 })
