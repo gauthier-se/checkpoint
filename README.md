@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/logo/logo.png" alt="CheckPoint Logo" width="200"/>
+  <img src="docs/assets/logo/logo.png" alt="CheckPoint Logo" width="120"/>
 </p>
 
 <h1 align="center">CheckPoint</h1>
@@ -25,6 +25,12 @@
   <img src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black" alt="React"/>
   <img src="https://img.shields.io/badge/coverage-%E2%89%A570%25-brightgreen?logo=jacoco&logoColor=white" alt="Coverage"/>
   <img src="https://img.shields.io/badge/PRs-welcome-blueviolet" alt="PRs welcome"/>
+</p>
+
+---
+
+<p align="center">
+  <img src="docs/assets/mockups/homepage.png" alt="CheckPoint homepage" width="900"/>
 </p>
 
 ---
