@@ -359,7 +359,11 @@ function StandardRegisterForm({
                   className="text-sm font-normal leading-snug cursor-pointer"
                 >
                   I agree to the{' '}
-                  <Link to="/legal" className="underline underline-offset-4">
+                  <Link
+                    to="/legal"
+                    hash="terms"
+                    className="underline underline-offset-4"
+                  >
                     Terms of Service
                   </Link>{' '}
                   and the{' '}
@@ -573,7 +577,11 @@ function SteamRegisterForm({
                   className="text-sm font-normal leading-snug cursor-pointer"
                 >
                   I agree to the{' '}
-                  <Link to="/legal" className="underline underline-offset-4">
+                  <Link
+                    to="/legal"
+                    hash="terms"
+                    className="underline underline-offset-4"
+                  >
                     Terms of Service
                   </Link>{' '}
                   and the{' '}
