@@ -114,7 +114,7 @@ function AboutPage() {
 
         <div className="grid gap-6 sm:grid-cols-2 max-w-3xl mx-auto mt-12">
           <a
-            href="mailto:gseyzeriat1@gmail.com"
+            href="mailto:contact@seyzeriat.com"
             className="flex items-center gap-5 rounded-xl border p-6 hover:bg-muted/50 transition-colors group"
           >
             <div className="flex size-14 shrink-0 items-center justify-center rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors">
@@ -122,7 +122,7 @@ function AboutPage() {
             </div>
             <div>
               <h3 className="font-semibold text-lg">Email Us</h3>
-              <p className="text-muted-foreground">gseyzeriat1@gmail.com</p>
+              <p className="text-muted-foreground">contact@seyzeriat.com</p>
             </div>
           </a>
 
