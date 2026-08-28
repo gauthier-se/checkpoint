@@ -321,10 +321,10 @@ function LegalPage() {
             </p>
             <p>
               <a
-                href="mailto:gseyzeriat1@gmail.com"
+                href="mailto:contact@seyzeriat.com"
                 className="text-primary hover:underline"
               >
-                gseyzeriat1@gmail.com
+                contact@seyzeriat.com
               </a>
             </p>
             <p>
