@@ -71,10 +71,27 @@ updates:
     # a subpath vite 7 does not export, so the test run dies at startup with
     # ERR_PACKAGE_PATH_NOT_EXPORTED. Bumping it means moving the app to vite 8
     # first. Drop this entry once that happens.
+    #
+    # @tanstack/react-start 1.169 is gated on the same vite 8 move: it
+    # peer-requires vite >=8 and the build dies under vite 7 with "Could not
+    # resolve entry module index.html", failing the whole minor-and-patch group.
+    # 1.168.x pins @tanstack/react-router and @tanstack/router-plugin to exact
+    # versions, so package.json pins both to the ones 1.168.61 ships with;
+    # letting Dependabot move them alone would put a second router copy in the
+    # tree. Drop these three entries with the vite 8 upgrade.
     ignore:
       - dependency-name: "@vitejs/plugin-react"
         update-types:
           - version-update:semver-major
+      - dependency-name: "@tanstack/react-start"
+        versions:
+          - ">=1.169.0"
+      - dependency-name: "@tanstack/react-router"
+        versions:
+          - ">1.170.42"
+      - dependency-name: "@tanstack/router-plugin"
+        versions:
+          - ">1.168.43"
 
   - package-ecosystem: github-actions
     directory: /
@@ -97,6 +114,6 @@ updates:
 # to be the two uncovered ones; both were archived on 2026-08-18 and are
 # recoverable from the `desktop-final` and `presentation-final` tags (ARCHIVE.md).
 #
-# The only exclusions left are the four `ignore` entries above, each pinned to
-# majors that cannot build against the current stack. They are temporary and
+# The only exclusions left are the seven `ignore` entries above, each pinned to
+# versions that cannot build against the current stack. They are temporary and
 # each one names the upgrade that lifts it.
